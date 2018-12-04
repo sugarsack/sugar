@@ -1,0 +1,6 @@
+service_identity
+observable
+autobahn
+twisted
+
+#pip install service_identity --force --upgrade
