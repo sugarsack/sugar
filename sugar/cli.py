@@ -7,6 +7,7 @@ import sys
 from sugar.client import SugarClient
 from sugar.server import SugarServer
 
+
 class SugarCLI(object):
     """
     CLI for running Sugar components in Git style command line interface.
