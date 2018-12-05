@@ -32,7 +32,7 @@ Available components:
             print('Not implemented yet')
             sys.exit(1)
 
-        if not hasattr(self, args.component):
+        if args.component not in ['master', 'client', 'local']:
             print('Unrecognized command')
             parser.print_help()
             sys.exit(1)
