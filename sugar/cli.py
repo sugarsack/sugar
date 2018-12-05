@@ -5,7 +5,7 @@ Main app file, processing CLI
 import argparse
 import sys
 from sugar.client import SugarClient
-
+from sugar.server import SugarServer
 
 class SugarCLI(object):
     """
@@ -59,7 +59,8 @@ Available components:
         parser.add_argument('-l', '--log-level', help='Log level',
                             choices=['info', 'error', 'warning', 'debug'])
         args = parser.parse_args(sys.argv[2:])
-        print('Log: %s' % args.log)
+        server = SugarServer()
+        server.run()
 
     def client(self):
         """
