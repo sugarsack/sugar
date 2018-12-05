@@ -50,15 +50,25 @@ Available components:
         # See if it matches any of registered clients
         return "*" in command  # TODO: hack-stub
 
+    @staticmethod
+    def add_common_params(parser):
+        """
+        Add common CLI params.
+
+        :param parser:
+        :return:
+        """
+        parser.add_argument('-l', '--log-level', help='Log level',
+                            choices=['info', 'error', 'warning', 'debug'])
+
     def master(self):
         """
         Sugar Master starter.
         :return:
         """
-        parser = argparse.ArgumentParser(
-            description='Sugar Master, used to control Sugar Clients')
-        parser.add_argument('-l', '--log-level', help='Log level',
-                            choices=['info', 'error', 'warning', 'debug'])
+        parser = argparse.ArgumentParser(description='Sugar Master, used to control Sugar Clients')
+        SugarCLI.add_common_params(parser)
+
         args = parser.parse_args(sys.argv[2:])
         server = SugarServer()
         server.run()
@@ -68,10 +78,9 @@ Available components:
         Sugar Client starter.
         :return:
         """
-        parser = argparse.ArgumentParser(
-            description='Sugar Client, receives commands from a remote Sugar Master')
-        parser.add_argument('-l', '--log-level', help='Log level',
-                            choices=['info', 'error', 'warning', 'debug'])
+        parser = argparse.ArgumentParser(description='Sugar Client, receives commands from a remote Sugar Master')
+        SugarCLI.add_common_params(parser)
+
         args = parser.parse_args(sys.argv[2:])
         client = SugarClient()
         client.run()
