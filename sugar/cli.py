@@ -58,8 +58,12 @@ Available components:
         :param parser:
         :return:
         """
-        parser.add_argument('-l', '--log-level', help='Log level',
-                            choices=['info', 'error', 'warning', 'debug'])
+        default = 'info'
+        parser.add_argument('-l', '--log-level', help='Set output log level. Default: {}'.format(default),
+                            choices=['info', 'error', 'warning', 'debug'], default=default)
+        default = '/etc/sugar'
+        parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory. '
+                                                       'Default: {}'.format(default), default=default)
 
     def master(self):
         """
