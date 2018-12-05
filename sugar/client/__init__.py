@@ -8,7 +8,7 @@ from twisted.python import log
 from twisted.internet import reactor, ssl
 
 from autobahn.twisted.websocket import connectWS
-from sugar.proto import SugarClientFactory
+from sugar.client.protocols import SugarClientFactory
 
 
 class SugarClient(object):

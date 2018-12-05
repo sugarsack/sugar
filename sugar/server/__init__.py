@@ -10,7 +10,7 @@ from twisted.internet import reactor, ssl
 
 import txaio
 from autobahn.twisted.websocket import listenWS
-from sugar.proto import SugarServerProtocol, SugarServerFactory
+from sugar.server.protocols import SugarServerProtocol, SugarServerFactory
 
 __author__ = "Bo Maryniuk"
 __copyright__ = "Copyright 2018, Sugar Project"

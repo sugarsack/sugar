@@ -1,20 +1,11 @@
+# coding: utf-8
+
 """
-Sugar client and server protocols.
+Server protocols
 """
 
 from __future__ import absolute_import, unicode_literals, print_function
-from autobahn.twisted.websocket import (WebSocketServerProtocol,
-                                        WebSocketClientProtocol,
-                                        WebSocketClientFactory,
-                                        WebSocketServerFactory)
-from twisted.internet.protocol import ReconnectingClientFactory
-
-
-
-
-# ######################################
-# SERVER
-# ######################################
+from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
 
 class SugarServerProtocol(WebSocketServerProtocol):
