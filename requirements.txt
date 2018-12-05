@@ -2,5 +2,7 @@ service_identity
 observable
 autobahn
 twisted
+pylint
+pytest
 
 #pip install service_identity --force --upgrade
