@@ -4,6 +4,7 @@ Main app file, processing CLI
 
 import argparse
 import sys
+from sugar.client import SugarClient
 
 
 class SugarCLI(object):
@@ -65,6 +66,13 @@ Available components:
         Sugar Client starter.
         :return:
         """
+        parser = argparse.ArgumentParser(
+            description='Sugar Client, receives commands from a remote Sugar Master')
+        parser.add_argument('-l', '--log-level', help='Log level',
+                            choices=['info', 'error', 'warning', 'debug'])
+        args = parser.parse_args(sys.argv[2:])
+        client = SugarClient()
+        client.run()
 
     def local(self):
         """
