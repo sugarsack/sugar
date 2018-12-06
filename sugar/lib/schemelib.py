@@ -245,15 +245,23 @@ class Schema(object):
             return True
 
     def validate(self, data):
+        """
+        Validate schema.
+
+        :param data:
+        :return:
+        """
         Schema = self.__class__
         s = self._schema
         e = self._error
         i = self._ignore_extra_keys
         flavor = _priority(s)
+
         if flavor == ITERABLE:
             data = Schema(type(s), error=e).validate(data)
             o = Or(*s, error=e, schema=Schema, ignore_extra_keys=i)
             return type(data)(o.validate(d) for d in data)
+
         if flavor == DICT:
             data = Schema(dict, error=e).validate(data)
             new = type(data)()  # new - is a dict of the validated values
