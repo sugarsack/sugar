@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 import collections
+import copy
 
 
 class ImmutableDict(dict):
@@ -62,6 +63,13 @@ class ObjectMap(object):
     def __getattr__(self, item):
         return self.__dict__.get(item)
 
+    def __call__(self, *args, **kwargs):
+        return self.__getattr__(args[0])
+
+    def __iter__(self):
+        for k in self.__dict__.keys():
+            yield k
+
 
 def dict_to_object(src):
     '''
@@ -74,6 +82,13 @@ def dict_to_object(src):
     for key in src:
         if isinstance(src[key], collections.Mapping):
             setattr(obj, key, dict_to_object(src[key]))
+        elif isinstance(src[key], (list, tuple)):
+            val = []
+            for item in src[key]:
+                if isinstance(item, collections.Mapping):
+                    item = dict_to_object(item)
+                val.append(item)
+            setattr(obj, key, val)
         else:
             setattr(obj, key, src[key])
 
@@ -98,3 +113,70 @@ def merge_dicts(dst, src):
             merge_dicts(dst[key], src[key])
         else:
             dst[key] = src[key]
+
+
+def merge_missing(dst, src):
+    """
+    Merge missing keys from one dict to another.
+
+    :param dst:
+    :param src:
+    :return:
+    """
+    for k in src:
+        if k not in dst:
+            dst[k] = src[k]
+
+
+def update(dest, upd, recursive_update=True, merge_lists=False):
+    '''
+    Recursive version of the default dict.update
+
+    Merges upd recursively into dest
+
+    If recursive_update=False, will use the classic dict.update, or fall back
+    on a manual merge (helpful for non-dict types like FunctionWrapper)
+
+    If merge_lists=True, will aggregate list object types instead of replace.
+    The list in ``upd`` is added to the list in ``dest``, so the resulting list
+    is ``dest[key] + upd[key]``. This behavior is only activated when
+    recursive_update=True. By default merge_lists=False.
+
+    When merging lists, duplicate values are removed. Values already
+    present in the ``dest`` list are not added from the ``upd`` list.
+    '''
+    if (not isinstance(dest, collections.Mapping)) or (not isinstance(upd, collections.Mapping)):
+        raise TypeError('Cannot update using non-dict types in dictupdate.update()')
+    updkeys = list(upd.keys())
+    if not set(list(dest.keys())) & set(updkeys):
+        recursive_update = False
+    if recursive_update:
+        for key in updkeys:
+            val = upd[key]
+            try:
+                dest_subkey = dest.get(key, None)
+            except AttributeError:
+                dest_subkey = None
+            if isinstance(dest_subkey, collections.Mapping) and isinstance(val, collections.Mapping):
+                ret = update(dest_subkey, val, merge_lists=merge_lists)
+                dest[key] = ret
+            elif isinstance(dest_subkey, list) and isinstance(val, list):
+                if merge_lists:
+                    merged = copy.deepcopy(dest_subkey)
+                    merged.extend([x for x in val if x not in merged])
+                    dest[key] = merged
+                else:
+                    dest[key] = upd[key]
+            else:
+                dest[key] = upd[key]
+        return dest
+
+    try:
+        for k in upd:
+            dest[k] = upd[k]
+    except AttributeError:
+        # not a dict
+        for k in upd:
+            dest[k] = upd[k]
+
+    return dest
