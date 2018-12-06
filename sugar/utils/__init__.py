@@ -2,13 +2,24 @@ import logging
 import sys
 
 
-def setup_logger():
+LOG_LEVELS = {
+    'all': logging.NOTSET,
+    'debug': logging.DEBUG,
+    'error': logging.ERROR,
+    'critical': logging.CRITICAL,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'fatal': logging.FATAL
+}
+
+
+def setup_logger(current_level):
     """
     Setup logger to the app.
 
     :return:
     """
-    level = logging.NOTSET
+    level = LOG_LEVELS.get(current_level, LOG_LEVELS['info'])
     root = logging.getLogger()
     root.setLevel(level)
 

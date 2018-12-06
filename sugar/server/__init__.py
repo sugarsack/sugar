@@ -11,6 +11,7 @@ from twisted.internet import reactor, ssl
 import txaio
 from autobahn.twisted.websocket import listenWS
 from sugar.server.protocols import SugarServerProtocol, SugarServerFactory
+from sugar.config import get_config
 
 __author__ = "Bo Maryniuk"
 __copyright__ = "Copyright 2018, Sugar Project"
@@ -29,8 +30,9 @@ class SugarServer(object):
         """
         Initialise Sugar Server class
         """
+        self.config = get_config()
         txaio.start_logging(level='debug')
-        self.factory = SugarServerFactory(u"wss://127.0.0.1:9000")
+        self.factory = SugarServerFactory("wss://*:5505")
         self.factory.protocol = SugarServerProtocol
 
     def run(self):
