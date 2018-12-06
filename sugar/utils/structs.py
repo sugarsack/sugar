@@ -4,6 +4,57 @@ from __future__ import absolute_import, print_function, unicode_literals
 import collections
 
 
+class ImmutableDict(dict):
+    """
+    Immutable dictionary.
+    """
+    class AttributeAccessError(Exception):
+        """
+        Raise an access error
+        """
+
+    def __getitem__(self, key):
+        item = super(ImmutableDict, self).__getitem__(key)
+        if isinstance(item, dict):
+            item = ImmutableDict(item)
+        return item
+
+    def __set__(self, instance, value):
+        raise ImmutableDict.AttributeAccessError('Access to a protected value')
+
+    def __setattr__(self, key, value):
+        raise ImmutableDict.AttributeAccessError('Access to a protected attribute')
+
+    def __delitem__(self, key):
+        raise ImmutableDict.AttributeAccessError('Attempt to delete protected key')
+
+    def __delattr__(self, item):
+        raise ImmutableDict.AttributeAccessError('Attempt to delete protected item')
+
+    def __setitem__(self, key, value):
+        raise ImmutableDict.AttributeAccessError('Access to a protected attribute')
+
+    def update(self, other=None, **kwargs):
+        """
+        Protect from updating content.
+
+        :param other:
+        :param kwargs:
+        :return:
+        """
+        raise ImmutableDict.AttributeAccessError('Attempt to update protected dictionary')
+
+    def setdefault(self, key, value=None):
+        """
+        Protect from setting the default value.
+
+        :param key:
+        :param value:
+        :return:
+        """
+        raise ImmutableDict.AttributeAccessError('Attempt to set default value to a protected dictionary')
+
+
 class ObjectMap(object):
     '''
     Object map access. KeyError is missing as the default is to None.
