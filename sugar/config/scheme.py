@@ -5,13 +5,13 @@ from sugar.lib.schemelib import Schema, And, Use, Optional, SchemaError
 
 # Client configuration scheme
 client_scheme = Schema({
-    'master': And(Use(str)),
-    Optional('cluster'): [{
-        And(Use(str)): {
+    And('master'): [
+        {
+            Optional('hostname', default='sugar'): str,
             Optional('data_port', default=5505): int,
             Optional('ctrl_port', default=5506): int,
         },
-    }]
+    ],
 })
 
 # Master configuration scheme
