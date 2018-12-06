@@ -34,8 +34,8 @@ class _DefaultConfigurations(object):
         'master': [
             {
                 'hostname': 'sugar',
-                'ctrl_port': 123,
-                'data_port': 123,
+                'ctrl_port': 5505,
+                'data_port': 5506,
             },
         ]
     }

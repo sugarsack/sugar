@@ -4,9 +4,12 @@ Main app file, processing CLI
 
 import argparse
 import sys
+
 from sugar.client import SugarClient
 from sugar.server import SugarServer
 from sugar.config import get_config
+
+from twisted.python import log
 
 
 class SugarCLI(object):
@@ -16,6 +19,7 @@ class SugarCLI(object):
     COMPONENTS = ['master', 'client', 'local']
 
     def __init__(self):
+        log.startLogging(sys.stdout)
         parser = argparse.ArgumentParser(
             description="Sugar allows for commands to be executed across a space of remote systems in parallel, "
                         "so they can be both controlled and queried with ease.",
@@ -68,6 +72,14 @@ Available components:
         parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory. '
                                                        'Default: {}'.format(default), default=default)
 
+    def setup(self, args):
+        """
+        Setup component
+        :return:
+        """
+        get_config(args.config_dir)
+        log.startLogging(sys.stdout)
+
     def master(self):
         """
         Sugar Master starter.
@@ -76,10 +88,9 @@ Available components:
         parser = argparse.ArgumentParser(description='Sugar Master, used to control Sugar Clients')
         SugarCLI.add_common_params(parser)
 
-        args = parser.parse_args(sys.argv[2:])
-        get_config(args.config_dir)
-        server = SugarServer()
-        server.run()
+        self.setup(parser.parse_args(sys.argv[2:]))
+        log.msg('Starting Master')
+        SugarServer().run()
 
     def client(self):
         """
@@ -89,10 +100,9 @@ Available components:
         parser = argparse.ArgumentParser(description='Sugar Client, receives commands from a remote Sugar Master')
         SugarCLI.add_common_params(parser)
 
-        args = parser.parse_args(sys.argv[2:])
-        get_config(args.config_dir)
-        client = SugarClient()
-        client.run()
+        self.setup(parser.parse_args(sys.argv[2:]))
+        log.msg('Starting Client')
+        SugarClient().run()
 
     def local(self):
         """

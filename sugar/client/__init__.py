@@ -40,5 +40,4 @@ class SugarClient(object):
         :return:
         """
         connectWS(self.factory, ssl.ClientContextFactory())
-        log.startLogging(sys.stdout)
         reactor.run()
