@@ -6,12 +6,15 @@ import argparse
 import sys
 from sugar.client import SugarClient
 from sugar.server import SugarServer
+from sugar.config import get_config
 
 
 class SugarCLI(object):
     """
     CLI for running Sugar components in Git style command line interface.
     """
+    COMPONENTS = ['master', 'client', 'local']
+
     def __init__(self):
         parser = argparse.ArgumentParser(
             description="Sugar allows for commands to be executed across a space of remote systems in parallel, "
@@ -32,7 +35,7 @@ Available components:
             print('Not implemented yet')
             sys.exit(1)
 
-        if args.component not in ['master', 'client', 'local']:
+        if args.component not in self.COMPONENTS:
             print('Unrecognized command')
             parser.print_help()
             sys.exit(1)
@@ -74,6 +77,7 @@ Available components:
         SugarCLI.add_common_params(parser)
 
         args = parser.parse_args(sys.argv[2:])
+        get_config(args.config_dir)
         server = SugarServer()
         server.run()
 
@@ -86,6 +90,7 @@ Available components:
         SugarCLI.add_common_params(parser)
 
         args = parser.parse_args(sys.argv[2:])
+        get_config(args.config_dir)
         client = SugarClient()
         client.run()
 
