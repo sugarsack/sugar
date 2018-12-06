@@ -1,10 +1,10 @@
 # coding: utf-8
 
 from __future__ import absolute_import, print_function, unicode_literals
-from sugar.lib.schema import Schema, And, Use, Optional, SchemaError
+from sugar.lib.schemelib import Schema, And, Use, Optional, SchemaError
 
-
-client = Schema({
+# Client configuration scheme
+client_scheme = Schema({
     'master': And(Use(str)),
     Optional('cluster'): [{
         And(Use(str)): {
@@ -14,6 +14,7 @@ client = Schema({
     }]
 })
 
-master = Schema({
+# Master configuration scheme
+master_scheme = Schema({
 
 })
