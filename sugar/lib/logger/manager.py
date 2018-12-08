@@ -77,8 +77,7 @@ class LoggerManager(object):
         Get logger with the specified name
         """
         if not isinstance(name, six.string_types):
-            # TODO: Have sugar exceptions!
-            raise Exception("Logger name should be a string type")
+            name = name.__class__.__name__
 
         return self.logger_store.setdefault(name, Logger(name))
 
