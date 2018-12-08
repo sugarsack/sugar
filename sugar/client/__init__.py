@@ -9,7 +9,7 @@ from twisted.internet import reactor, ssl
 from autobahn.twisted.websocket import connectWS
 from sugar.client.protocols import SugarClientFactory
 from sugar.config import get_config
-from sugar.lib.logger import get_logger
+from sugar.lib.logger.manager import get_logger
 
 log = get_logger(__name__)
 

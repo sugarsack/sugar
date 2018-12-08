@@ -6,6 +6,7 @@ import argparse
 import sys
 
 from sugar.config import CurrentConfiguration
+from sugar.lib.logger import Logger
 
 
 class SugarCLI(object):
@@ -61,7 +62,7 @@ Available components:
         :return:
         """
         parser.add_argument('-l', '--log-level', help='Set output log level. Default: info',
-                            choices=['info', 'error', 'warning', 'debug'], default=None)
+                            choices=list(sorted(Logger.LOG_LEVELS.keys())), default=None)
         default = '/etc/sugar'
         parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory. '
                                                        'Default: {}'.format(default), default=default)
@@ -74,7 +75,7 @@ Available components:
         CurrentConfiguration(args.config_dir, args)
 
         # This calls configuration! Should be called therefore after singleton init above.
-        from sugar.lib.logger import get_logger
+        from sugar.lib.logger.manager import get_logger
 
         self.log = get_logger(__name__)
 
