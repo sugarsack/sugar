@@ -18,23 +18,10 @@ class _DefaultConfigurations(object):
     default configurations on all components.
     """
 
-    # Default master configuration
-    # NOTE: Defaults of this are merged to the config,
-    # if they do not exist there.
-    master = {
-    }
-
-    # Default client configuration.
-    # NOTE: Defaults of this are merged to the config,
-    # if they do not exist there.
-    client = {
-        'master': [
-            {
-                'hostname': 'sugar',
-                'ctrl_port': 5505,
-                'data_port': 5506,
-            },
-        ],
+    # Default common configuration for all components
+    # This is inherited as is at its main level.
+    # Common part should be designed at the top levels.
+    _common = {
         'log': [
             {
                 'file': 'STDOUT',
@@ -44,6 +31,56 @@ class _DefaultConfigurations(object):
             }
         ]
     }
+
+    # Default master configuration
+    # NOTE: Defaults of this are merged to the config,
+    # if they do not exist there.
+    _master = {
+    }
+
+    # Default client configuration.
+    # NOTE: Defaults of this are merged to the config,
+    # if they do not exist there.
+    _client = {
+        'master': [
+            {
+                'hostname': 'sugar',
+                'ctrl_port': 5505,
+                'data_port': 5506,
+            },
+        ],
+    }
+
+    @staticmethod
+    def master():
+        """
+        Get master default configuration
+        :param self:
+        :return:
+        """
+        return _DefaultConfigurations._get_config(_DefaultConfigurations._master)
+
+    @staticmethod
+    def client():
+        """
+        Get master default configuration
+        :param self:
+        :return:
+        """
+        return _DefaultConfigurations._get_config(_DefaultConfigurations._client)
+
+
+    @staticmethod
+    def _get_config(config):
+        """
+        Mix dictionaries.
+
+        :return:
+        """
+        config = copy.deepcopy(config)
+        merge_dicts(config, _DefaultConfigurations._common)
+
+        return config
 
     @staticmethod
     def add_defaults(config, opts):
@@ -72,7 +109,7 @@ class _DefaultConfigurations(object):
         :return:
         """
         for target in config['master']:
-            merge_missing(target, _DefaultConfigurations.client['master'][0])
+            merge_missing(target, _DefaultConfigurations.client()['master'][0])
 
     @staticmethod
     def __default_c_reset_logging_level(config, opts):
@@ -84,7 +121,7 @@ class _DefaultConfigurations(object):
         :return:
         """
         for target in config['log']:
-            merge_missing(target, _DefaultConfigurations.client['log'][0])
+            merge_missing(target, _DefaultConfigurations.client()['log'][0])
             if opts and opts.log_level is not None:
                 target['level'] = opts.log_level
 
@@ -110,7 +147,7 @@ class CurrentConfiguration(object):
         :param altpath: alternative location of the configuration path
         """
         self.component = get_current_component()
-        self.__config = copy.deepcopy(getattr(_DefaultConfigurations, self.component))
+        self.__config = copy.deepcopy(getattr(_DefaultConfigurations, self.component)())
         self.__opts = opts
         if self.component and self.component != 'local':
             for path in [altpath or self.DEFAULT_PATH, os.path.expanduser('~')]:
@@ -134,7 +171,7 @@ class CurrentConfiguration(object):
         :param conf:
         :return:
         """
-        merge_dicts(self.__config, conf)
+        merge_dicts(self.__config, conf or {})
         getattr(scheme, '{}_scheme'.format(self.component)).validate(self.__config)
         _DefaultConfigurations.add_defaults(self.__config, self.__opts)
 
