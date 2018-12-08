@@ -5,11 +5,8 @@ Main app file, processing CLI
 import argparse
 import sys
 
-from sugar.client import SugarClient
-from sugar.server import SugarServer
-from sugar.config import get_config
-
-from twisted.python import log
+from sugar.config import CurrentConfiguration
+from sugar.lib.logger import Logger
 
 
 class SugarCLI(object):
@@ -19,7 +16,6 @@ class SugarCLI(object):
     COMPONENTS = ['master', 'client', 'local']
 
     def __init__(self):
-        log.startLogging(sys.stdout)
         parser = argparse.ArgumentParser(
             description="Sugar allows for commands to be executed across a space of remote systems in parallel, "
                         "so they can be both controlled and queried with ease.",
@@ -36,14 +32,15 @@ Available components:
         parser.add_argument('component', help='Component to run')
         args = parser.parse_args(sys.argv[1:2])
         if SugarCLI.is_target(args.component):
-            print('Not implemented yet')
+            sys.stderr.write('Not implemented yet\n')
             sys.exit(1)
 
         if args.component not in self.COMPONENTS:
-            print('Unrecognized command')
+            sys.stderr.write('Unrecognized command\n')
             parser.print_help()
             sys.exit(1)
 
+        self.log = None
         getattr(self, args.component)()
 
     @staticmethod
@@ -65,9 +62,8 @@ Available components:
         :param parser:
         :return:
         """
-        default = 'info'
-        parser.add_argument('-l', '--log-level', help='Set output log level. Default: {}'.format(default),
-                            choices=['info', 'error', 'warning', 'debug'], default=default)
+        parser.add_argument('-l', '--log-level', help='Set output log level. Default: info',
+                            choices=list(sorted(Logger.LOG_LEVELS.keys())), default=None)
         default = '/etc/sugar'
         parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory. '
                                                        'Default: {}'.format(default), default=default)
@@ -77,8 +73,12 @@ Available components:
         Setup component
         :return:
         """
-        get_config(args.config_dir)
-        log.startLogging(sys.stdout)
+        CurrentConfiguration(args.config_dir, args)
+
+        # This calls configuration! Should be called therefore after singleton init above.
+        from sugar.lib.logger.manager import get_logger
+
+        self.log = get_logger(__name__)
 
     def master(self):
         """
@@ -89,7 +89,13 @@ Available components:
         SugarCLI.add_common_params(parser)
 
         self.setup(parser.parse_args(sys.argv[2:]))
-        log.msg('Starting Master')
+        self.log.info('Starting Master')
+
+        # Import order is very important here, since configuration
+        # should be read before. Otherwise logging will be initialised
+        # before default configuration is adjusted
+
+        from sugar.server import SugarServer
         SugarServer().run()
 
     def client(self):
@@ -97,11 +103,18 @@ Available components:
         Sugar Client starter.
         :return:
         """
+
         parser = argparse.ArgumentParser(description='Sugar Client, receives commands from a remote Sugar Master')
         SugarCLI.add_common_params(parser)
 
         self.setup(parser.parse_args(sys.argv[2:]))
-        log.msg('Starting Client')
+        self.log.info('Starting Client')
+
+        # Import order is very important here, since configuration
+        # should be read before. Otherwise logging will be initialised
+        # before default configuration is adjusted
+
+        from sugar.client import SugarClient
         SugarClient().run()
 
     def local(self):

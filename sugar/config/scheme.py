@@ -12,6 +12,14 @@ client_scheme = Schema({
             Optional('ctrl_port', default=5506): int,
         },
     ],
+    And('log'): [
+        {
+            And('file'): str,
+            Optional('level'): str,
+            Optional('rotate'): int,
+            Optional('max_size_mb'): int,
+        }
+    ]
 })
 
 # Master configuration scheme

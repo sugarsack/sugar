@@ -5,14 +5,11 @@ from __future__ import absolute_import, print_function, unicode_literals
 import copy
 import yaml
 import os
-import logging
 
 from sugar.utils.structs import merge_dicts, ImmutableDict, dict_to_object, merge_missing
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
 from sugar.config import scheme
-
-log = logging.getLogger(__name__)
 
 
 class _DefaultConfigurations(object):
@@ -37,11 +34,19 @@ class _DefaultConfigurations(object):
                 'ctrl_port': 5505,
                 'data_port': 5506,
             },
+        ],
+        'log': [
+            {
+                'file': 'STDOUT',
+                'level': 'debug',
+                'rotate': 10,
+                'max_size_mb': 10,
+            }
         ]
     }
 
     @staticmethod
-    def add_defaults(config):
+    def add_defaults(config, opts):
         """
         Go over each aggregate and ensure record has defaults updated.
 
@@ -49,18 +54,18 @@ class _DefaultConfigurations(object):
         """
         for method in _DefaultConfigurations.__dict__:
             if method.startswith('{}__default_'.format(_DefaultConfigurations.__name__)):
-                getattr(_DefaultConfigurations, method)(config)
+                getattr(_DefaultConfigurations, method)(config, opts)
 
     # Methods below are fixtures. They take corresponding chunk
     # from the default config above, iterate over real life config
     # and add defaults.
     #
     # To add a fixture:
-    #   1. Create a method with "__default_" prefix
-    #   2. Add one parameter that takes life conf data.
+    #   1. Create a static method with "__default_[T]_" prefix, where T is one char: "c" for client, "m" for master.
+    #   2. Add parameter: takes life conf data and command line opts to override them.
 
     @staticmethod
-    def __default_c_master_ports(config):
+    def __default_c_master_ports(config, opts):
         """
         Update ctrl/data ports on the client.
 
@@ -69,6 +74,19 @@ class _DefaultConfigurations(object):
         for target in config['master']:
             merge_missing(target, _DefaultConfigurations.client['master'][0])
 
+    @staticmethod
+    def __default_c_reset_logging_level(config, opts):
+        """
+        Roll over the config and update logging levels.
+
+        :param config:
+        :param opts:
+        :return:
+        """
+        for target in config['log']:
+            merge_missing(target, _DefaultConfigurations.client['log'][0])
+            if opts and opts.log_level is not None:
+                target['level'] = opts.log_level
 
 @Singleton
 class CurrentConfiguration(object):
@@ -82,7 +100,7 @@ class CurrentConfiguration(object):
 
     DEFAULT_PATH = '/etc/sugar'
 
-    def __init__(self, altpath):
+    def __init__(self, altpath, opts):
         """
         Load configurations.
         Order:
@@ -93,6 +111,7 @@ class CurrentConfiguration(object):
         """
         self.component = get_current_component()
         self.__config = copy.deepcopy(getattr(_DefaultConfigurations, self.component))
+        self.__opts = opts
         if self.component and self.component != 'local':
             for path in [altpath or self.DEFAULT_PATH, os.path.expanduser('~')]:
                 self._load_config(os.path.join(path, '{}.conf'.format(self.component)))
@@ -117,7 +136,7 @@ class CurrentConfiguration(object):
         """
         merge_dicts(self.__config, conf)
         getattr(scheme, '{}_scheme'.format(self.component)).validate(self.__config)
-        _DefaultConfigurations.add_defaults(self.__config)
+        _DefaultConfigurations.add_defaults(self.__config, self.__opts)
 
     def update(self, data):
         """
@@ -126,6 +145,14 @@ class CurrentConfiguration(object):
         :param data:
         :return:
         """
+        # TODO: this might flush config on dynamic update. Bug or feature? (TBD)
+        # Scenario when this might happen:
+        #   1. Configure only what is different from the default configuration, say option A and B.
+        #   2. Defaults are merged on top of what is left intact, say option C is from default.
+        #   3. Now your config has option A and B custom, while C is default.
+        #   4. Update with even less data than in No.1, say only option A.
+        #   5. Now your config has option A custom, while B and C default.
+
         self.__merge(data)
 
     @property
@@ -137,7 +164,7 @@ class CurrentConfiguration(object):
         return dict_to_object(ImmutableDict(self.__config))
 
 
-def get_config(altpath=None):
+def get_config():
     """
     Get current config.
     Parameter altpath is only considered at first init time.
@@ -145,4 +172,4 @@ def get_config(altpath=None):
     :param altpath: Alternative path
     :return:
     """
-    return CurrentConfiguration(altpath=altpath).root
+    return CurrentConfiguration(None, None).root

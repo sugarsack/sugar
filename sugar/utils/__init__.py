@@ -2,17 +2,6 @@ import logging
 import sys
 
 
-LOG_LEVELS = {
-    'all': logging.NOTSET,
-    'debug': logging.DEBUG,
-    'error': logging.ERROR,
-    'critical': logging.CRITICAL,
-    'info': logging.INFO,
-    'warning': logging.WARNING,
-    'fatal': logging.FATAL
-}
-
-
 def setup_logger(current_level):
     """
     Setup logger to the app.
