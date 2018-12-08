@@ -40,6 +40,7 @@ Available components:
             parser.print_help()
             sys.exit(1)
 
+        self.log = None
         getattr(self, args.component)()
 
     @staticmethod
