@@ -90,7 +90,7 @@ class _DefaultConfigurations(object):
         :return:
         """
         for method in _DefaultConfigurations.__dict__:
-            if method.startswith('{}__default_'.format(_DefaultConfigurations.__name__)):
+            if method.startswith('{}__default_{}_'.format(_DefaultConfigurations.__name__, get_current_component())):
                 getattr(_DefaultConfigurations, method)(config, opts)
 
     # Methods below are fixtures. They take corresponding chunk
@@ -98,11 +98,11 @@ class _DefaultConfigurations(object):
     # and add defaults.
     #
     # To add a fixture:
-    #   1. Create a static method with "__default_[T]_" prefix, where T is one char: "c" for client, "m" for master.
+    #   1. Create a static method with "__default_[T]_" prefix, where T is component, e.g. "client", or "master" etc.
     #   2. Add parameter: takes life conf data and command line opts to override them.
 
     @staticmethod
-    def __default_c_master_ports(config, opts):
+    def __default_client_master_ports(config, opts):
         """
         Update ctrl/data ports on the client.
 
@@ -112,7 +112,7 @@ class _DefaultConfigurations(object):
             merge_missing(target, _DefaultConfigurations.client()['master'][0])
 
     @staticmethod
-    def __default_c_reset_logging_level(config, opts):
+    def __default_client_reset_logging_level(config, opts):
         """
         Roll over the config and update logging levels.
 
