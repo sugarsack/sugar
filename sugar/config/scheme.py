@@ -3,8 +3,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 from sugar.lib.schemelib import Schema, And, Use, Optional, SchemaError
 
-# Client configuration scheme
-client_scheme = Schema({
+__client_scheme = {
     And('master'): [
         {
             Optional('hostname', default='sugar'): str,
@@ -20,9 +19,12 @@ client_scheme = Schema({
             Optional('max_size_mb'): int,
         }
     ]
-})
+}
+
+__master_scheme = {}
+
+# Client configuration scheme
+client_scheme = Schema(__client_scheme)
 
 # Master configuration scheme
-master_scheme = Schema({
-
-})
+master_scheme = Schema(__master_scheme)
