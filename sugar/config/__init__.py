@@ -36,9 +36,19 @@ class _DefaultConfigurations(object):
     # NOTE: Defaults of this are merged to the config,
     # if they do not exist there.
     _master = {
+        'crypto': {
+            'ssl': {
+                'path': 'ssh/',
+                'certificate': 'certificate.pem',
+                'private': 'private_key.pem',
+            },
+            'clients': {
+                'path': 'pki/',
+            },
+        },
     }
 
-    # Default client configuration.
+# Default client configuration.
     # NOTE: Defaults of this are merged to the config,
     # if they do not exist there.
     _client = {
@@ -125,6 +135,7 @@ class _DefaultConfigurations(object):
             if opts and opts.log_level is not None:
                 target['level'] = opts.log_level
 
+
 @Singleton
 class CurrentConfiguration(object):
     """
@@ -152,6 +163,7 @@ class CurrentConfiguration(object):
         if self.component and self.component != 'local':
             for path in [altpath or self.DEFAULT_PATH, os.path.expanduser('~')]:
                 self._load_config(os.path.join(path, '{}.conf'.format(self.component)))
+        self.__config['config_path'] = altpath or self.DEFAULT_PATH
 
     def _load_config(self, config_path):
         '''

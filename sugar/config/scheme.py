@@ -42,7 +42,16 @@ class SchemeBuilder(object):
     # Master configuration scheme for validation
     # Expand it here
     __master_scheme = {
-
+        Optional('crypto'): {
+            Optional('ssl'): {
+                Optional('path', default='ssl/'): str,
+                Optional('certificate', default="certificate.pem"): str,
+                Optional('private', default="private_key.pem"): str,
+            },
+            Optional('clients'): {
+                Optional('path', default='pki/'): str,
+            }
+        }
     }
 
     def get_master_scheme(self):
