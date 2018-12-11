@@ -58,7 +58,7 @@ Available components:
         for c in ['*', '.', ':']:
             if c in command:
                 return True
-        return c not in SugarCLI.COMPONENTS
+        return command not in SugarCLI.COMPONENTS
 
     @staticmethod
     def add_common_params(parser):
