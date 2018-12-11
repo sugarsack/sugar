@@ -5,7 +5,9 @@ Console protocols
 """
 
 from __future__ import absolute_import, unicode_literals, print_function
+
 from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientFactory
+from twisted.internet.protocol import ClientFactory
 
 
 class SugarConsoleProtocol(WebSocketClientProtocol):
@@ -33,7 +35,7 @@ class SugarConsoleProtocol(WebSocketClientProtocol):
         self.log.debug("Socket closed: {0}".format(reason))
 
 
-class SugarClientFactory(WebSocketClientFactory):
+class SugarClientFactory(WebSocketClientFactory, ClientFactory):
     """
     Factory for reconnection
     """
@@ -42,4 +44,14 @@ class SugarClientFactory(WebSocketClientFactory):
     def __init__(self, *args, **kwargs):
         WebSocketClientFactory.__init__(self, *args, **kwargs)
         self.maxDelay = 10
-        self.blet = 'kurwa'
+
+    def clientConnectionFailed(self, connector, reason):
+        """
+
+        :param connector:
+        :param reason:
+        :return:
+        """
+        self.log.error('Cannot connect console. Is Master running?')
+        self.console.parse_command_line()
+        self.reactor.stop()

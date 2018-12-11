@@ -155,13 +155,14 @@ Available components:
         """
         self.component_cli_parser = argparse.ArgumentParser(
             description='Sugar Console, sends commants to a remote Sugar Master')
+        self.component_cli_parser.add_argument('query', nargs="+", help="Query")
         SugarCLI.add_common_params(self.component_cli_parser)
 
         self.setup()
         self.log.debug('Calling Console')
 
         from sugar.console import SugarConsole
-        self.run(SugarConsole())
+        self.run(SugarConsole(self.component_args))
 
     def local(self):
         """
