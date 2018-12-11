@@ -56,7 +56,7 @@ class SugarConsoleServerFactory(WebSocketServerFactory):
         :param client:
         :return:
         """
-        if client not in self.clients:
+        if client not in self.consoles:
             self.log.info("Registering console: {}".format(client))
             self.consoles.append(client)
 
@@ -67,7 +67,7 @@ class SugarConsoleServerFactory(WebSocketServerFactory):
         :param client:
         :return:
         """
-        if client in self.clients:
+        if client in self.consoles:
             self.log.info("Unregistering console: {}".format(client))
             self.consoles.remove(client)
 
