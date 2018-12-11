@@ -77,7 +77,7 @@ class LoggerManager(object):
         Get logger with the specified name
         """
         if not isinstance(name, six.string_types):
-            name = name.__class__.__name__
+            name = "{}.{}".format(name.__class__.__module__, name.__class__.__name__)
 
         return self.logger_store.setdefault(name, Logger(name))
 
