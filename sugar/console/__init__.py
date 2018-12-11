@@ -41,7 +41,7 @@ class SugarConsoleCore(object):
         """
         self.args = args
         self._r_digits = re.compile(r"\d+")
-        self.log = get_logger(self.__class__.__name__)
+        self.log = get_logger(self)
 
     def _get_type(self, val):
         """
