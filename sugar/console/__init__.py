@@ -6,6 +6,7 @@ Sugar Server
 
 from __future__ import unicode_literals, print_function, absolute_import
 
+import re
 import sys
 from twisted.internet import reactor, ssl
 
@@ -14,7 +15,7 @@ from sugar.console.protocols import SugarConsoleProtocol, SugarClientFactory
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.transport import ConsoleMsgFactory
-from sugar.lib import exceptions
+from sugar.lib import exceptions, six
 
 log = get_logger(__name__)
 
@@ -39,6 +40,8 @@ class SugarConsoleCore(object):
         :param args:
         """
         self.args = args
+        self._r_digits = re.compile(r"\d+")
+        self.log = get_logger(self.__class__.__name__)
 
     def _get_type(self, val):
         """
@@ -47,6 +50,26 @@ class SugarConsoleCore(object):
         :param val:
         :return:
         """
+        val = six.text_type(val)
+        if ',' in val:
+            _val = []
+            for inner in val.split(","):
+                _val.append(self._get_type(inner))
+            val = _val[::]
+            del _val
+        elif val.lower() in ['true', 'false']:
+            val = val.lower() == 'true'
+        elif self._r_digits.search(val):
+            try:
+                val = int(val, 16 if val.lower().startswith('0x') else 10)
+            except (ValueError, TypeError):
+                try:
+                    val = float(val)
+                except (ValueError, TypeError):
+                    val = six.text_type(val)
+        else:
+            val = six.text_type(val)
+
         return val
 
     def _get_args(self, query):
@@ -60,7 +83,7 @@ class SugarConsoleCore(object):
         kwargs = {}
         for arg in query:
             if "=" not in arg:
-                args.append(arg)
+                args.append(self._get_type(arg))
             else:
                 k, v = arg.split('=', 1)
                 kwargs[k] = self._get_type(v)
@@ -75,13 +98,14 @@ class SugarConsoleCore(object):
         """
         target = sys.argv[1:2]
         query = self.args.query[::]
-        print(">>>", query)
-        print('>>>', target)
 
         cnt = ConsoleMsgFactory.create()
         cnt.tgt = target
-        cnt.fun = query.pop()
+        cnt.fun = query.pop(0)
         cnt.arg = self._get_args(query)
+
+        self.log.debug("Incoming query: {}".format(query))
+        self.log.debug("Parsed incoming query: {}".format(cnt.arg))
 
         return cnt
 
