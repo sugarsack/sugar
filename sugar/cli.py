@@ -55,8 +55,10 @@ Available components:
         :param command:
         :return:
         """
-        # See if it matches any of registered clients
-        return "*" in command  # TODO: hack-stub
+        for c in ['*', '.', ':']:
+            if c in command:
+                return True
+        return c not in SugarCLI.COMPONENTS
 
     @staticmethod
     def add_common_params(parser):
