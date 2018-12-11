@@ -33,7 +33,7 @@ Available components:
         parser.add_argument('component', help='Component to run')
         args = parser.parse_args(sys.argv[1:2])
         if SugarCLI.is_target(args.component):
-            sys.stderr.write('Not implemented yet\n')
+            self.console()
             sys.exit(1)
 
         if args.component not in self.COMPONENTS:
@@ -143,6 +143,23 @@ Available components:
 
         from sugar.client import SugarClient
         self.run(SugarClient())
+
+    def console(self):
+        """
+        Sugar console.
+        Connects to the locally running master.
+
+        :return:
+        """
+        self.component_cli_parser = argparse.ArgumentParser(
+            description='Sugar Console, sends commants to a remote Sugar Master')
+        SugarCLI.add_common_params(self.component_cli_parser)
+
+        self.setup()
+        self.log.debug('Calling Console')
+
+        from sugar.console import SugarConsole
+        self.run(SugarConsole())
 
     def local(self):
         """
