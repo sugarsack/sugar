@@ -1,6 +1,10 @@
 """
 Transport protocol
 """
+from __future__ import absolute_import, unicode_literals
+
+from sugar.lib.schemelib import Schema, Use, And, Optional
+from sugar.transport.serialisable import Serialisable, ObjectGate
 
 
 class ErrorLevel(object):
@@ -13,17 +17,46 @@ class ErrorLevel(object):
     ERROR = 3
 
 
-class Console(object):
+class ConsoleMsgFactory(object):
     """
-    Console messages
+    Console message
     """
-    command = {
-        'tgt': '*',
-        'fun': 'test.ping',
-        'arg': [],
-        'usr': 'bo',
-        'jid': '20181210205756456745',
-    }
+    scheme = Schema({
+        And('tgt'): str,
+        And('fun'): str,
+        And('arg'): [],
+        And('usr'): str,
+        And('jid'): str,
+    })
+
+    @staticmethod
+    def create():
+        """
+        Create message.
+
+        :return:
+        """
+        return Serialisable()
+
+    @staticmethod
+    def validate(obj):
+        """
+        Validate object.
+
+        :param obj:
+        :return:
+        """
+        ConsoleMsgFactory.scheme.validate(ConsoleMsgFactory.serialise(obj))
+
+    @staticmethod
+    def serialise(obj):
+        """
+        Serialise object.
+
+        :param obj:
+        :return:
+        """
+        return ObjectGate(obj).dump()
 
 
 class Client(object):
