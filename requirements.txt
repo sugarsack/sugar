@@ -4,5 +4,7 @@ autobahn
 twisted
 pylint
 pytest
+partd
+mock
 
 #pip install service_identity --force --upgrade

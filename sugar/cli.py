@@ -7,6 +7,7 @@ import sys
 
 from sugar.config import CurrentConfiguration
 from sugar.lib.logger import Logger
+from sugar.lib import schemelib
 
 
 class SugarCLI(object):
@@ -32,7 +33,7 @@ Available components:
         parser.add_argument('component', help='Component to run')
         args = parser.parse_args(sys.argv[1:2])
         if SugarCLI.is_target(args.component):
-            sys.stderr.write('Not implemented yet\n')
+            self.console()
             sys.exit(1)
 
         if args.component not in self.COMPONENTS:
@@ -41,6 +42,9 @@ Available components:
             sys.exit(1)
 
         self.log = None
+        self.component_cli_parser = None  # Argparse for the current component
+        self.component_args = None        # Parsed argparse for the current component
+
         getattr(self, args.component)()
 
     @staticmethod
@@ -51,8 +55,10 @@ Available components:
         :param command:
         :return:
         """
-        # See if it matches any of registered clients
-        return "*" in command  # TODO: hack-stub
+        for c in ['*', '.', ':']:
+            if c in command:
+                return True
+        return command not in SugarCLI.COMPONENTS
 
     @staticmethod
     def add_common_params(parser):
@@ -68,27 +74,49 @@ Available components:
         parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory. '
                                                        'Default: {}'.format(default), default=default)
 
-    def setup(self, args):
+    def setup(self):
         """
-        Setup component
+        Setup component.
         :return:
         """
-        CurrentConfiguration(args.config_dir, args)
+        self.component_args = self.component_cli_parser.parse_args(sys.argv[2:])
+        try:
+            CurrentConfiguration(self.component_args.config_dir, self.component_args)
+        except schemelib.SchemaError as ex:
+            sys.stderr.write('Configuration error:\n  {}\n'.format(ex))
+            if self.component_args.log_level == 'debug':
+                raise ex
+            sys.exit(1)
 
         # This calls configuration! Should be called therefore after singleton init above.
         from sugar.lib.logger.manager import get_logger
 
         self.log = get_logger(__name__)
 
+    def run(self, reactor):
+        """
+        Run reactor.
+
+        :param reactor:
+        :return:
+        """
+        try:
+            reactor.run()
+        except Exception as ex:
+            sys.stderr.write('Error running {}:\n  {}\n'.format(sys.argv[1].title(), ex))
+            if self.component_args.log_level == 'debug':
+                raise ex
+
     def master(self):
         """
         Sugar Master starter.
         :return:
         """
-        parser = argparse.ArgumentParser(description='Sugar Master, used to control Sugar Clients')
-        SugarCLI.add_common_params(parser)
+        self.component_cli_parser = argparse.ArgumentParser(
+            description='Sugar Master, used to control Sugar Clients')
+        SugarCLI.add_common_params(self.component_cli_parser)
 
-        self.setup(parser.parse_args(sys.argv[2:]))
+        self.setup()
         self.log.info('Starting Master')
 
         # Import order is very important here, since configuration
@@ -96,7 +124,7 @@ Available components:
         # before default configuration is adjusted
 
         from sugar.server import SugarServer
-        SugarServer().run()
+        self.run(SugarServer())
 
     def client(self):
         """
@@ -104,10 +132,11 @@ Available components:
         :return:
         """
 
-        parser = argparse.ArgumentParser(description='Sugar Client, receives commands from a remote Sugar Master')
-        SugarCLI.add_common_params(parser)
+        self.component_cli_parser = argparse.ArgumentParser(
+            description='Sugar Client, receives commands from a remote Sugar Master')
+        SugarCLI.add_common_params(self.component_cli_parser)
 
-        self.setup(parser.parse_args(sys.argv[2:]))
+        self.setup()
         self.log.info('Starting Client')
 
         # Import order is very important here, since configuration
@@ -115,7 +144,25 @@ Available components:
         # before default configuration is adjusted
 
         from sugar.client import SugarClient
-        SugarClient().run()
+        self.run(SugarClient())
+
+    def console(self):
+        """
+        Sugar console.
+        Connects to the locally running master.
+
+        :return:
+        """
+        self.component_cli_parser = argparse.ArgumentParser(
+            description='Sugar Console, sends commants to a remote Sugar Master')
+        self.component_cli_parser.add_argument('query', nargs="+", help="Query")
+        SugarCLI.add_common_params(self.component_cli_parser)
+
+        self.setup()
+        self.log.debug('Calling Console')
+
+        from sugar.console import SugarConsole
+        self.run(SugarConsole(self.component_args))
 
     def local(self):
         """

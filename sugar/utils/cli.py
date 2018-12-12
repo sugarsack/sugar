@@ -12,4 +12,6 @@ def get_current_component():
 
     :return:
     """
-    return sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in ['master', 'client', 'local'] else None
+    # Console connects only to the "master" currently.
+    return (sys.argv[1] if len(sys.argv) > 1 and sys.argv[1]
+            in ['master', 'client', 'local'] else 'master')  # Later to None and figure out what is running.

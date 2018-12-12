@@ -8,10 +8,12 @@ from __future__ import unicode_literals, print_function, absolute_import
 
 from twisted.internet import reactor, ssl
 
-import txaio
 from autobahn.twisted.websocket import listenWS
-from sugar.server.protocols import SugarServerProtocol, SugarServerFactory
+from sugar.server.protocols import (SugarServerProtocol, SugarServerFactory,
+                                    SugarConsoleServerProtocol, SugarConsoleServerFactory)
 from sugar.config import get_config
+from sugar.lib.logger.manager import get_logger
+
 
 __author__ = "Bo Maryniuk"
 __copyright__ = "Copyright 2018, Sugar Project"
@@ -31,15 +33,23 @@ class SugarServer(object):
         Initialise Sugar Server class
         """
         self.config = get_config()
-        txaio.start_logging(level='debug')
+        self.log = get_logger(self)
         self.factory = SugarServerFactory("wss://*:5505")
         self.factory.protocol = SugarServerProtocol
+
+        self.console_factory = SugarConsoleServerFactory("wss://*:5507")
+        self.console_factory.protocol = SugarConsoleServerProtocol
 
     def run(self):
         """
         Run Sugar Server.
         :return:
         """
+        #cfg = get_config()
+        #print(">>>>>>>>>>>>>>", cfg.log_level)
         contextFactory = ssl.DefaultOpenSSLContextFactory('key.pem', 'certificate.pem')
+
         listenWS(self.factory, contextFactory)
+        listenWS(self.console_factory, contextFactory)
+
         reactor.run()
