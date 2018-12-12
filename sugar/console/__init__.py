@@ -100,8 +100,7 @@ class SugarConsoleCore(object):
         query = self.args.query[::]
 
         cnt = ConsoleMsgFactory.create()
-        cnt.knd = 'task'
-        cnt.tgt = target
+        cnt.tgt = target and target[0] or ':'
         cnt.fun = query.pop(0)
         cnt.arg = self._get_args(query)
 
