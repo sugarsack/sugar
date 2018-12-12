@@ -89,7 +89,7 @@ class SugarConsoleCore(object):
                 kwargs[k] = self._get_type(v)
         return args, kwargs
 
-    def parse_command_line(self):
+    def get_task(self):
         """
         Parse command line command.
         This finds target, function and parameters.
@@ -100,6 +100,7 @@ class SugarConsoleCore(object):
         query = self.args.query[::]
 
         cnt = ConsoleMsgFactory.create()
+        cnt.knd = 'task'
         cnt.tgt = target
         cnt.fun = query.pop(0)
         cnt.arg = self._get_args(query)
