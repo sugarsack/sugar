@@ -41,7 +41,7 @@ class TestSerialise(object):
         """
         d = ObjectGate()
         s = d.load(obj_structure)
-        assert ObjectGate(s).dump() == obj_structure
+        assert ObjectGate(s).pack() == obj_structure
 
     def test_dump(self, obj_structure):
         """
@@ -53,4 +53,4 @@ class TestSerialise(object):
         s.foo.bar = 'blah'
         s.here.something = {'user': 'data', 'int': 123}
 
-        assert ObjectGate(s).dump() == obj_structure
+        assert ObjectGate(s).pack() == obj_structure

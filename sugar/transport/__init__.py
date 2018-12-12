@@ -27,6 +27,7 @@ class ConsoleMsgFactory(object):
         And('arg'): [],
         And('usr'): str,
         And('jid'): str,
+        And('knd'): str,
     })
 
     @staticmethod
@@ -56,7 +57,7 @@ class ConsoleMsgFactory(object):
         :param obj:
         :return:
         """
-        return ObjectGate(obj).dump()
+        return ObjectGate(obj).pack()
 
 
 class Client(object):
