@@ -9,6 +9,8 @@ from __future__ import absolute_import, unicode_literals, print_function
 from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientFactory
 from twisted.internet.protocol import ClientFactory
 
+from sugar.transport import ObjectGate
+
 
 class SugarConsoleProtocol(WebSocketClientProtocol):
     """
@@ -21,14 +23,11 @@ class SugarConsoleProtocol(WebSocketClientProtocol):
         self.log.debug("Console connected: {0}".format(response.peer))
 
     def onOpen(self):
-        self.log.debug("Opened socket")
-        self.sendMessage('ku ku'.encode('utf-8'))
+        msg_obj = self.factory.console.get_task()
+        self.sendMessage(ObjectGate(msg_obj).pack(True), isBinary=True)
 
     def onMessage(self, payload, binary):
-        if binary:
-            self.log.info("Binary message received: {0} bytes".format(len(payload)))
-        else:
-            self.log.info("Text message received: {0}".format(payload.decode('utf8')))
+        self.log.info('Response from the master accepted. Stopping.')
         self.factory.reactor.stop()
 
     def onClose(self, wasClean, code, reason):
@@ -53,5 +52,4 @@ class SugarClientFactory(WebSocketClientFactory, ClientFactory):
         :return:
         """
         self.log.error('Cannot connect console. Is Master running?')
-        self.console.parse_command_line()
         self.reactor.stop()
