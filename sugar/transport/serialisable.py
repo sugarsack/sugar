@@ -4,11 +4,12 @@ General objects for the serialisation.
 from __future__ import absolute_import, unicode_literals
 
 import collections
+import pickle
 
 
 class ObjectGate(object):
     """
-    Gate to serialise/dump serialisable objects.
+    Gate to serialise/pack serialisable objects.
     """
     OBJ_CNT = '.'  # Object container marker
 
@@ -35,13 +36,16 @@ class ObjectGate(object):
 
         return obj
 
-    def load(self, obj):
+    def load(self, obj, binary=False):
         """
         Load serialisable object.
 
         :param obj:
         :return:
         """
+        if binary:
+            obj = pickle.loads(obj)
+
         if not isinstance(obj, collections.Mapping):
             raise Exception("Object Gate exception")
         self.__obj = self._loader(obj)
@@ -65,14 +69,14 @@ class ObjectGate(object):
 
         return data
 
-    def dump(self):
+    def pack(self, binary=False):
         """
-        Dump serialisable object.
+        Pack serialisable object.
 
         :return:
         """
-        self.__data = self._dumper(self.__obj)
-        return self.__data
+        data = self._dumper(self.__obj)
+        return binary and pickle.dumps(data) or data
 
 
 class Serialisable(object):
