@@ -7,6 +7,10 @@ Server protocols
 from __future__ import absolute_import, unicode_literals, print_function
 from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
+from sugar.transport import ObjectGate, ServerMsgFactory
+from sugar.utils import exitcodes
+from sugar.server.core import get_server_core
+
 
 class SugarConsoleServerProtocol(WebSocketServerProtocol):
     """
@@ -19,14 +23,16 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
         self.factory.register(self)
         self.log.info("Console WebSocket connection established")
 
-    def onMessage(self, payload, isBinary):
-        if isBinary:
-            self.log.info("Binary message received: {0} bytes".format(len(payload)))
+    def onMessage(self, payload, binary):
+        reply = ServerMsgFactory.create_client_msg()
+        if binary:
+            msg = ObjectGate().load(payload, binary)
+            self.factory.core.console_request(msg)
+            reply.ret.message = "accepted jid: {}".format(msg.jid)
         else:
-            self.log.info("Text message received: {0}".format(payload.decode('utf8')))
-
-        # echo back message verbatim
-        self.sendMessage(payload, isBinary)
+            reply.ret.message = "Unknown message"
+            reply.ret.errcode = exitcodes.EX_GENERIC
+        self.sendMessage(ServerMsgFactory.pack(reply), isBinary=True)
 
     def onClose(self, wasClean, code, reason):
         self.log.info("Console WebSocket connection has been terminated: {0}".format(reason))
@@ -48,6 +54,7 @@ class SugarConsoleServerFactory(WebSocketServerFactory):
     def __init__(self, url):
         WebSocketServerFactory.__init__(self, url)
         self.consoles = []  # More smarter stuff here to select clients
+        self.core = get_server_core()
 
     def register(self, client):
         """
@@ -112,6 +119,7 @@ class SugarServerFactory(WebSocketServerFactory):
     def __init__(self, url):
         WebSocketServerFactory.__init__(self, url)
         self.clients = []  # More smarter stuff here to select clients
+        self.core = get_server_core()
 
     def register(self, client):
         """

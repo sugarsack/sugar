@@ -45,6 +45,8 @@ class SugarServer(object):
         Run Sugar Server.
         :return:
         """
+        #cfg = get_config()
+        #print(">>>>>>>>>>>>>>", cfg.log_level)
         contextFactory = ssl.DefaultOpenSSLContextFactory('key.pem', 'certificate.pem')
 
         listenWS(self.factory, contextFactory)

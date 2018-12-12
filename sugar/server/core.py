@@ -8,6 +8,7 @@ from sugar.lib.logger.manager import get_logger
 from sugar.utils.objects import Singleton
 from multiprocessing import Queue
 from twisted.internet import threads
+import sugar.transport
 
 
 class RegisteredClients(object):
@@ -53,16 +54,23 @@ class ServerCore(object):
         :param evt:
         :return:
         """
+        print('-' * 80)
         print("SEND TASK TO CLIENTS")
+        print(evt.jid)
+        print('-' * 80)
 
     def console_request(self, evt):
         """
         Accepts request from the console.
 
-        :return:
+        :return: immediate response
         """
-        if evt.kind == 'task':
+        if evt.kind == sugar.transport.ServerMsgFactory.TASK_RESPONSE:
             threads.deferToThread(self._send_task_to_clients, evt)
+
+        msg = sugar.transport.ServerMsgFactory.create_console_msg()
+        msg.ret.message = "Task has been accepted"
+        return evt
 
     def client_request(self, evt):
         """
