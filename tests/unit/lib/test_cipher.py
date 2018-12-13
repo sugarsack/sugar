@@ -47,6 +47,9 @@ def bytecode():
 
 
 class TestCrypto(object):
+    """
+    Test crypto object.
+    """
     def test_aes_enc_dec_str(self, crypto, message):
         """
         Test AES encryption of a string.
@@ -64,3 +67,16 @@ class TestCrypto(object):
         :return:
         """
         assert crypto.decrypt_aes(crypto.encrypt_aes(bytecode)) == bytecode
+        obj = pickle.loads(bytecode)
+        assert obj.bar == "Fred"
+
+    def test_rsa_enc_dec_str(self, crypto, message):
+        """
+        Encrypt a string message using RSA pub/priv keypair.
+
+        :param crypto:
+        :param message:
+        :return:
+        """
+        priv, pub = crypto.create_rsa_keypair()
+        assert crypto.decrypt_rsa(priv, crypto.encrypt_rsa(pub, message)).decode('utf-8') == message
