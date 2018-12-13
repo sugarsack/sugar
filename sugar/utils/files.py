@@ -13,9 +13,9 @@ import os
 import re
 import shutil
 import stat
-import subprocess
 import tempfile
 import time
+import contextlib
 
 from sugar.lib import six
 import sugar.utils.platform
@@ -855,3 +855,51 @@ def get_encoding(path):
         return 'ASCII'
 
     raise sugar.lib.exceptions.SugarRuntimeException('Could not detect file encoding')
+
+
+def mk_dirs(path):
+    """
+    Create directories.
+
+    :param path:
+    :return:
+    """
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path, 750)
+        except Exception as ex:
+            raise sugar.lib.exceptions.SugarRuntimeException(ex)
+
+    return path
+
+
+@contextlib.contextmanager
+def atomic_write(filepath, binary=False, fsync=False):
+    """
+    Writeable file object that atomically updates a file (using a temporary file).
+
+    Usage:
+
+      with atomic_write('/path/to/file.txt') as fh:
+          fh.write("some data")
+
+    :param filepath: the file path to be opened
+    :param binary: whether to open the file in a binary mode instead of textual
+    :param fsync: whether to force write the file to disk
+    """
+
+    tmppath = filepath + '~'
+    while os.path.isfile(tmppath):
+        tmppath += '~'
+    try:
+        with open(tmppath, 'wb' if binary else 'w') as file:
+            yield file
+            if fsync:
+                file.flush()
+                os.fsync(file.fileno())
+        os.rename(tmppath, filepath)
+    finally:
+        try:
+            os.remove(tmppath)
+        except (IOError, OSError):
+            pass
