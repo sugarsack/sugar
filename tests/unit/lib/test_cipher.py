@@ -80,3 +80,15 @@ class TestCrypto(object):
         """
         priv, pub = crypto.create_rsa_keypair()
         assert crypto.decrypt_rsa(priv, crypto.encrypt_rsa(pub, message)).decode('utf-8') == message
+
+    def test_rsa_enc_dec_object(self, crypto, bytecode):
+        """
+        Encrypt an object
+        :param crypto:
+        :param bytecode:
+        :return:
+        """
+        priv, pub = crypto.create_rsa_keypair()
+        assert crypto.decrypt_rsa(priv, crypto.encrypt_rsa(pub, bytecode)) == bytecode
+        obj = pickle.loads(bytecode)
+        assert obj.bar == "Fred"
