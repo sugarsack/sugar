@@ -182,7 +182,7 @@ class Crypto(object):
 
         return PKCS1_v1_5.new(RSA.importKey(priv_key)).sign(digest)
 
-    def verify_signature(self, pubkey, data, signature):
+    def verify_signature(self, pubkey_pem, data, signature):
         """
         Verify signature.
 
@@ -197,7 +197,7 @@ class Crypto(object):
         digest = SHA256.new()
         digest.update(data)
 
-        return PKCS1_v1_5.new(RSA.importKey(pubkey)).verify(digest, signature)
+        return PKCS1_v1_5.new(RSA.importKey(pubkey_pem)).verify(digest, signature)
 
     def get_object_checksum(self, obj):
         """
@@ -207,3 +207,11 @@ class Crypto(object):
         :return:
         """
         return zlib.crc32(pickle.dumps(obj))
+
+    def finterprint(self, pubkey_pem):
+        """
+        Get key fingerprint.
+
+        :param pubkey_pem:
+        :return:
+        """
