@@ -11,9 +11,12 @@ class SugarException(Exception):
     Base exception class.
     All Sugar exceptions should be subclassed from here.
     """
+    __prefix__ = "General error"
+
     def __init__(self, msg=""):
         if not isinstance(msg, six.string_types):
             msg = six.text_type(msg)
+        msg = "{}: {}".format(self.__prefix__, msg)
         super(SugarException, self).__init__(msg)
         self.message = self.strerror = msg
 
@@ -35,6 +38,15 @@ class SugarRuntimeException(SugarException):
     """
     Sugar runtime exception.
     """
+    __prefix__ = "Runtime error"
+
+
+class SugarDependencyException(SugarException):
+    """
+    Sugar dependency installation exception:
+    something is missing (needs to be specified).
+    """
+    __prefix__ = "Dependency error"
 
 
 # Console
@@ -42,6 +54,7 @@ class SugarConsoleException(SugarException):
     """
     General console exception.
     """
+    __prefix__ = "Console-specific error"
 
 
 # Client
@@ -49,6 +62,7 @@ class SugarClientException(SugarException):
     """
     General client exception.
     """
+    __prefix__ = "Client error"
 
 
 # Server
@@ -56,3 +70,4 @@ class SugarServerException(SugarException):
     """
     General server exception.
     """
+    __prefix__ = "Server error"
