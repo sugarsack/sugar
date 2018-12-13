@@ -6,6 +6,8 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from io import BytesIO
 import hashlib
+import zlib
+import pickle
 from sugar.lib import six
 
 try:
@@ -196,3 +198,12 @@ class Crypto(object):
         digest.update(data)
 
         return PKCS1_v1_5.new(RSA.importKey(pubkey)).verify(digest, signature)
+
+    def get_object_checksum(self, obj):
+        """
+        Get object checksum.
+
+        :param obj:
+        :return:
+        """
+        return zlib.crc32(pickle.dumps(obj))
