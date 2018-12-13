@@ -92,3 +92,40 @@ class TestCrypto(object):
         assert crypto.decrypt_rsa(priv, crypto.encrypt_rsa(pub, bytecode)) == bytecode
         obj = pickle.loads(bytecode)
         assert obj.bar == "Fred"
+
+    def test_object_signature(self, crypto):
+        """
+        Test object signature.
+
+        :param crypto:
+        :return:
+        """
+
+        foo = Foo()
+        foo.very = "important"
+
+        csum = str(crypto.get_object_checksum(foo))
+        priv, pub = crypto.create_rsa_keypair()
+        signature = crypto.sign(priv, csum)
+
+        assert crypto.verify_signature(pub, csum, signature)
+
+    def test_object_signature_tampered(self, crypto):
+        """
+        Test object signature, while data was tampered.
+
+        :param crypto:
+        :return:
+        """
+
+        foo = Foo()
+        foo.very = "important"
+
+        csum = str(crypto.get_object_checksum(foo))
+        priv, pub = crypto.create_rsa_keypair()
+        signature = crypto.sign(priv, csum)
+
+        foo.very = "tampered"
+        csum = str(crypto.get_object_checksum(foo))
+
+        assert not crypto.verify_signature(pub, csum, signature)
