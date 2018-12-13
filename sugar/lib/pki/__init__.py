@@ -5,31 +5,23 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 
 from io import BytesIO
+
 import hashlib
 import zlib
 import pickle
 from sugar.lib import six
-
-try:
-    from Crypto.Hash import SHA256
-    from Crypto.Signature import PKCS1_v1_5
-    from Crypto.PublicKey import RSA
-    from Crypto import Random
-except ImportError:
-    PKCS1_v1_5 = RSA = SHA256  = None
-
-try:
-    from Crypto.Random import get_random_bytes
-except ImportError:
-    get_random_bytes = None
-
-try:
-    from Crypto.Cipher import AES, PKCS1_OAEP
-except ImportError:
-    PKCS1_OAEP = AES = None
-
-
 from sugar.lib import exceptions
+
+from Crypto.Hash import SHA256
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import AES
+from Crypto import Random
+
+try:
+    import bcrypt
+except ImportError:
+    bcrypt = None
 
 
 class Crypto(object):
@@ -45,26 +37,6 @@ class Crypto(object):
             self.key = hashlib.sha256(key).hexdigest()
         else:
             self.key = self.create_aes_key()
-
-    def blah(self):
-        message = b"I want this stream signed"
-        digest = SHA256.new()
-        digest.update(message)
-
-        # Read shared key from file
-        private_key = False
-        with open ("private_key.pem", "r") as myfile:
-            private_key = RSA.importKey(myfile.read())
-
-        # Load private key and sign message
-        signer = PKCS1_v1_5.new(private_key)
-        sig = signer.sign(digest)
-
-        # Load public key and verify message
-        verifier = PKCS1_v1_5.new(private_key.publickey())
-        verified = verifier.verify(digest, sig)
-        assert verified, 'Signature verification failed'
-        print('Successfully verified message')
 
     def create_rsa_keypair(self, bits=2048):
         """
@@ -86,10 +58,7 @@ class Crypto(object):
 
         :return:
         """
-        if get_random_bytes is None:
-            exceptions.SugarDependencyException("'Crypto.Random' seems missing")
-
-        return get_random_bytes(0x10)
+        return Random.get_random_bytes(0x10)
 
     def _pad(self, data):
         """
@@ -120,9 +89,6 @@ class Crypto(object):
 
         :return: Binary data
         """
-        if AES is None:
-            raise exceptions.SugarDependencyException("AES algorithm is not available.")
-
         iv = Random.new().read(AES.block_size)
         out = BytesIO()
         for chunk in (iv, AES.new(self.key, AES.MODE_CBC, iv).encrypt(self._pad(data))):
@@ -219,3 +185,40 @@ class Crypto(object):
         """
         digest = getattr(hashlib, cs_alg)(pubkey_pem).hexdigest()
         return ':'.join(pre + pos for pre, pos in zip(digest[::2], digest[1::2]))
+
+    @staticmethod
+    def hash_password(password):
+        """
+        String to the salted crypted hash or just SHA256 hex digest, if no bcrypt around.
+        """
+        if bcrypt is not None:
+            pwd = bcrypt.hashpw(password, bcrypt.gensalt())
+        else:
+            pwd = hashlib.sha256(password.encode(encoding='utf_8', errors='strict')).hexdigest()
+
+        return pwd
+
+    @classmethod
+    def check_password(cls, password, hashed):
+        """
+        Check if an attempt password is the same as hashed.
+        """
+        if bcrypt is not None:
+            res = bcrypt.hashpw(password, hashed) == hashed
+        else:
+            res = cls.hash_password(password) == hashed
+
+        return res
+
+    @staticmethod
+    def reinit_crypto():
+        """
+        When a fork arises, pycrypto needs to reinit
+        From its doc::
+
+            Caveat: For the random number generator to work correctly,
+            you must call Random.atfork() in both the parent and
+            child processes after using os.fork()
+
+        """
+        Random.atfork()
