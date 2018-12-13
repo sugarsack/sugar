@@ -129,3 +129,12 @@ class TestCrypto(object):
         csum = str(crypto.get_object_checksum(foo))
 
         assert not crypto.verify_signature(pub, csum, signature)
+
+    def test_fingerprint(self, crypto):
+        """
+        Test fingerprint.
+
+        :return:
+        """
+        fp = "85:73:8f:8f:9a:7f:1b:04:b5:32:9c:59:0e:bc:b9:e4:25:92:5c:6d:09:84:08:9c:43:a0:22:de:4f:19:c2:81"
+        assert crypto.get_finterprint(b'whatever') == fp
