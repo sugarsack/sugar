@@ -208,10 +208,14 @@ class Crypto(object):
         """
         return zlib.crc32(pickle.dumps(obj))
 
-    def finterprint(self, pubkey_pem):
+    def get_finterprint(self, pubkey_pem, cs_alg='sha256'):
         """
-        Get key fingerprint.
+        Pass in a raw pem string, and the type of cryptographic hash to use. The default is SHA256.
+        The fingerprint of the pem will be returned.
 
         :param pubkey_pem:
+        :param cs_alg: algorithm
         :return:
         """
+        digest = getattr(hashlib, cs_alg)(pubkey_pem).hexdigest()
+        return ':'.join(pre + pos for pre, pos in zip(digest[::2], digest[1::2]))
