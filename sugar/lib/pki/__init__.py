@@ -174,7 +174,8 @@ class Crypto(object):
         """
         return zlib.crc32(pickle.dumps(obj))
 
-    def get_finterprint(self, pubkey_pem, cs_alg='sha256'):
+    @staticmethod
+    def get_finterprint(pubkey_pem, cs_alg='sha256'):
         """
         Pass in a raw pem string, and the type of cryptographic hash to use. The default is SHA256.
         The fingerprint of the pem will be returned.
