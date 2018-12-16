@@ -13,6 +13,7 @@ from sugar.utils.cli import get_current_component
 import sugar.utils.files
 import sugar.utils.stringutils
 import sugar.lib.exceptions
+from sugar.transport.serialisable import Serialisable
 
 from pony import orm
 
@@ -46,10 +47,8 @@ class KeyStore(object):
         self.__is_locked = False
 
         db_name = os.path.join(self.__root_path, self.DBFILE)
-        db_mapping = not os.path.exists(db_name)
         self.db.bind(provider="sqlite", filename=db_name, create_db=True)
-        if db_mapping:
-            self.db.generate_mapping(create_tables=True)
+        self.db.generate_mapping(create_tables=True)
 
     def _lock_transation(self, timeout=30):
         """
@@ -61,6 +60,8 @@ class KeyStore(object):
         """
         while timeout > 0:
             if os.path.exists(self.__lock_file_path):
+                if os.path.getctime(self.__lock_file_path) + timeout < time.time():
+                    break
                 time.sleep(0.5)
                 timeout -= 0.5
             else:
@@ -72,33 +73,64 @@ class KeyStore(object):
 
         return self.__is_locked
 
-    def _unlock_transaction(self, timeout=30):
+    def _unlock_transaction(self, timeout=30, force=False):
         """
         Unlock the FS.
         Timeout 30 seconds by default.
 
         :return:
         """
-        if self.__is_locked:
-            try:
-                with sugar.utils.files.fopen(self.__lock_file_path, 'r') as fh_lck:
-                   lock_pid = int(fh_lck.read().strip())
-            except Exception:
+        try:
+            with sugar.utils.files.fopen(self.__lock_file_path, 'r') as fh_lck:
+                lock_pid = int(fh_lck.read().strip())
+                if os.getpid() == lock_pid:
+                    lock_pid = None
+        except Exception:
+            lock_pid = None
+
+        try:
+            if os.path.getctime(self.__lock_file_path) + timeout < time.time() or force:
                 lock_pid = None
+        except Exception:
+            lock_pid = None
 
-            if lock_pid is None:
-                sugar.utils.files.remove(self.__lock_file_path)
-
-            if lock_pid is not None and lock_pid != os.getpid() and os.path.exists(self.__lock_file_path):
-                while timeout > 0:
-                    if os.path.exists(self.__lock_file_path):
-                        time.sleep(0.5)
-                        timeout -= 0.5
-                    else:
-                        sugar.utils.files.remove(self.__lock_file_path)
-                        self.__is_locked = False
+        if lock_pid is None:
+            sugar.utils.files.remove(self.__lock_file_path)
+        elif lock_pid != os.getpid() and os.path.exists(self.__lock_file_path):
+            while timeout > 0:
+                if os.path.exists(self.__lock_file_path):
+                    time.sleep(0.5)
+                    timeout -= 0.5
+                else:
+                    sugar.utils.files.remove(self.__lock_file_path)
+                    self.__is_locked = False
 
         return not self.__is_locked
+
+    @orm.db_session
+    def __commit(self):
+        force = False
+        try:
+            orm.commit()
+        except orm.core.TransactionIntegrityError as ex:
+            force = True
+            raise sugar.lib.exceptions.SugarKeyStoreException(ex)
+        finally:
+            self._unlock_transaction(force=force)
+
+    @orm.db_session
+    def __get_keys_by_status(self, status):
+        """
+        Get keys by status.
+
+        :param status:
+        :return:
+        """
+        ret = []
+        for obj in orm.select(k for k in StoredKey if k.status == status):
+            ret.append(obj.clone())
+
+        return ret
 
     def get_candidates(self):
         """
@@ -106,7 +138,7 @@ class KeyStore(object):
 
         :return:
         """
-        return orm.select(k for k in StoredKey if k.status == self.STATUS_CANDIDATE)
+        return self.__get_keys_by_status(self.STATUS_CANDIDATE)
 
     def get_accepted(self):
         """
@@ -114,7 +146,7 @@ class KeyStore(object):
 
         :return:
         """
-        return orm.select(k for k in StoredKey if k.status == self.STATUS_ACCEPTED)
+        return self.__get_keys_by_status(self.STATUS_ACCEPTED)
 
     def get_rejected(self):
         """
@@ -122,7 +154,7 @@ class KeyStore(object):
 
         :return:
         """
-        return orm.select(k for k in StoredKey if k.status == self.STATUS_REJECTED)
+        return self.__get_keys_by_status(self.STATUS_REJECTED)
 
     def get_denied(self):
         """
@@ -130,7 +162,7 @@ class KeyStore(object):
 
         :return:
         """
-        return orm.select(k for k in StoredKey if k.status == self.STATUS_DENIED)
+        return self.__get_keys_by_status(self.STATUS_DENIED)
 
     @orm.db_session
     def add(self, pubkey_pem, hostname, machine_id):
@@ -141,15 +173,10 @@ class KeyStore(object):
         :return:
         """
         self._lock_transation()
-        key = StoredKey(hostname=hostname, fingerprint=Crypto.get_finterprint(pubkey_pem),
-                        machine_id=machine_id, filename="{}.bin".format(os.path.join(self.__keys_path, machine_id)),
-                        status=self.STATUS_CANDIDATE)
-
-        print('HOSTNAME:', key.hostname)
-        print('MACHINE ID:', key.machine_id)
-
-        orm.commit()
-        self._unlock_transaction()
+        StoredKey(hostname=hostname, fingerprint=Crypto.get_finterprint(pubkey_pem),
+                  machine_id=machine_id, filename="{}.bin".format(os.path.join(self.__keys_path, machine_id)),
+                  status=self.STATUS_CANDIDATE)
+        self.__commit()
 
     @orm.db_session
     def delete(self, fingerprint):
@@ -160,27 +187,11 @@ class KeyStore(object):
         :return:
         """
         self._lock_transation()
-        key = self.__get_key_for_status(fingerprint)
+        key = StoredKey.get(fingerprint=fingerprint)
         if key is not None:
             orm.delete(k for k in StoredKey if k.fingerprint == fingerprint)
             # delete key from the fs too
         self._unlock_transaction()
-
-    def __get_key_for_status(self, hostname=None, fingerprint=None):
-        """
-        Get key for the status update.
-
-        :param hostname:
-        :param fingerprint:
-        :return:
-        """
-        if hostname is not None:
-            key = self.get_key_by_hostname(hostname)
-        elif fingerprint is not None:
-            key = self.get_key_by_fingerprint(fingerprint)
-        else:
-            raise sugar.lib.exceptions.SugarKeyStoreException("Hostname or fingerprint needs to be specified")
-        return key
 
     @orm.db_session
     def reject(self, hostname=None, fingerprint=None):
@@ -193,10 +204,14 @@ class KeyStore(object):
         :return:
         """
         self._lock_transation()
-        key = self.__get_key_for_status(hostname=hostname, fingerprint=fingerprint)
+        params = {}
+        if hostname:
+            params['hostname'] = hostname
+        if fingerprint:
+            params['fingerprint'] = fingerprint
+        key = StoredKey.get(**params)
         if key is not None:
             key.status = self.STATUS_REJECTED
-            orm.commit()
         self._unlock_transaction()
 
     @orm.db_session
@@ -208,7 +223,7 @@ class KeyStore(object):
         :return:
         """
         self._lock_transation()
-        key = self.__get_key_for_status(fingerprint=fingerprint)
+        key = StoredKey.get(fingerprint=fingerprint)
         if key is not None:
             key.status = self.STATUS_DENIED
             orm.commit()
@@ -223,12 +238,16 @@ class KeyStore(object):
         :return:
         """
         self._lock_transation()
-        key = self.__get_key_for_status(fingerprint=fingerprint)
-        if key is not None:
-            key.status = self.STATUS_ACCEPTED
-            orm.commit()
-        self._unlock_transaction()
+        try:
+            key = StoredKey.get(fingerprint=fingerprint)
+            if key is not None:
+                key.status = self.STATUS_ACCEPTED
+            else:
+                raise sugar.lib.exceptions.SugarKeyStoreException("Key not found with the fingerprint {}".format(fingerprint))
+        finally:
+            self._unlock_transaction()
 
+    @orm.db_session
     def get_key_by_fingerprint(self, fingerprint):
         """
         Get key by fingerprint.
@@ -238,6 +257,7 @@ class KeyStore(object):
         """
         return orm.select(k for k in StoredKey if k.fingerprint == fingerprint)
 
+    @orm.db_session
     def get_key_by_machine_id(self, machine_id):
         """
         Get key by name.
@@ -247,6 +267,7 @@ class KeyStore(object):
         """
         return orm.select(k for k in StoredKey if k.machine_id == machine_id)
 
+    @orm.db_session
     def get_key_by_hostname(self, hostname):
         """
         Get key by hostname.
@@ -269,9 +290,26 @@ class StoredKey(KeyStore.db.Entity):
     filename = orm.Required(str, unique=True)
     notes = orm.Optional(str)
 
+    def clone(self):
+        """
+        Clone itself into the serialisable object.
+
+        :return:
+        """
+        export_obj = Serialisable()
+        for attr in self.__class__.__dict__:
+            if not attr.startswith('_') and not callable(self.__class__.__dict__[attr]):
+                setattr(export_obj, attr, getattr(self, attr))
+        return export_obj
+
 
 if __name__ == '__main__':
     ks = KeyStore("/tmp/ks")
-    c = Crypto()
-    pri, pub = c.create_rsa_keypair()
-    ks.add(pub, "bla", "blabla")
+    #c = Crypto()
+    #pri, pub = c.create_rsa_keypair()
+    #ks.add(pub, "bla", "blabla")
+    from sugar.transport.serialisable import ObjectGate
+    for x in ks.get_rejected():
+        print(ObjectGate(x).pack())
+
+    ks.reject(fingerprint='5a:fb:17:c8:a0:a5:7c:19:bd:14:9f:3c:52:de:b4:15:b2:d4:d7:0d:1b:50:cd:ca:8c:3b:21:cc:2e:d9:17:39')
