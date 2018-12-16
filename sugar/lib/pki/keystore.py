@@ -38,6 +38,7 @@ class KeyStore(object):
 
         :param dbpath:
         """
+        path = path or "/etc/sugar"
         self.__component = get_current_component()
 
         if self.__component != 'local':
