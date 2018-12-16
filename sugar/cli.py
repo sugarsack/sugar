@@ -3,6 +3,7 @@ Main app file, processing CLI
 """
 
 import argparse
+import inspect
 import sys
 
 from sugar.config import CurrentConfiguration
@@ -101,7 +102,10 @@ Available components:
         :return:
         """
         try:
-            reactor.run()
+            if inspect.isclass(type(reactor)) and not type(reactor) == type:
+                reactor.run()
+            else:
+                reactor(self.component_args).run()
         except Exception as ex:
             sys.stderr.write('Error running {}:\n  {}\n'.format(sys.argv[1].title(), ex))
             if self.component_args.log_level == 'debug':
