@@ -866,7 +866,7 @@ def mk_dirs(path):
     """
     if not os.path.exists(path):
         try:
-            os.makedirs(path, 750)
+            os.makedirs(path, 0o0750)
         except Exception as ex:
             raise sugar.lib.exceptions.SugarRuntimeException(ex)
 
