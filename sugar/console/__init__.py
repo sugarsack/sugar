@@ -15,7 +15,7 @@ from sugar.console.protocols import SugarConsoleProtocol, SugarClientFactory
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.transport import ConsoleMsgFactory
-from sugar.lib import exceptions, six
+from sugar.lib import six
 
 log = get_logger(__name__)
 
