@@ -62,6 +62,13 @@ class SugarFileLockException(SugarException):
             self.time_start = time_start
 
 
+class SugarKeyStoreException(SugarException):
+    """
+    Used when keystore exception occurs.
+    """
+    __prefix__ = "KeyStore error"
+
+
 # Console
 class SugarConsoleException(SugarException):
     """
