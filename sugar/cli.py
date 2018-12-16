@@ -15,7 +15,7 @@ class SugarCLI(object):
     """
     CLI for running Sugar components in Git style command line interface.
     """
-    COMPONENTS = ['master', 'client', 'local']
+    COMPONENTS = ['master', 'client', 'local', 'keys']
 
     def __init__(self):
         parser = argparse.ArgumentParser(
@@ -28,9 +28,10 @@ wildcard that matches client names.
 
 Available components:
 
-    master     Sugar Master, used to control Sugar Clients
-    client     Sugar Client, receives commands from a remote Sugar Master
-    local      Sugar local orchestration""")
+    master     Used to control Sugar Clients
+    client     Receives commands from a remote Sugar Master
+    keys       Used to manage Sugar authentication keys
+    local      Local orchestration""")
         parser.add_argument('component', help='Component to run')
         args = parser.parse_args(sys.argv[1:2])
         if SugarCLI.is_target(args.component):
@@ -167,6 +168,30 @@ Available components:
 
         from sugar.console import SugarConsole
         self.run(SugarConsole(self.component_args))
+
+    def keys(self):
+        """
+        Sugar key manager.
+        Used to manage keys of the clients.
+
+        :return:
+        """
+        self.component_cli_parser = argparse.ArgumentParser(
+            description='Sugar Keys Manager, manages authentication keys')
+        self.component_cli_parser.add_argument("command", help="Action on known keys", default=None,
+                                               choices=sorted(["accept", "deny", "reject", "list"]))
+        self.component_cli_parser.add_argument("-f", "--format", help="Format of the listing. Default: short",
+                                               default="short", choices=sorted(["short", "full"]))
+        self.component_cli_parser.add_argument("-s", "--status", help="List only with the following status. "
+                                                                      " Default: all",
+                                               default="all", choices=sorted(["all", "accepted", "rejected", "denied"]))
+        SugarCLI.add_common_params(self.component_cli_parser)
+
+        self.setup()
+        self.log.debug('Running key manager')
+
+        from sugar.components.keymanager import SugarKeyManager
+        self.run(SugarKeyManager)
 
     def local(self):
         """
