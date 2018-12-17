@@ -5,6 +5,7 @@ CLI output formatters.
 from __future__ import absolute_import, print_function, unicode_literals
 
 import colored
+import collections
 
 
 class _BaseOutput(object):
@@ -18,12 +19,14 @@ class _BaseOutput(object):
         "leaf": "\\__",
         "bullet": "*",
         "list": "-",
+        "n/a": " <N/A>",
     }
 
     _symbols_utf = {
         "leaf": "\u2514\u2500\u2500\u2510",
         "bullet": chr(0x25a0),
         "list": chr(0x2509),
+        "n/a": " \u25a0N/A\u25a0",
     }
 
     _colors_16 = {
@@ -36,6 +39,7 @@ class _BaseOutput(object):
         "elements": {
             "key": colored.fg(6),
             "leaf": colored.fg(6),
+            "n/a": colored.fg(7),
         }
     }
 
@@ -49,6 +53,7 @@ class _BaseOutput(object):
         "elements": {
             "key": colored.fg(35),
             "leaf": colored.fg(35),
+            "n/a": colored.fg(245),
         }
     }
 
@@ -86,6 +91,15 @@ class _BaseOutput(object):
         :return:
         """
         return "{}{}".format(offset + self._ident, self._get_symbol_scheme()["leaf"])
+
+    def c_na(self, offset):
+        """
+        Insert value or N/A.
+
+        :return:
+        """
+        return "{}{}{}{}".format(offset + self._ident, self._get_color_scheme()["elements"]["n/a"],
+                                 self._get_symbol_scheme()["n/a"], colored.attr("reset"))
 
     def paint(self, obj, offset=""):
         """
@@ -138,18 +152,22 @@ class IterableOutput(_BaseOutput):
         :return:
         """
         out = []
-        for item in obj:
-            if isinstance(item, dict):
-                out.append(self.c_leaf(offset))
-                out.append(MappingOutput(colors=self._colors,
-                                         encoding=self._encoding).paint(item, offset=offset + self._ident))
-            elif isinstance(item, (list, tuple)):
-                out.append(self.c_leaf(offset))
-                out.append(self.paint(item, offset + self._ident))
-            else:
-                out.append("{}{} {}{}{}".format(offset + self._ident, self._get_symbol_scheme()["list"],
-                                                self.c_type(item), item, colored.attr("reset")))
+        if not obj:
+            out.append(self.c_na(offset))
+        else:
+            for item in obj:
+                if isinstance(item, dict):
+                    out.append(self.c_leaf(offset))
+                    out.append(MappingOutput(colors=self._colors,
+                                             encoding=self._encoding).paint(item, offset=offset + self._ident))
+                elif isinstance(item, (list, tuple)):
+                    out.append(self.c_leaf(offset))
+                    out.append(self.paint(item, offset + self._ident))
+                else:
+                    out.append("{}{} {}{}{}".format(offset + self._ident, self._get_symbol_scheme()["list"],
+                                                    self.c_type(item), item, colored.attr("reset")))
         return '\n'.join(out)
+
 
 class TitleOutput(object):
     """
