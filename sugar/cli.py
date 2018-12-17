@@ -184,7 +184,8 @@ Available components:
                                                default="short", choices=sorted(["short", "full"]))
         self.component_cli_parser.add_argument("-s", "--status", help="List only with the following status. "
                                                                       " Default: all",
-                                               default="all", choices=sorted(["all", "accepted", "rejected", "denied"]))
+                                               default="all", choices=sorted(["all", "new", "accepted",
+                                                                              "rejected", "denied"]))
         SugarCLI.add_common_params(self.component_cli_parser)
 
         self.setup()
