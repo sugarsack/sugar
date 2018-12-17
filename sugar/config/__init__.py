@@ -44,6 +44,7 @@ class _DefaultConfigurations(object):
         },
         'terminal': {
             'colors': 16,
+            'encoding': 'ascii',
         }
     }
 
