@@ -48,9 +48,9 @@ class SchemeBuilder(object):
                 Optional('certificate', default="certificate.pem"): str,
                 Optional('private', default="private_key.pem"): str,
             },
-            Optional('clients'): {
-                Optional('path', default='pki/'): str,
-            }
+        },
+        Optional('terminal'): {
+            Optional('colors'): int,
         }
     }
 

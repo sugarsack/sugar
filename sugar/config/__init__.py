@@ -38,14 +38,13 @@ class _DefaultConfigurations(object):
     _master = {
         'crypto': {
             'ssl': {
-                'path': 'ssh/',
                 'certificate': 'certificate.pem',
                 'private': 'private_key.pem',
             },
-            'clients': {
-                'path': 'pki/',
-            },
         },
+        'terminal': {
+            'colors': 16,
+        }
     }
 
 # Default client configuration.
