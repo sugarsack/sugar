@@ -201,6 +201,11 @@ class TitleOutput(object):
         "success": {
             "f": 0,
             "b": 2,
+        },
+
+        "info": {
+            "f": 15,
+            "b": 4,
         }
     }
 
