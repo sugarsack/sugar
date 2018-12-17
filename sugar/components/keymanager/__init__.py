@@ -11,6 +11,7 @@ from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki.keystore import KeyStore
 from sugar.lib.outputters.console import IterableOutput, TitleOutput
+from sugar.lib import exceptions
 
 
 class SugarKeyManager(object):
@@ -51,13 +52,14 @@ class SugarKeyManager(object):
                 ret[text] = getattr(self.__keystore, "get_{}".format(text))()
                 title.add(text.title(), style)
 
-        # Short version
-        for text in ret:
-            sys.stdout.write(title.paint(text.title()) + "\n")
-            sys.stdout.write(self._list_output.paint(ret[text]) + "\n\n")
-
-        # Full version
-
+        if self.args.format == "short":
+            for text in ret:
+                sys.stdout.write(title.paint(text.title()) + "\n")
+                sys.stdout.write(self._list_output.paint(ret[text]) + "\n\n")
+        elif self.args.format == "full":
+            print("Not yet :-)")
+        else:
+            raise exceptions.SugarConsoleException("Unknown format: {}".format(self.args.format))
 
     def run(self):
         """
