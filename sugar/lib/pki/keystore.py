@@ -18,19 +18,47 @@ from sugar.transport.serialisable import Serialisable
 from pony import orm
 
 
+class KeyDB(object):
+    """
+    Key database.
+    """
+    DBFILE = "keystore.db"
+    db = orm.Database()
+    _instance = None
+
+    def __init__(self, path):
+        if self._instance is None:
+            self.db.bind(provider="sqlite", filename=os.path.join(path, self.DBFILE), create_db=True)
+            self.db.generate_mapping(create_tables=True)
+            self._instance = self
+        else:
+            raise Exception("Should be getting instance instead")
+
+    @classmethod
+    def get_instance(cls, path):
+        """
+        Get KeyDB instance.
+
+        :param path:
+        :return:
+        """
+        instance = KeyDB._instance
+        if instance is None:
+            instance = KeyDB(path)._instance
+
+        return instance
+
+
 class KeyStore(object):
     """
     Key Store implementation with the SQLite3.
     """
-    db = orm.Database()
-
     STATUS_CANDIDATE = "candidate"
     STATUS_ACCEPTED = "accepted"
     STATUS_DENIED = "denied"
     STATUS_REJECTED = "rejected"
 
     LOCKFILE = ".keystore.lck"
-    DBFILE = "keystore.db"
 
     def __init__(self, path):
         """
@@ -46,10 +74,7 @@ class KeyStore(object):
             self.__keys_path = sugar.utils.files.mk_dirs(os.path.join(self.__root_path, 'keys'))
         self.__lock_file_path = os.path.join(self.__root_path, self.LOCKFILE)
         self.__is_locked = False
-
-        db_name = os.path.join(self.__root_path, self.DBFILE)
-        self.db.bind(provider="sqlite", filename=db_name, create_db=True)
-        self.db.generate_mapping(create_tables=True)
+        KeyDB.get_instance(self.__root_path)
 
     def _lock_transation(self, timeout=30):
         """
@@ -279,7 +304,7 @@ class KeyStore(object):
         return orm.select(k for k in StoredKey if k.hostname == hostname)
 
 
-class StoredKey(KeyStore.db.Entity):
+class StoredKey(KeyDB.db.Entity):
     """
     Key meta.
     """
