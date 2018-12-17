@@ -150,3 +150,111 @@ class IterableOutput(_BaseOutput):
                 out.append("{}{} {}{}{}".format(offset + self._ident, self._get_symbol_scheme()["list"],
                                                 self.c_type(item), item, colored.attr("reset")))
         return '\n'.join(out)
+
+class TitleOutput(object):
+    """
+    Title maker.
+
+    Add as many as needed titles with different colors.
+    They will be all equally same width.
+
+    Example:
+
+        t = Title()
+        t.add("foo")
+        t.add("long one")
+
+    Then "foo" and "long one" will have the same length and style.
+    """
+    _suffix_ascii = " >>>"
+    _suffix_utf = "\u2593\u2592\u2591"
+
+    _styles_16 = {
+        "alert": {
+            "f": 15,
+            "b": 1,
+        },
+
+        "warning": {
+            "f": 0,
+            "b": 3,
+        },
+
+        "success": {
+            "f": 0,
+            "b": 2,
+        }
+    }
+
+    _styles_256 = {
+        "alert": {
+            "f": 226,
+            "b": 160,
+        },
+
+        "warning": {
+            "f": 232,
+            "b": 172,
+        },
+
+        "success": {
+            "f": 232,
+            "b": 70,
+        },
+
+        "info": {
+            "f": 255,
+            "b": 63,
+        }
+    }
+
+    def __init__(self, colors=16, encoding="ascii"):
+        self._colors = colors
+        self._encoding = encoding
+        self._titles = collections.OrderedDict()
+
+    def _get_style(self):
+        """
+        Get style.
+
+        :return:
+        """
+        return self.__class__.__dict__.get("_styles_{}".format(self._colors), self._styles_16)
+
+    def _get_suffix(self):
+        """
+        Get suffix.
+
+        :return:
+        """
+        return self.__class__.__dict__.get("_suffix_{}".format(self._encoding), self._suffix_ascii)
+
+    def add(self, title, style):
+        """
+        Add title.
+
+        :param title:
+        :param color:
+        :return:
+        """
+        self._titles[title] = style
+
+    def paint(self, text):
+        """
+        Paint a title.
+
+        :param title:
+        :return:
+        """
+        style = self._titles.get(text)
+        if style:
+            style = self._get_style()[style]
+            title = "{b} {f}{ab}{t} {r}{bf}{s}{r}".format(
+                b=colored.bg(style["b"]), f=colored.fg(style["f"]),
+                t=text + (" " * (len(max(self._titles)) - len(text))),
+                r=colored.attr("reset"), bf=colored.fg(style["b"]),
+                ab=colored.attr("bold"), s=self._get_suffix())
+        else:
+            title = text
+
+        return title
