@@ -66,7 +66,7 @@ class KeyStore(object):
 
         :param dbpath:
         """
-        path = path or "/etc/sugar"
+        path = os.path.join(path or "/etc/sugar", "pki")
         self.__component = get_current_component()
 
         if self.__component != 'local':
@@ -158,7 +158,7 @@ class KeyStore(object):
 
         return ret
 
-    def get_candidates(self):
+    def get_new(self):
         """
         List candidate keys in the store by name.
 
