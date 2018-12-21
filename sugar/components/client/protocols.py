@@ -5,6 +5,7 @@ Client protocols
 from __future__ import absolute_import, unicode_literals, print_function
 from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientFactory
 from twisted.internet.protocol import ReconnectingClientFactory
+from sugar.components.client.core import ClientCore
 
 
 class SugarClientProtocol(WebSocketClientProtocol):
@@ -47,6 +48,7 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         WebSocketClientFactory.__init__(self, *args, **kwargs)
         ReconnectingClientFactory.__init__(self)
         self.maxDelay = 10
+        self.core = ClientCore()
 
     def clientConnectionFailed(self, connector, reason):
         """
