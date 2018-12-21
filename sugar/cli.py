@@ -126,7 +126,7 @@ Available components:
         # should be read before. Otherwise logging will be initialised
         # before default configuration is adjusted
 
-        from sugar.server import SugarServer
+        from sugar.components.server import SugarServer
         self.run(SugarServer())
 
     def client(self):
@@ -146,7 +146,7 @@ Available components:
         # should be read before. Otherwise logging will be initialised
         # before default configuration is adjusted
 
-        from sugar.client import SugarClient
+        from sugar.components.client import SugarClient
         self.run(SugarClient())
 
     def console(self):
@@ -164,7 +164,7 @@ Available components:
         self.setup()
         self.log.debug('Calling Console')
 
-        from sugar.console import SugarConsole
+        from sugar.components.console import SugarConsole
         self.run(SugarConsole(self.component_args))
 
     def keys(self):

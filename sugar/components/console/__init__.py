@@ -11,7 +11,7 @@ import sys
 from twisted.internet import reactor, ssl
 
 from autobahn.twisted.websocket import connectWS
-from sugar.console.protocols import SugarConsoleProtocol, SugarClientFactory
+from sugar.components.console.protocols import SugarConsoleProtocol, SugarClientFactory
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.transport import ConsoleMsgFactory

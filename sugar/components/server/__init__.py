@@ -9,8 +9,8 @@ from __future__ import unicode_literals, print_function, absolute_import
 from twisted.internet import reactor, ssl
 
 from autobahn.twisted.websocket import listenWS
-from sugar.server.protocols import (SugarServerProtocol, SugarServerFactory,
-                                    SugarConsoleServerProtocol, SugarConsoleServerFactory)
+from sugar.components.server.protocols import (SugarServerProtocol, SugarServerFactory,
+                                               SugarConsoleServerProtocol, SugarConsoleServerFactory)
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 

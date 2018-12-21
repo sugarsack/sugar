@@ -9,7 +9,7 @@ from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerF
 
 from sugar.transport import ObjectGate, ServerMsgFactory
 from sugar.utils import exitcodes
-from sugar.server.core import get_server_core
+from sugar.components.server.core import get_server_core
 
 
 class SugarConsoleServerProtocol(WebSocketServerProtocol):
