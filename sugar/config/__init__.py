@@ -147,6 +147,7 @@ class CurrentConfiguration(object):
     """
 
     DEFAULT_PATH = '/etc/sugar'
+    HOME_PATH = "{}/.sugar"
 
     def __init__(self, altpath, opts):
         """
@@ -160,9 +161,11 @@ class CurrentConfiguration(object):
         self.component = get_current_component()
         self.__config = copy.deepcopy(getattr(_DefaultConfigurations, self.component)())
         self.__opts = opts
+
         if self.component and self.component != 'local':
-            for path in [altpath or self.DEFAULT_PATH, os.path.expanduser('~')]:
-                self._load_config(os.path.join(path, '{}.conf'.format(self.component)))
+            for path in [altpath, self.HOME_PATH.format(os.path.expanduser("~")), self.DEFAULT_PATH]:
+                if path and os.path.isdir(path):
+                    self._load_config(os.path.join(path, '{}.conf'.format(self.component)))
         self.__config['config_path'] = altpath or self.DEFAULT_PATH
 
     def _load_config(self, config_path):
