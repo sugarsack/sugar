@@ -69,6 +69,13 @@ class SugarKeyStoreException(SugarException):
     __prefix__ = "KeyStore error"
 
 
+class SugarConfigurationException(SugarException):
+    """
+    Used when configuration exception occurs (wrong or not found).
+    """
+    __prefix__ = "Configuration error"
+
+
 # Console
 class SugarConsoleException(SugarException):
     """

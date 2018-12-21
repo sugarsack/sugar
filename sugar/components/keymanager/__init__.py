@@ -26,9 +26,12 @@ class SugarKeyManager(object):
         :param url:
         """
         self.config = get_config()
+        if not self.config.config_path:
+            raise exceptions.SugarConfigurationException("Configuration not found")
+
         self.args = args
         self.log = get_logger(self)
-        self.__keystore = KeyStore(os.path.abspath(self.args.config_dir))
+        self.__keystore = KeyStore(os.path.abspath(self.config.config_path))
 
         self._list_output = IterableOutput(colors=self.config.terminal.colors,
                                            encoding=self.config.terminal.encoding)

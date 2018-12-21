@@ -72,9 +72,7 @@ Available components:
         """
         parser.add_argument('-l', '--log-level', help='Set output log level. Default: info',
                             choices=list(sorted(Logger.LOG_LEVELS.keys())), default=None)
-        default = '/etc/sugar'
-        parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory. '
-                                                       'Default: {}'.format(default), default=default)
+        parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory.', default=None)
 
     def setup(self):
         """
