@@ -17,6 +17,22 @@ class SugarClientProtocol(WebSocketClientProtocol):
 
     def onConnect(self, response):
         self.log.info("Server connected: {0}".format(response.peer))
+    def sendMessage(self, payload, is_binary=False, fragment_size=None, sync=False, do_not_compress=False):
+        """
+        Send message to the peer.
+
+        :param payload:
+        :param is_binary:
+        :param fragment_size:
+        :param sync:
+        :param do_not_compress:
+
+        :return:
+        """
+        if not is_binary:
+            payload = sugar.utils.stringutils.to_bytes(payload)
+        WebSocketClientProtocol.sendMessage(self, payload=payload, isBinary=is_binary, fragmentSize=fragment_size,
+                                            sync=sync, doNotCompress=do_not_compress)
 
     def onOpen(self):
         self.log.info("WebSocket connection open")
