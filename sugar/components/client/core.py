@@ -12,12 +12,12 @@ from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki import Crypto
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
+import sugar.utils.network
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
 from sugar.transport.serialisable import Serialisable
 from sugar.transport import ClientMsgFactory, ServerMsgFactory, ObjectGate
 from sugar.lib.exceptions import SugarClientException
-
 
 @Singleton
 class ClientCore(object):
@@ -147,6 +147,25 @@ class ClientSystemEvents(object):
 
         return ret
 
+    def create_master_token(self) -> str:
+        """
+        Create token for the master: encrypted machine_id cipher with the Master's RSA public key.
+        It assumes RSA public key is on its place available.
+
+        :return:
+        """
+        client_id = sugar.utils.network.generate_client_id()
+        self.log.info("Creating master token...")
+
+        try:
+            with open(os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)) as master_pubkey_fh:
+                pubkey_rsa = master_pubkey_fh.read()
+        except Exception as ex:
+            self.log.error("Error encrypting token with RSA key: {}".format(ex))
+            raise ex
+
+        return sugar.utils.stringutils.to_bytes(self.core.crypto.encrypt_rsa(pubkey_rsa, client_id))
+
     def check_master_signature(self):
         """
         Signature of encrypted by master's pubkey should be there.
@@ -159,7 +178,19 @@ class ClientSystemEvents(object):
         ret = os.path.exists(sig_path)
         if not ret:
             self.log.warning("Signature {} was not found.".format(sig_path))
-            # self.core.put_message()
 
         return ret
+
+    def create_master_signature(self, cipher: str) -> str:
+        """
+        Sign token for the master with the client's key.
+
+        :return:
+        """
+        self.log.info("Creating signature of the master token...")
+
+        with open(os.path.join(self.pki_path, sugar.lib.pki.utils.PRIVATE_KEY_FILENAME), "r") as pkey_h:
+            pkey_pem = pkey_h.read()
+
+        return sugar.utils.stringutils.to_bytes(self.core.crypto.sign(priv_key=pkey_pem, data=cipher))
 
