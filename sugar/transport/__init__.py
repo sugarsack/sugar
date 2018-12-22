@@ -130,9 +130,10 @@ class ClientMsgFactory(_MessageFactory):
     """
     Client messages
     """
-    COMPONENT = 0xF2
-    KIND_HANDSHAKE_PKEY_REQ = 0xf1  # Public key request
-    KIND_HANDSHAKE_TKEN_REQ = 0xf2  # Signed token request
+    COMPONENT = 0xf2
+    KIND_HANDSHAKE_PKEY_REQ = 0xfa  # Public key request
+    KIND_HANDSHAKE_TKEN_REQ = 0xfb  # Signed token request
+    KIND_OPR_RESP = 0xa1            # Operational response
 
     scheme = Schema({
         Optional('.'): None,  # Marker
@@ -145,6 +146,7 @@ class ClientMsgFactory(_MessageFactory):
         And('stdout'): str,
         And('stderr'): str,
         And('messages'): {
+            Optional('.'): None,  # Marker
             And('success'): [],
             And('warning'): [],
             And('error'): [],
@@ -156,19 +158,48 @@ class ClientMsgFactory(_MessageFactory):
         Optional('jid'): str,
     })
 
+    @classmethod
+    def create(cls, kind=KIND_OPR_RESP):
+        """
+        Create message.
+
+        :return:
+        """
+        s = Serialisable()
+        s.component = cls.COMPONENT
+        s.kind = kind
+        s.user = getpass.getuser()
+        s.uid = os.getuid()
+
+        s.stdout = ''
+        s.stderr = ''
+        s.messages.success = []
+        s.messages.warning = []
+        s.messages.error = []
+        s.log = []
+        s.changes = {}
+        s.internal = {}
+
+        s.jid = jidstore.create()
+
+        cls.validate(s)
+
+        return s
+
 
 class ServerMsgFactory(_MessageFactory):
     """
     Server messages to all components
     """
-    COMPONENT = 0xF0
+    COMPONENT = 0xf0
 
     # kind
     TASK_RESPONSE = 1
     CONSOLE_RESPONSE = 2
 
-    KIND_HANDSHAKE_PKEY_RESP = 0xf1  # Public key response
-    KIND_HANDSHAKE_TKEN_RESP = 0xf2  # Signed token response
+    KIND_HANDSHAKE_PKEY_RESP = 0xfa  # Public key response
+    KIND_HANDSHAKE_TKEN_RESP = 0xfb  # Signed token response
+    KIND_OPR_REQ = 0xa1              # Operational request
 
     scheme = Schema({
         Optional('.'): None,  # Marker
