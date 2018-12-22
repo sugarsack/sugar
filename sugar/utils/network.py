@@ -17,6 +17,11 @@ from string import ascii_letters, digits
 
 # Import 3rd-party libs
 from sugar.lib import six
+import sugar.utils.files
+import sugar.utils.stringutils
+import sugar.utils.platform
+import sugar.utils.path
+
 # Attempt to import wmi
 try:
     import wmi
@@ -134,9 +139,9 @@ def _generate_client_id():
     for f_name in ('/etc/hostname', '/etc/nodename', '/etc/hosts',
                    r'{win}\system32\drivers\etc\hosts'.format(win=os.getenv('WINDIR'))):
         try:
-            with salt.utils.files.fopen(f_name) as f_hdl:
+            with sugar.utils.files.fopen(f_name) as f_hdl:
                 for line in f_hdl:
-                    line = salt.utils.stringutils.to_unicode(line)
+                    line = sugar.utils.stringutils.to_unicode(line)
                     hst = line.strip().split('#')[0].strip().split()
                     if hst:
                         if hst[0][:4] in ('127.', '::1') or len(hst) == 1:
@@ -210,7 +215,7 @@ def ip_to_host(ip):
     try:
         hostname, aliaslist, ipaddrlist = socket.gethostbyaddr(ip)
     except Exception as exc:
-        log.debug('salt.utils.network.ip_to_host(%r) failed: %s', ip, exc)
+        log.debug('sugar.utils.network.ip_to_host(%r) failed: %s', ip, exc)
         hostname = None
     return hostname
 
@@ -816,8 +821,8 @@ def linux_interfaces():
     Obtain interface information for *NIX/BSD variants
     '''
     ifaces = dict()
-    ip_path = salt.utils.path.which('ip')
-    ifconfig_path = None if ip_path else salt.utils.path.which('ifconfig')
+    ip_path = sugar.utils.path.which('ip')
+    ifconfig_path = None if ip_path else sugar.utils.path.which('ifconfig')
     if ip_path:
         cmd1 = subprocess.Popen(
             '{0} link show'.format(ip_path),
@@ -832,15 +837,15 @@ def linux_interfaces():
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT).communicate()[0]
         ifaces = _interfaces_ip("{0}\n{1}".format(
-            salt.utils.stringutils.to_str(cmd1),
-            salt.utils.stringutils.to_str(cmd2)))
+            sugar.utils.stringutils.to_str(cmd1),
+            sugar.utils.stringutils.to_str(cmd2)))
     elif ifconfig_path:
         cmd = subprocess.Popen(
             '{0} -a'.format(ifconfig_path),
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT).communicate()[0]
-        ifaces = _interfaces_ifconfig(salt.utils.stringutils.to_str(cmd))
+        ifaces = _interfaces_ifconfig(sugar.utils.stringutils.to_str(cmd))
     return ifaces
 
 
@@ -1022,9 +1027,9 @@ def interfaces():
     '''
     Return a dictionary of information about all the interfaces on the minion
     '''
-    if salt.utils.platform.is_windows():
+    if sugar.utils.platform.is_windows():
         return win_interfaces()
-    elif salt.utils.platform.is_netbsd():
+    elif sugar.utils.platform.is_netbsd():
         return netbsd_interfaces()
     else:
         return linux_interfaces()
