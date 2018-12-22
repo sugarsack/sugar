@@ -6,12 +6,14 @@ from __future__ import unicode_literals, absolute_import
 
 import os
 import errno
+import queue
 
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki import Crypto
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
+from sugar.transport.serialisable import Serialisable
 
 
 @Singleton
@@ -27,17 +29,67 @@ class ClientCore(object):
         self.config = get_config()
         self.system = SystemEvents(self)
         self.crypto = Crypto()
+        self._queue = {"_": queue.Queue()}
+        self._proto = {}
+
+    def set_protocol(self, id, proto):
+        """
+        Set protocol.
+
+        :param proto:
+        :return:
+        """
+        self._proto.setdefault(id, proto)
+        self._queue.setdefault(id, queue.Queue())
+        self.log.debug("Added protocol with ID {}".format(id))
+
+    def remove_protocol(self, id):
+        """
+        Remove protocol.
+
+        :param id:
+        :return:
+        """
+        for container in [self._proto, self._queue]:
+            try:
+                del container[id]
+                self.log.debug("Removed protocol with ID {} from {}".format(id, container.__class__.__name__))
+            except KeyError:
+                self.log.error("Unable to remove protol with ID {} from {}".format(id, container.__class__.__name__))
+
+    def get_queue(self, channel="_") -> queue.Queue:
+        """
+        Returns message to the master.
+
+        :return:
+        """
+        return self._queue[channel]
+
+    def put_message(self, message: Serialisable, channel="_") -> None:
+        """
+        Places message from the master.
+
+        :return:
+        """
+        self._queue[channel].put_nowait(message)
 
 
 class SystemEvents(object):
     """
     Happens at system events.
     """
+    MASTER_PUBKEY_FILE = "master_public_key.pem"
+    TOKEN_CIPHER_FILE = "master_token.bin"
+    SIGNATURE_FILE = "master_signed_token.bin"
+
     def __init__(self, core: ClientCore):
         self.log = get_logger(self)
         self.core = core
         self.pki_path = os.path.join(self.core.config.config_path,
                                      "pki/{}".format(get_current_component()))
+        if not os.path.exists(self.pki_path):
+            self.log.info("creating directory for keys in: {}".format(self.pki_path))
+            os.makedirs(self.pki_path)
 
     def refresh_keys(self):
         """
