@@ -47,6 +47,7 @@ class SugarServer(object):
         Run Sugar Server.
         :return:
         """
+        self.factory.core.system.on_startup()
         contextFactory = ssl.DefaultOpenSSLContextFactory(
             os.path.join(self.config.config_path, "ssl", "key.pem"),
             os.path.join(self.config.config_path, "ssl", "certificate.pem"),
