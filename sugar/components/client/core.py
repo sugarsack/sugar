@@ -114,16 +114,12 @@ class SystemEvents(object):
 
         self.log.info("Keys has been re-generated")
 
-    def check_keys(self):
+    def check_keys(self) -> bool:
         """
         Check if keypair is there and master is registered.
         :return:
         """
         self.log.info("Checking keys in PKI: {}".format(self.core.config.config_path))
-        if not os.path.exists(self.pki_path):
-            self.log.info("creating directory for keys in: {}".format(self.pki_path))
-            os.makedirs(self.pki_path)
-
         incomplete_keys = 0
         for key in ["public", "private"]:
             if not os.path.exists(os.path.join(self.pki_path, "{}.pem".format(key))):
@@ -132,3 +128,53 @@ class SystemEvents(object):
         if incomplete_keys:
             self.log.error("Private/public key pair is incomplete or does not exist. Updating.")
             self.refresh_keys()
+
+        return not bool(incomplete_keys)
+
+    def check_master_pubkey(self) -> bool:
+        """
+        Check if Master's public key is in place.
+
+        :return:
+        """
+        self.log.info("Verifying master public key")
+        mpk_path = os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)
+        ret = os.path.exists(mpk_path)
+        if not ret:
+            self.log.warning("Master public key '{}' was not found".format(mpk_path))
+            # self.core.put_message()
+
+        return ret
+
+    def check_master_token(self) -> bool:
+        """
+        Master token is encrypted by Master's public key this client's machine_id.
+        This assumes that the master's pubkey is in place.
+
+        :return:
+        """
+        self.log.info("Verifying master token")
+        tkn_path = os.path.join(self.pki_path, self.TOKEN_CIPHER_FILE)
+        ret = os.path.exists(tkn_path)
+        if not ret:
+            self.log.warning("{} file was not found".format(tkn_path))
+            # self.core.put_message()
+
+        return ret
+
+    def check_master_signature(self):
+        """
+        Signature of encrypted by master's pubkey should be there.
+        This assumes that the master's pubkey is in place.
+
+        :return:
+        """
+        self.log.info("Verifying signature of the token to the master")
+        sig_path = os.path.join(self.pki_path, self.SIGNATURE_FILE)
+        ret = os.path.exists(sig_path)
+        if not ret:
+            self.log.warning("Signature {} was not found.".format(sig_path))
+            # self.core.put_message()
+
+        return ret
+
