@@ -6,7 +6,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import pickle
 import getpass
-from sugar.lib.schemelib import Schema, Use, And, Optional
+from sugar.lib.schemelib import Schema, And, Optional
 from sugar.lib import six
 from sugar.transport.serialisable import Serialisable, ObjectGate
 from sugar.utils import exitcodes
