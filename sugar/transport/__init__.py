@@ -23,61 +23,33 @@ class ErrorLevel(object):
     ERROR = 3
 
 
-class ConsoleMsgFactory(object):
+class _MessageFactory(object):
     """
-    Console message
+    Message.
     """
-    COMPONENT = 0xF1
-    TASK_REQUEST = 1
+    scheme = Schema({})
 
-    scheme = Schema({
-        Optional('.'): None,  # Marker
-        And('component'): int,
-        And('kind'): int,
-        And('user'): str,
-        And('uid'): int,
-
-        And('target'): str,
-        And('function'): str,
-        And('args'): [],
-
-        Optional('jid'): str,
-    })
-
-    @staticmethod
-    def create():
+    @classmethod
+    def create(cls):
         """
         Create message.
 
         :return:
         """
-        s = Serialisable()
-        s.component = ConsoleMsgFactory.COMPONENT
-        s.kind = ConsoleMsgFactory.TASK_REQUEST
-        s.user = getpass.getuser()
-        s.uid = os.getuid()
+        raise NotImplementedError()
 
-        s.target = ''
-        s.function = ''
-        s.args = []
-        s.jid = jidstore.create()
-
-        ConsoleMsgFactory.validate(s)
-
-        return s
-
-    @staticmethod
-    def validate(obj):
+    @classmethod
+    def validate(cls, obj):
         """
         Validate object.
 
         :param obj:
         :return:
         """
-        ConsoleMsgFactory.scheme.validate(ConsoleMsgFactory.serialise(obj))
+        cls.scheme.validate(cls.serialise(obj))
 
-    @staticmethod
-    def unpack(obj):
+    @classmethod
+    def unpack(cls, obj):
         """
         De-serialise binary object.
 
@@ -85,7 +57,8 @@ class ConsoleMsgFactory(object):
         :return:
         """
         obj = ObjectGate().load(obj, binary=True)
-        ConsoleMsgFactory.validate(obj)
+        cls.validate(obj)
+
         return obj
 
     @staticmethod
@@ -109,14 +82,82 @@ class ConsoleMsgFactory(object):
         return ObjectGate(obj).pack()
 
 
-class ClientMsgFactory(object):
+class ConsoleMsgFactory(_MessageFactory):
+    """
+    Console message
+    """
+    COMPONENT = 0xF1
+    TASK_REQUEST = 1
+
+    scheme = Schema({
+        Optional('.'): None,  # Marker
+        And('component'): int,
+        And('kind'): int,
+        And('user'): str,
+        And('uid'): int,
+
+        And('target'): str,
+        And('function'): str,
+        And('args'): [],
+
+        Optional('jid'): str,
+    })
+
+    @classmethod
+    def create(cls):
+        """
+        Create message.
+
+        :return:
+        """
+        s = Serialisable()
+        s.component = cls.COMPONENT
+        s.kind = cls.TASK_REQUEST
+        s.user = getpass.getuser()
+        s.uid = os.getuid()
+
+        s.target = ''
+        s.function = ''
+        s.args = []
+        s.jid = jidstore.create()
+
+        cls.validate(s)
+
+        return s
+
+
+class ClientMsgFactory(_MessageFactory):
     """
     Client messages
     """
     COMPONENT = 0xF2
+    KIND_HANDSHAKE_PKEY_REQ = 0xf1  # Public key request
+    KIND_HANDSHAKE_TKEN_REQ = 0xf2  # Signed token request
+
+    scheme = Schema({
+        Optional('.'): None,  # Marker
+        And('component'): int,
+        And('kind'): int,
+        And('user'): str,
+        And('uid'): int,
+
+        # Channels
+        And('stdout'): str,
+        And('stderr'): str,
+        And('messages'): {
+            And('success'): [],
+            And('warning'): [],
+            And('error'): [],
+        },
+        And('log'): [],
+        And('changes'): {},
+        And('internal'): {},  # Used for non-operational communications (handshake, discovery etc)
+
+        Optional('jid'): str,
+    })
 
 
-class ServerMsgFactory(object):
+class ServerMsgFactory(_MessageFactory):
     """
     Server messages to all components
     """
@@ -125,6 +166,9 @@ class ServerMsgFactory(object):
     # kind
     TASK_RESPONSE = 1
     CONSOLE_RESPONSE = 2
+
+    KIND_HANDSHAKE_PKEY_RESP = 0xf1  # Public key response
+    KIND_HANDSHAKE_TKEN_RESP = 0xf2  # Signed token response
 
     scheme = Schema({
         Optional('.'): None,  # Marker
@@ -141,24 +185,24 @@ class ServerMsgFactory(object):
         }
     })
 
-    @staticmethod
-    def create_console_msg():
+    @classmethod
+    def create_console_msg(cls):
         """
         Create console message for client
         :return:
         """
-        s = ServerMsgFactory().create()
-        s.kind = ServerMsgFactory.CONSOLE_RESPONSE
+        s = cls().create()
+        s.kind = cls.CONSOLE_RESPONSE
         return s
 
-    @staticmethod
-    def create_client_msg():
+    @classmethod
+    def create_client_msg(cls):
         """
         Create client message for client
         :return:
         """
-        s = ServerMsgFactory().create()
-        s.kind = ServerMsgFactory.TASK_RESPONSE
+        s = cls().create()
+        s.kind = cls.TASK_RESPONSE
         return s
 
     def create(self):
@@ -168,7 +212,7 @@ class ServerMsgFactory(object):
         :return:
         """
         s = Serialisable()
-        s.component = ServerMsgFactory.COMPONENT
+        s.component = self.COMPONENT
         s.kind = 0
         s.user = getpass.getuser()
         s.uid = os.getuid()
@@ -177,51 +221,9 @@ class ServerMsgFactory(object):
         s.ret.message = ''
         s.ret.function = {}
 
-        ServerMsgFactory.validate(s)
+        self.validate(s)
 
         return s
-
-    @staticmethod
-    def validate(obj):
-        """
-        Validate object.
-
-        :param obj:
-        :return:
-        """
-        ServerMsgFactory.scheme.validate(ServerMsgFactory.serialise(obj))
-
-    @staticmethod
-    def unpack(obj):
-        """
-        De-serialise object from binary.
-
-        :param obj:
-        :return:
-        """
-        obj = ObjectGate().load(obj, binary=True)
-        ServerMsgFactory.validate(obj)
-        return obj
-
-    @staticmethod
-    def pack(obj):
-        """
-        Serialise object into binary
-
-        :param obj:
-        :return:
-        """
-        return ObjectGate(obj).pack(binary=True)
-
-    @staticmethod
-    def serialise(obj):
-        """
-        Serialise object into Python dictionary
-
-        :param obj:
-        :return:
-        """
-        return ObjectGate(obj).pack()
 
 
 def any_binary(data):
