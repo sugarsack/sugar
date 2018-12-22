@@ -35,7 +35,7 @@ class SugarClient(object):
         log.debug('Socket ')
 
         self.factory = SugarClientFactory(url)
-        self.factory.core.system.check_keys()
+        self.factory.core.system.on_startup()
 
         if not self.factory.isSecure:
             raise Exception('Unable to initialte TLS')

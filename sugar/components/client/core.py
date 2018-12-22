@@ -92,6 +92,13 @@ class ClientSystemEvents(object):
             self.log.info("creating directory for keys in: {}".format(self.pki_path))
             os.makedirs(self.pki_path)
 
+    def on_startup(self):
+        """
+        This starts on Client boot.
+        :return:
+        """
+        sugar.lib.pki.utils.check_keys(self.pki_path)
+
     def check_master_pubkey(self) -> bool:
         """
         Check if Master's public key is in place.
