@@ -6,6 +6,7 @@ Sugar Server
 
 from __future__ import unicode_literals, print_function, absolute_import
 
+import os
 from twisted.internet import reactor, ssl
 
 from autobahn.twisted.websocket import listenWS
@@ -34,6 +35,7 @@ class SugarServer(object):
         """
         self.config = get_config()
         self.log = get_logger(self)
+
         self.factory = SugarServerFactory("wss://*:5505")
         self.factory.protocol = SugarServerProtocol
 
@@ -45,9 +47,10 @@ class SugarServer(object):
         Run Sugar Server.
         :return:
         """
-        #cfg = get_config()
-        #print(">>>>>>>>>>>>>>", cfg.log_level)
-        contextFactory = ssl.DefaultOpenSSLContextFactory('key.pem', 'certificate.pem')
+        contextFactory = ssl.DefaultOpenSSLContextFactory(
+            os.path.join(self.config.config_path, "ssl", "key.pem"),
+            os.path.join(self.config.config_path, "ssl", "certificate.pem"),
+        )
 
         listenWS(self.factory, contextFactory)
         listenWS(self.console_factory, contextFactory)
