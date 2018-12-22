@@ -7,7 +7,7 @@ Server protocols
 from __future__ import absolute_import, unicode_literals, print_function
 from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
-from sugar.transport import ObjectGate, ServerMsgFactory
+from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory
 from sugar.utils import exitcodes
 from sugar.components.server.core import get_server_core
 
@@ -90,14 +90,14 @@ class SugarServerProtocol(WebSocketServerProtocol):
         self.factory.register(self)
         self.log.info("WebSocket connection open")
 
-    def onMessage(self, payload, isBinary):
-        if isBinary:
-            self.log.info("Binary message received: {0} bytes".format(len(payload)))
-        else:
-            self.log.info("Text message received: {0}".format(payload.decode('utf8')))
+    def onMessage(self, payload, binary):
+        if binary:
+            msg = ObjectGate().load(payload, binary)
+            if msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ:
+                self.log.info("Public key request")
+                self.sendMessage(ObjectGate(self.factory.core.system.on_pub_rsa_request()).pack(binary), binary)
 
-        # echo back message verbatim
-        self.sendMessage(payload, isBinary)
+        #self.sendMessage("replied!".encode("utf-8"), False)
 
     def onClose(self, wasClean, code, reason):
         self.log.info("WebSocket connection closed: {0}".format(reason))

@@ -5,13 +5,14 @@ Core Server operations.
 from __future__ import unicode_literals, absolute_import
 
 import os
+from multiprocessing import Queue
+from twisted.internet import threads
 
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
-from multiprocessing import Queue
-from twisted.internet import threads
+from sugar.transport import Serialisable, ServerMsgFactory
 import sugar.transport
 import sugar.lib.pki.utils
 
@@ -91,6 +92,18 @@ class ServerSystemEvents(object):
             # - Send an event?
             # - Client should always ask for pubkey?
             self.log.warning("RSA keys has been updated")
+
+    def on_pub_rsa_request(self) -> Serialisable:
+        """
+        Return public RSA key.
+
+        :return:
+        """
+        msg = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP)
+        with open(os.path.join(self.pki_path, self.KEY_PUBLIC)) as rsa_h:
+            msg.internal["RSA.pub"] = rsa_h.read()
+
+        return msg
 
 
 class RegisteredClients(object):
