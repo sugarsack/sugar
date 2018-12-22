@@ -11,10 +11,12 @@ from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki import Crypto
 import sugar.lib.pki.utils
+import sugar.utils.stringutils
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
 from sugar.transport.serialisable import Serialisable
-from sugar.transport import ClientMsgFactory, ObjectGate
+from sugar.transport import ClientMsgFactory, ServerMsgFactory, ObjectGate
+from sugar.lib.exceptions import SugarClientException
 
 
 @Singleton
@@ -113,6 +115,21 @@ class ClientSystemEvents(object):
             # self.core.put_message()
 
         return ret
+
+    def save_master_pubkey(self, pubkey_pem, force=False):
+        """
+        Save Master's pubkey.
+
+        :param pubkey_pem:
+        :return:
+        """
+        mpk_path = os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)
+        if not os.path.exists(mpk_path) or force:
+            with open(mpk_path, "wb") as mpk_h:
+                mpk_h.write(sugar.utils.stringutils.to_bytes(pubkey_pem))
+            self.log.info("Master RSA key has been saved")
+        else:
+            raise SugarClientException("Master public key already exists: {}".format(mpk_path))
 
     def check_master_token(self) -> bool:
         """

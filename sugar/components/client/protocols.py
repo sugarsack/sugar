@@ -5,7 +5,12 @@ Client protocols
 from __future__ import absolute_import, unicode_literals, print_function
 from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientFactory
 from twisted.internet.protocol import ReconnectingClientFactory
+from twisted.internet import threads
+
 from sugar.components.client.core import ClientCore
+from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory
+import sugar.transport.utils
+import sugar.utils.stringutils
 
 
 class SugarClientProtocol(WebSocketClientProtocol):
@@ -14,9 +19,19 @@ class SugarClientProtocol(WebSocketClientProtocol):
     """
     def __init__(self):
         WebSocketClientProtocol.__init__(self)
+        self._id = sugar.transport.utils.gen_id()
+        self._handshaked = False
 
     def onConnect(self, response):
+        """
+        Connection has been made.
+
+        :param response:
+        :return:
+        """
         self.log.info("Server connected: {0}".format(response.peer))
+        self.factory.core.set_protocol(self._id, self)
+
     def sendMessage(self, payload, is_binary=False, fragment_size=None, sync=False, do_not_compress=False):
         """
         Send message to the peer.
@@ -35,23 +50,46 @@ class SugarClientProtocol(WebSocketClientProtocol):
                                             sync=sync, doNotCompress=do_not_compress)
 
     def onOpen(self):
+        """
+        Connection opened to the peer.
+
+        :return:
+        """
         self.log.info("WebSocket connection open")
+        if not self._handshaked:
+            threads.deferToThread(self.factory.core.system.handshake, self)
 
         def hello():
             self.sendMessage(u"Hello, world!".encode('utf8'))
             self.sendMessage(b"\x00\x01\x03\x04", isBinary=True)
             self.factory.reactor.callLater(1, hello)
 
+    def onMessage(self, payload, binary):
+        """
+        Message received from peer.
         hello()
 
-    def onMessage(self, payload, isBinary):
-        if isBinary:
-            self.log.info("Binary message received: {0} bytes".format(len(payload)))
-        else:
-            self.log.info("Text message received: {0}".format(payload.decode('utf8')))
+        :param payload:
+        :param is_binary:
+        :return:
+        """
+        self.log.info("Received {}binary message".format(not binary and "non-" or ""))
+        if binary:
+            msg = ObjectGate().load(payload, binary)
+            if msg.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP:
+                self.factory.core.put_message(msg)
 
     def onClose(self, wasClean, code, reason):
+        """
+        Connection closed.
+
+        :param wasClean:
+        :param code:
+        :param reason:
+        :return:
+        """
         self.log.info("WebSocket connection closed: {0}".format(reason))
+        self.factory.core.remove_protocol(self._id)
 
 
 class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
