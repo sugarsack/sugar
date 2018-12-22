@@ -13,6 +13,7 @@ from sugar.lib.logger.manager import get_logger
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
 from sugar.transport import Serialisable, ServerMsgFactory
+from sugar.lib.pki import Crypto
 import sugar.transport
 import sugar.lib.pki.utils
 
@@ -29,6 +30,7 @@ class ServerCore(object):
         self.log = get_logger(self)
         self.config = get_config()
         self.cli_db = RegisteredClients()
+        self.crypto = Crypto()
         self.system = ServerSystemEvents(self)
 
     def _send_task_to_clients(self, evt):
@@ -69,8 +71,8 @@ class ServerSystemEvents(object):
     """
     Server system events.
     """
-    KEY_PUBLIC = "public.pem"
-    KEY_PRIVATE = "private.pem"
+    KEY_PUBLIC = "public_master.pem"
+    KEY_PRIVATE = "private_master.pem"
 
     def __init__(self, core: ServerCore):
         self.log = get_logger(self)
@@ -101,9 +103,35 @@ class ServerSystemEvents(object):
         """
         msg = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP)
         with open(os.path.join(self.pki_path, self.KEY_PUBLIC)) as rsa_h:
-            msg.internal["RSA.pub"] = rsa_h.read()
+            msg.internal["payload"] = rsa_h.read()
 
         return msg
+
+    def on_token_request(self, msg: Serialisable) -> Serialisable:
+        """
+        Return reply on token verification. Key can be:
+
+          - Candidate
+          - Rejected
+          - Denied
+          - Accepted
+
+        :param msg:
+        :return:
+        """
+        with open(os.path.join(self.pki_path, self.KEY_PRIVATE)) as priv_mst_kh:
+            priv_master_key = priv_mst_kh.read()
+
+        cipher = msg.internal["cipher"]
+        signature = msg.internal["signature"]
+        msg = self.core.crypto.decrypt_rsa(priv_master_key, cipher)
+
+        print(">>>> MESSAGE TOKEN: ", msg)
+
+        reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP)
+        reply.internal["payload"] = "candidate"
+
+        return reply
 
 
 class RegisteredClients(object):

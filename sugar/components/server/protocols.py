@@ -96,6 +96,9 @@ class SugarServerProtocol(WebSocketServerProtocol):
             if msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ:
                 self.log.info("Public key request")
                 self.sendMessage(ObjectGate(self.factory.core.system.on_pub_rsa_request()).pack(binary), binary)
+            elif msg.kind == ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ:
+                self.log.info("Signed token request")
+                self.sendMessage(ObjectGate(self.factory.core.system.on_token_request(msg)).pack(binary), binary)
 
         #self.sendMessage("replied!".encode("utf-8"), False)
 
