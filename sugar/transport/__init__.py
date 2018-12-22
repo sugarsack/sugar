@@ -213,7 +213,8 @@ class ServerMsgFactory(_MessageFactory):
             And('errcode'): int,
             Optional('message'): str,
             Optional('function'): {},
-        }
+        },
+        And('internal'): {},
     })
 
     @classmethod
@@ -236,7 +237,7 @@ class ServerMsgFactory(_MessageFactory):
         s.kind = cls.TASK_RESPONSE
         return s
 
-    def create(self):
+    def create(self, kind=KIND_OPR_REQ):
         """
         Create arbitrary message.
 
@@ -244,13 +245,14 @@ class ServerMsgFactory(_MessageFactory):
         """
         s = Serialisable()
         s.component = self.COMPONENT
-        s.kind = 0
+        s.kind = kind
         s.user = getpass.getuser()
         s.uid = os.getuid()
         s.jid = jidstore.create()
         s.ret.errcode = exitcodes.EX_OK
         s.ret.message = ''
         s.ret.function = {}
+        s.internal = {}
 
         self.validate(s)
 
