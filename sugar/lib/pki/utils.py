@@ -8,8 +8,13 @@ import errno
 
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki import Crypto
+from sugar.utils.cli import get_current_component
 
 log = get_logger(__name__)
+
+
+PUBLIC_KEY_FILENAME = "public_{}.pem".format(get_current_component())
+PRIVATE_KEY_FILENAME = "private_{}.pem".format(get_current_component())
 
 
 def refresh_keys(pki_path: str) -> None:
@@ -20,8 +25,8 @@ def refresh_keys(pki_path: str) -> None:
     """
     log.info("Refreshing keys")
 
-    for key, key_pem in zip(["private", "public"], Crypto().create_rsa_keypair()):
-        key_path = os.path.join(pki_path, "{}.pem".format(key))
+    for key, key_pem in zip([PRIVATE_KEY_FILENAME, PUBLIC_KEY_FILENAME], Crypto().create_rsa_keypair()):
+        key_path = os.path.join(pki_path, key)
         log.debug("Refreshing {} key as {}".format(key, key_path))
         try:
             os.remove(key_path)
@@ -43,8 +48,8 @@ def check_keys(pki_path: str) -> bool:
     """
     log.info("Checking keys in PKI: {}".format(pki_path))
     incomplete_keys = 0
-    for key in ["public", "private"]:
-        if not os.path.exists(os.path.join(pki_path, "{}.pem".format(key))):
+    for key in [PUBLIC_KEY_FILENAME, PRIVATE_KEY_FILENAME]:
+        if not os.path.exists(os.path.join(pki_path, key)):
             log.warning("{} key not found".format(key))
             incomplete_keys += 1
     if incomplete_keys:
