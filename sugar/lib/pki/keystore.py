@@ -133,6 +133,15 @@ class KeyStore(object):
 
         return not self.__is_locked
 
+    def __clone_rs(self, dbr):
+        """
+        Detach db session.
+
+        :param dbr:
+        :return:
+        """
+        return [obj.clone() for obj in dbr]
+
     @orm.db_session
     def __commit(self):
         force = False
@@ -281,7 +290,8 @@ class KeyStore(object):
         :param fingerprint:
         :return:
         """
-        return orm.select(k for k in StoredKey if k.fingerprint == fingerprint)
+        return self.__clone_rs(orm.select(k for k in StoredKey
+                                          if k.fingerprint == sugar.utils.stringutils.to_str(fingerprint)))
 
     @orm.db_session
     def get_key_by_machine_id(self, machine_id):
@@ -291,7 +301,8 @@ class KeyStore(object):
         :param name:
         :return: Usability status (boolean), key
         """
-        return orm.select(k for k in StoredKey if k.machine_id == machine_id)
+        return self.__clone_rs(orm.select(k for k in StoredKey
+                                          if k.machine_id == sugar.utils.stringutils.to_str(machine_id)))
 
     @orm.db_session
     def get_key_by_hostname(self, hostname):
@@ -301,7 +312,8 @@ class KeyStore(object):
         :param hostname:
         :return:
         """
-        return orm.select(k for k in StoredKey if k.hostname == hostname)
+        return self.__clone_rs(orm.select(k for k in StoredKey
+                                          if k.hostname == sugar.utils.stringutils.to_str(hostname)))
 
 
 class StoredKey(KeyDB.db.Entity):
