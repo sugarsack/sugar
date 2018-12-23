@@ -131,9 +131,10 @@ class ClientMsgFactory(_MessageFactory):
     Client messages
     """
     COMPONENT = 0xf2
-    KIND_HANDSHAKE_PKEY_REQ = 0xfa  # Public key request
-    KIND_HANDSHAKE_TKEN_REQ = 0xfb  # Signed token request
-    KIND_OPR_RESP = 0xa1            # Operational response
+    KIND_HANDSHAKE_PKEY_REQ = 0xfa      # Public key request
+    KIND_HANDSHAKE_TKEN_REQ = 0xfb      # Signed token request
+    KIND_HANDSHAKE_PKEY_REG_REQ = 0xfc  # Public key registration request
+    KIND_OPR_RESP = 0xa1                # Operational response
 
     scheme = Schema({
         Optional('.'): None,  # Marker
@@ -197,9 +198,10 @@ class ServerMsgFactory(_MessageFactory):
     TASK_RESPONSE = 1
     CONSOLE_RESPONSE = 2
 
-    KIND_HANDSHAKE_PKEY_RESP = 0xfa  # Public key response
-    KIND_HANDSHAKE_TKEN_RESP = 0xfb  # Signed token response
-    KIND_OPR_REQ = 0xa1              # Operational request
+    KIND_HANDSHAKE_PKEY_RESP = 0xfa              # Public key response
+    KIND_HANDSHAKE_TKEN_RESP = 0xfb              # Signed token response
+    KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP = 0xfc    # Public key not found. Client should [re]send one.
+    KIND_OPR_REQ = 0xa1                          # Operational request
 
     scheme = Schema({
         Optional('.'): None,  # Marker
