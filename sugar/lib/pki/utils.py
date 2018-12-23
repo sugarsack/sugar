@@ -9,6 +9,7 @@ import errno
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki import Crypto
 from sugar.utils.cli import get_current_component
+import sugar.utils.stringutils
 
 log = get_logger(__name__)
 
@@ -57,3 +58,15 @@ def check_keys(pki_path: str) -> bool:
         refresh_keys(pki_path)
 
     return not bool(incomplete_keys)
+
+
+def get_public_key(pki_path: str) -> str:
+    """
+    Get current public key.
+
+    :return:
+    """
+    with open(os.path.join(pki_path, PUBLIC_KEY_FILENAME), "r") as pki_fh:
+        public_pem = sugar.utils.stringutils.to_str(pki_fh.read())
+
+    return public_pem
