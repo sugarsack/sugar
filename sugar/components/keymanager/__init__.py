@@ -6,11 +6,12 @@ from __future__ import unicode_literals, absolute_import, print_function
 
 import os
 import sys
+import colored
 from collections import OrderedDict
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki.keystore import KeyStore
-from sugar.lib.outputters.console import IterableOutput, TitleOutput
+from sugar.lib.outputters.console import IterableOutput, TitleOutput, Highlighter
 from sugar.lib import exceptions
 
 
@@ -45,19 +46,22 @@ class SugarKeyManager(object):
 
         :return:
         """
-        title = TitleOutput(colors=self.config.terminal.colors, encoding=self.config.terminal.encoding)
+        title_output = TitleOutput(colors=self.config.terminal.colors, encoding=self.config.terminal.encoding)
         all = [("accepted", "success"), ("rejected", "alert"), ("denied", "warning"), ("new", "info")]
         ret = OrderedDict()
 
         for section in all:
             text, style = section
             if self.args.status == "all" or self.args.status == text:
-                ret[text] = getattr(self.__keystore, "get_{}".format(text))()
-                title.add(text.title(), style)
+                out = []
+                for host_key in getattr(self.__keystore, "get_{}".format(text))():
+                    out.append({host_key.hostname: host_key.fingerprint})
+                ret[text] = out
+                title_output.add(text.title(), style)
 
         if self.args.format == "short":
             for text in ret:
-                sys.stdout.write(title.paint(text.title()) + "\n")
+                sys.stdout.write(title_output.paint(text.title()) + "\n")
                 sys.stdout.write(self._list_output.paint(ret[text]) + "\n\n")
         elif self.args.format == "full":
             print("Not yet :-)")
