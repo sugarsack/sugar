@@ -127,12 +127,40 @@ class ServerSystemEvents(object):
 
         cipher = msg.internal["cipher"]
         signature = msg.internal["signature"]
-        msg = self.core.crypto.decrypt_rsa(priv_master_key, cipher)
+        machine_id = self.core.crypto.decrypt_rsa(priv_master_key, cipher)
+        res = self.core.keystore.get_key_by_machine_id(machine_id)
+        if not res:
+            # No key in the database yet. Request for RSA send, then repeat handshake
+            self.log.info("RSA key not found for {}. Client is not registered yet.".format(machine_id))
+            reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP)
+        else:
+            # Check if token is accepted or denied/rejected
+            raise NotImplementedError("Not implemented yet")
+            #reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP)
+            #reply.internal["payload"] = self.core.keystore.STATUS_CANDIDATE
 
-        print(">>>> MESSAGE TOKEN: ", msg)
+        return reply
 
-        reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP)
-        reply.internal["payload"] = "candidate"
+    def on_register_rsa_key(self, msg: Serialisable) -> Serialisable:
+        """
+        Add RSA key to the keystore.
+
+        :param msg:
+        :return:
+        """
+        reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
+
+        found = False
+        for key in self.core.keystore.get_key_by_machine_id(msg.internal["machine-id"]):
+            if key.machine_id == msg.internal["machine-id"]:
+                reply.internal["payload"] = key.status
+                found = True
+
+        if not found:
+            self.core.keystore.add(pubkey_pem=msg.internal["payload"],
+                                   hostname=msg.internal["host-fqdn"],
+                                   machine_id=msg.internal["machine-id"])
+            reply.internal["payload"] = self.core.keystore.STATUS_CANDIDATE
 
         return reply
 
