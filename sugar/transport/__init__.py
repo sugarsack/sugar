@@ -201,6 +201,7 @@ class ServerMsgFactory(_MessageFactory):
     KIND_HANDSHAKE_PKEY_RESP = 0xfa              # Public key response
     KIND_HANDSHAKE_TKEN_RESP = 0xfb              # Signed token response
     KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP = 0xfc    # Public key not found. Client should [re]send one.
+    KIND_HANDSHAKE_PKEY_STATUS_RESP = 0xfd       # Public key registered as "{status}"
     KIND_OPR_REQ = 0xa1                          # Operational request
 
     scheme = Schema({
