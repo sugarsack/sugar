@@ -200,17 +200,22 @@ class KeyStore(object):
         return self.__get_keys_by_status(self.STATUS_DENIED)
 
     @orm.db_session
-    def add(self, pubkey_pem, hostname, machine_id):
+    def add(self, pubkey_pem: str, hostname: str, machine_id: str):
         """
         Add PEM key to the store.
 
         :param pubkey_pem:
+        :param hostname:
+        :param machine_id:
         :return:
         """
         self._lock_transation()
-        StoredKey(hostname=hostname, fingerprint=Crypto.get_finterprint(pubkey_pem),
-                  machine_id=machine_id, filename="{}.bin".format(os.path.join(self.__keys_path, machine_id)),
-                  status=self.STATUS_CANDIDATE)
+        filename = "{}.bin".format(os.path.join(self.__keys_path, machine_id))
+        with open(filename, "wb") as rsa_pem_h:
+            pubkey_pem = sugar.utils.stringutils.to_bytes(pubkey_pem)
+            rsa_pem_h.write(pubkey_pem)
+            StoredKey(hostname=hostname, fingerprint=Crypto.get_finterprint(pubkey_pem),
+                      machine_id=machine_id, filename=filename, status=self.STATUS_CANDIDATE)
         self.__commit()
 
     @orm.db_session
@@ -224,8 +229,11 @@ class KeyStore(object):
         self._lock_transation()
         key = StoredKey.get(fingerprint=fingerprint)
         if key is not None:
-            orm.delete(k for k in StoredKey if k.fingerprint == fingerprint)
-            # delete key from the fs too
+            if os.path.exists(key.filename):
+                os.remove(key.filename)
+                orm.delete(k for k in StoredKey if k.fingerprint == fingerprint)
+            else:
+                raise OSError("File '{}' not found".format(key.filename))
         self._unlock_transaction()
 
     @orm.db_session
