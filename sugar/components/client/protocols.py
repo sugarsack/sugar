@@ -59,21 +59,14 @@ class SugarClientProtocol(WebSocketClientProtocol):
         if not self._handshaked:
             threads.deferToThread(self.factory.core.system.handshake, self)
 
-        def hello():
-            self.sendMessage(u"Hello, world!".encode('utf8'))
-            self.sendMessage(b"\x00\x01\x03\x04", isBinary=True)
-            self.factory.reactor.callLater(1, hello)
-
     def onMessage(self, payload, binary):
         """
         Message received from peer.
-        hello()
 
         :param payload:
         :param is_binary:
         :return:
         """
-        self.log.info("Received {}binary message".format(not binary and "non-" or ""))
         if binary:
             msg = ObjectGate().load(payload, binary)
             if msg.kind in [ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP,
