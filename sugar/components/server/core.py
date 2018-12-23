@@ -18,6 +18,7 @@ from sugar.lib.pki.keystore import KeyStore
 import sugar.transport
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
+from sugar.utils import MasterLocalToken
 
 
 @Singleton
@@ -35,6 +36,7 @@ class ServerCore(object):
         self.crypto = Crypto()
         self.system = ServerSystemEvents(self)
         self.keystore = KeyStore(os.path.abspath(self.config.config_path))
+        self.master_local_token = MasterLocalToken()
 
     def _send_task_to_clients(self, evt):
         """
