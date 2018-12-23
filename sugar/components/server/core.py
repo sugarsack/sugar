@@ -14,8 +14,10 @@ from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
 from sugar.transport import Serialisable, ServerMsgFactory
 from sugar.lib.pki import Crypto
+from sugar.lib.pki.keystore import KeyStore
 import sugar.transport
 import sugar.lib.pki.utils
+import sugar.utils.stringutils
 
 
 @Singleton
@@ -32,6 +34,7 @@ class ServerCore(object):
         self.cli_db = RegisteredClients()
         self.crypto = Crypto()
         self.system = ServerSystemEvents(self)
+        self.keystore = KeyStore(os.path.abspath(self.config.config_path))
 
     def _send_task_to_clients(self, evt):
         """
