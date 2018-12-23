@@ -281,3 +281,48 @@ class TitleOutput(object):
             title = text
 
         return title
+
+
+class Highlighter(object):
+    """
+    Highlights something on just one line.
+    """
+    _style_16 = {
+        "base": 10,
+        "hi": 10,
+        "lo": 3,
+    }
+
+    _style_256 = {
+        "base": 184,
+        "hi": 82,
+        "lo": 172,
+    }
+
+    def __init__(self, colors=16):
+        self._colors = colors
+
+    def _get_style(self):
+        return getattr(self, "_style_{}".format(self._colors))
+
+    def paint(self, pattern, **highlights):
+        """
+        Highlight data.
+        Example:
+
+           paint("something dimmed {foo} and highlighted {bar}",
+                 foo=("here", "lo"), bar=("here", "hi"))
+
+        :param pattern:
+        :param highlights:
+        :return:
+        """
+        hl = {}
+        for element, attrs in highlights.items():
+            text, mode = attrs
+            hl[element] = "{f}{t}{b}".format(f=colored.fg(self._get_style()[mode]), t=text,
+                                             b=colored.fg(self._get_style()["base"]))
+
+        return "{b}{c}{r}".format(b=colored.fg(self._get_style()["base"]),
+                                  c=pattern.format(**hl),
+                                  r=colored.attr("reset"))
