@@ -18,6 +18,8 @@ from sugar.utils.cli import get_current_component
 from sugar.transport.serialisable import Serialisable
 from sugar.transport import ClientMsgFactory, ServerMsgFactory, ObjectGate
 from sugar.lib.exceptions import SugarClientException
+from sugar.lib.traits import Traits
+
 
 @Singleton
 class ClientCore(object):
@@ -34,6 +36,7 @@ class ClientCore(object):
         self.crypto = Crypto()
         self._queue = {"_": queue.Queue()}
         self._proto = {}
+        self.traits = Traits()
 
     def set_protocol(self, id, proto):
         """
