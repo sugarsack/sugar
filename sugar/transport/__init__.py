@@ -82,11 +82,49 @@ class _MessageFactory(object):
         return ObjectGate(obj).pack()
 
 
+class KeymanagerMsgFactory(_MessageFactory):
+    """
+    Key manager messages
+    """
+    COMPONENT = 0xf4
+    TASK_REQUEST = 1
+
+    scheme = Schema({
+        Optional('.'): None,  # Marker
+        And('component'): int,
+        And('kind'): int,
+        And('user'): str,
+        And('uid'): int,
+        And('token'): str,
+        And('internal'): str,
+    })
+
+    @classmethod
+    def create(cls):
+        """
+        Create message.
+
+        :return:
+        """
+        s = Serialisable()
+        s.component = cls.COMPONENT
+        s.kind = cls.TASK_REQUEST
+        s.user = getpass.getuser()
+        s.uid = os.getuid()
+
+        s.token = ''
+        s.internal = ''
+
+        cls.validate(s)
+
+        return s
+
+
 class ConsoleMsgFactory(_MessageFactory):
     """
     Console message
     """
-    COMPONENT = 0xF1
+    COMPONENT = 0xf1
     TASK_REQUEST = 1
 
     scheme = Schema({
