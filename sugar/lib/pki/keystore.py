@@ -299,7 +299,7 @@ class KeyStore(object):
         :return:
         """
         return self.__clone_rs(orm.select(k for k in StoredKey
-                                          if k.fingerprint == sugar.utils.stringutils.to_str(fingerprint)))
+                                          if k.fingerprint.startswith(sugar.utils.stringutils.to_str(fingerprint))))
 
     @orm.db_session
     def get_key_by_machine_id(self, machine_id):
