@@ -177,7 +177,7 @@ Available components:
         self.component_cli_parser = argparse.ArgumentParser(
             description='Sugar Keys Manager, manages authentication keys')
         self.component_cli_parser.add_argument("command", help="Action on known keys", default=None,
-                                               choices=sorted(["accept", "deny", "reject", "list"]))
+                                               choices=sorted(["accept", "deny", "reject", "list", "delete"]))
         self.component_cli_parser.add_argument("-f", "--format", help="Format of the listing. Default: short",
                                                default="short", choices=sorted(["short", "full"]))
         self.component_cli_parser.add_argument("-s", "--status", help="List only with the following status. "

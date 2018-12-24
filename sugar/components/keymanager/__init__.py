@@ -80,40 +80,68 @@ class SugarKeyManager(object):
         else:
             raise exceptions.SugarConsoleException("Unknown format: {}".format(self.args.format))
 
+    def _set_keys_status(self, status: str, doing: str, func: callable) -> list:
+        """
+        Match keys by criteria.
+        :return:
+        """
+        by_type = ""
+        keys = []
+        if self.args.fingerprint:
+            by_type = "by fingerprint or part of it"
+            keys = [key for key in self._keystore.get_key_by_fingerprint(self.args.fingerprint) if key.status != status]
+            print(keys)
+        elif self.args.hostname:
+            by_type = "by hostname"
+            keys = [key for key in self._keystore.get_key_by_hostname(self.args.hostname) if key.status != status]
+        elif self.args.match_all_keys_at_once:
+            by_type = "in batch"
+            self.cli.warning("Dangerous mode!")
+            if sugar.utils.console.get_yn_input("Are you sure?"):
+                keys = [key for key in self._keystore.get_new() if key.status != status]
+        if keys:
+            connectWS(self.factory, ssl.ClientContextFactory())
+            reactor.run()
+            self.cli.info("*{} {} key{}* ({}):", doing.title(), len(keys), len(keys) > 1 and "s" or "", by_type)
+            for key in keys:
+                func(key.fingerprint)
+                self.cli.info("  - {}... (*{}*)", key.fingerprint[:29], key.hostname)
+        else:
+            self.cli.warning("*No keys* is matching your criteria.")
+
+        return keys
+
     def accept(self):
         """
         Accept keys
 
         :return:
         """
-        if not self.args.fingerprint and not self.args.hostname and not self.args.match_all_keys_at_once:
-            sys.stderr.write("Error: please specify fingerprint or hostname or decide to match all keys atonce.\n")
-            sys.exit(1)
+        self._set_keys_status(KeyStore.STATUS_ACCEPTED, "accepting", self._keystore.accept)
 
-        by_type = ""
-        keys = []
-        if self.args.fingerprint:
-            by_type = "by fingerprint or part of it"
-            keys = [key for key in self._keystore.get_key_by_fingerprint(self.args.fingerprint)
-                    if key.status != KeyStore.STATUS_ACCEPTED]
-        elif self.args.hostname:
-            by_type = "by hostname"
-            keys = [key for key in self._keystore.get_key_by_hostname(self.args.hostname)
-                    if key.status != KeyStore.STATUS_ACCEPTED]
-        elif self.args.match_all_keys_at_once:
-            by_type = "accepting in batch"
-            self.cli.warning("Dangerous mode")
-            if sugar.utils.console.get_yn_input("Are you sure?"):
-                keys = [key for key in self._keystore.get_new() if key.status != KeyStore.STATUS_ACCEPTED]
-        if keys:
-            connectWS(self.factory, ssl.ClientContextFactory())
-            reactor.run()
-            self.cli.info("Accepting {} key{} ({}):", len(keys), len(keys)> 1 and "s" or "", by_type)
-            for key in keys:
-                self._keystore.accept(key.fingerprint)
-                self.cli.info("- {}... ({})", key.fingerprint[:29], key.hostname)
-        else:
-            self.cli.warning("*No keys* is matching your criteria.")
+    def deny(self):
+        """
+        Deny specified keys.
+
+        :return:
+        """
+        self._set_keys_status(KeyStore.STATUS_DENIED, "denying", self._keystore.deny)
+
+    def reject(self):
+        """
+        Reject specified keys.
+        :return:
+        """
+        self._set_keys_status(KeyStore.STATUS_REJECTED, "rejecting", self._keystore.reject)
+
+    def delete(self):
+        """
+        Delete specified keys (fingerprint only).
+        Accepted keys cannot be deleted. They should be first denied or rejected.
+
+        :return:
+        """
+        self._set_keys_status(KeyStore.STATUS_ACCEPTED, "deleting", self._keystore.delete)
 
     def run(self):
         """
@@ -122,4 +150,14 @@ class SugarKeyManager(object):
         :return:
         """
         self.log.debug("Running Key Manager")
+        if (self.args.command not in ["list", "delete"]
+                and not self.args.fingerprint
+                and not self.args.hostname
+                and not self.args.match_all_keys_at_once):
+            self.cli.error("Error: please specify fingerprint or hostname or decide to match all keys at once.")
+            sys.exit(1)
+        elif self.args.command == "delete" and not self.args.fingerprint:
+            self.cli.error("Error: please specify fingerprint to delete a key.")
+            sys.exit(1)
+
         getattr(self, self.args.command)()

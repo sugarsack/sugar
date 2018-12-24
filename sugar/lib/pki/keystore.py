@@ -237,7 +237,7 @@ class KeyStore(object):
         self._unlock_transaction()
 
     @orm.db_session
-    def reject(self, hostname=None, fingerprint=None):
+    def reject(self, fingerprint, hostname=None):
         """
         Reject key by either hostname or fingerprint.
         If both are None, an exception is raised.
@@ -250,11 +250,11 @@ class KeyStore(object):
         params = {}
         if hostname:
             params['hostname'] = hostname
-        if fingerprint:
-            params['fingerprint'] = fingerprint
+        params['fingerprint'] = fingerprint
         key = StoredKey.get(**params)
         if key is not None:
             key.status = self.STATUS_REJECTED
+            orm.commit()
         self._unlock_transaction()
 
     @orm.db_session
