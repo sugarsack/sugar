@@ -4,6 +4,7 @@ CLI output formatters.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+import os
 import sys
 import colored
 import collections
@@ -383,6 +384,29 @@ class ConsoleMessages(object):
 
         return ''.join(out)
 
+    def _standard(self, message, *args, **kwargs):
+        """
+        Standard output for info and input.
+
+        :param message:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        return self._emph("{}{}{}".format(colored.fg(self.__style()["info"]),
+                                          message.format(*args, **kwargs), colored.attr("reset")), "info")
+
+    def input(self, message, *args, **kwargs):
+        """
+        Display input (like info, just no new line
+
+        :param message:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        sys.stdout.write(self._standard(message, *args, **kwargs))
+
     def info(self, message, *args, **kwargs):
         """
         Display info.
@@ -392,9 +416,8 @@ class ConsoleMessages(object):
         :param kwargs:
         :return:
         """
-        sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["info"]),
-                                                      message.format(*args, **kwargs), colored.attr("reset")),
-                                    "info"))
+        sys.stdout.write(self._standard(message, *args, **kwargs))
+        sys.stdout.write(os.linesep)
 
     def warning(self, message, *args, **kwargs):
         """
