@@ -8,13 +8,14 @@ from __future__ import unicode_literals, print_function, absolute_import
 
 import re
 import sys
-from twisted.internet import reactor, ssl
 
+from twisted.internet import reactor, ssl
 from autobahn.twisted.websocket import connectWS
+
 from sugar.components.console.protocols import SugarConsoleProtocol, SugarClientFactory
+from sugar.transport import ConsoleMsgFactory
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
-from sugar.transport import ConsoleMsgFactory
 from sugar.lib import six
 
 log = get_logger(__name__)
