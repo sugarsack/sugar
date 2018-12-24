@@ -90,7 +90,6 @@ class SugarKeyManager(object):
         if self.args.fingerprint:
             by_type = "by fingerprint or part of it"
             keys = [key for key in self._keystore.get_key_by_fingerprint(self.args.fingerprint) if key.status != status]
-            print(keys)
         elif self.args.hostname:
             by_type = "by hostname"
             keys = [key for key in self._keystore.get_key_by_hostname(self.args.hostname) if key.status != status]
