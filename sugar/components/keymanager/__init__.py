@@ -42,7 +42,14 @@ class SugarKeyManager(object):
                                            encoding=self.config.terminal.encoding)
         self._list_output._symbols_utf["n/a"] = self._list_output._symbols_ascii["n/a"] = "   No keys"
 
-    def list(self):
+        url = 'wss://{h}:{p}'.format(h='localhost', p=5507)
+
+        self.log.debug('Socket ')
+        self.factory = SugarKeymanagerFactory(url)
+        if not self.factory.isSecure:
+            raise Exception('Unable to initialte TLS')
+
+    def list(self) -> bool:
         """
         List keys by status.
         Possible statuses:
@@ -72,6 +79,7 @@ class SugarKeyManager(object):
         else:
             raise exceptions.SugarConsoleException("Unknown format: {}".format(self.args.format))
 
+
     def run(self):
         """
         Run key manager
@@ -80,3 +88,7 @@ class SugarKeyManager(object):
         """
         self.log.debug("Running Key Manager")
         getattr(self, self.args.command)()
+
+
+        #connectWS(self.factory, ssl.ClientContextFactory())
+        #reactor.run()
