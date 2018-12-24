@@ -6,9 +6,13 @@ from __future__ import unicode_literals, absolute_import, print_function
 
 import os
 import sys
-import colored
 from collections import OrderedDict
+
+from autobahn.twisted.websocket import connectWS
+from twisted.internet import reactor, ssl
+
 from sugar.config import get_config
+from sugar.components.keymanager.protocols import SugarKeymanagerProtocol, SugarKeymanagerFactory
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki.keystore import KeyStore
 from sugar.lib.outputters.console import IterableOutput, TitleOutput, Highlighter

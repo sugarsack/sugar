@@ -10,7 +10,7 @@ from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerF
 from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory
 from sugar.utils import exitcodes
 from sugar.components.server.core import get_server_core
-from sugar.utils import MasterLocalToken
+from sugar.utils.tokens import MasterLocalToken
 
 
 class SugarConsoleServerProtocol(WebSocketServerProtocol):

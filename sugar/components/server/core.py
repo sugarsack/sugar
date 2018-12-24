@@ -18,7 +18,7 @@ from sugar.lib.pki.keystore import KeyStore
 import sugar.transport
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
-from sugar.utils import MasterLocalToken
+from sugar.utils.tokens import MasterLocalToken
 
 
 @Singleton
