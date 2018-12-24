@@ -4,6 +4,7 @@ CLI output formatters.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+import sys
 import colored
 import collections
 
@@ -326,3 +327,97 @@ class Highlighter(object):
         return "{b}{c}{r}".format(b=colored.fg(self._get_style()["base"]),
                                   c=pattern.format(**hl),
                                   r=colored.attr("reset"))
+
+
+class ConsoleMessages(object):
+    """
+    Console CLI colored output.
+    This provides standard interface to all
+    non-logging messages outside.
+    """
+    _style_16 = {
+        "info": 6,
+        "warning": 3,
+        "error": 1,
+        "bold": {
+            "info": 14,
+            "warning": 11,
+            "error": 9,
+        }
+    }
+
+    _style_256 = {
+        "info": 40,
+        "warning": 208,
+        "error": 160,
+        "bold": {
+            "info": 82,
+            "warning": 214,
+            "error": 196,
+        }
+    }
+
+    def __init__(self, colors=16, encoding="ascii"):
+        self._colors = colors
+        self._encoding = encoding
+
+    def __style(self):
+        return getattr(self, "_style_{}".format(self._colors))
+
+    def _emph(self, text, section):
+        """
+        Emphasis.
+
+        :param text:
+        :return:
+        """
+        out = []
+        bold = False
+        for c in text:
+            if c == "*":
+                bold = not bold
+                out.append(colored.attr("bold") if bold else colored.attr("res_bold"))
+                out.append(colored.fg(self.__style()["bold"][section]) if bold else colored.fg(self.__style()[section]))
+            else:
+                out.append(c)
+
+        return ''.join(out)
+
+    def info(self, message, *args, **kwargs):
+        """
+        Display info.
+
+        :param message:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["info"]),
+                                                      message.format(*args, **kwargs), colored.attr("reset")),
+                                    "info"))
+
+    def warning(self, message, *args, **kwargs):
+        """
+        Display warning message.
+
+        :param message:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["warning"]),
+                                                      message.format(*args, **kwargs), colored.attr("reset")),
+                                    "warning"))
+
+    def error(self, message, *args, **kwargs):
+        """
+        Display error message.
+
+        :param message:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["error"]),
+                                           message.format(*args, **kwargs), colored.attr("reset")),
+                                    "error"))
