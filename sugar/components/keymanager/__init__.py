@@ -99,8 +99,6 @@ class SugarKeyManager(object):
             if sugar.utils.console.get_yn_input("Are you sure?"):
                 keys = [key for key in self._keystore.get_new() if key.status != status]
         if keys:
-            connectWS(self.factory, ssl.ClientContextFactory())
-            reactor.run()
             self.cli.info("*{} {} key{}* ({}):", doing.title(), len(keys), len(keys) > 1 and "s" or "", by_type)
             for key in keys:
                 func(key.fingerprint)
@@ -110,13 +108,30 @@ class SugarKeyManager(object):
 
         return keys
 
+    def send_to_master(self):
+        """
+        Send tasks to the master.
+
+        When keys were status updated, connected peers
+        should be instantly updated: connections dropped or accepted, etc.
+        For this, message-per-key is dropped into the queue and then
+        protocol sends these messages to the Master for further update.
+
+        Protocol will shutdown reactor on its own from the Factory, once
+        everything is sent and tasks are finished.
+
+        :return:
+        """
+        connectWS(self.factory, ssl.ClientContextFactory())
+        reactor.run()
+
     def accept(self):
         """
         Accept keys
 
         :return:
         """
-        self._set_keys_status(KeyStore.STATUS_ACCEPTED, "accepting", self._keystore.accept)
+        return self._set_keys_status(KeyStore.STATUS_ACCEPTED, "accepting", self._keystore.accept)
 
     def deny(self):
         """
@@ -124,14 +139,14 @@ class SugarKeyManager(object):
 
         :return:
         """
-        self._set_keys_status(KeyStore.STATUS_DENIED, "denying", self._keystore.deny)
+        return self._set_keys_status(KeyStore.STATUS_DENIED, "denying", self._keystore.deny)
 
     def reject(self):
         """
         Reject specified keys.
         :return:
         """
-        self._set_keys_status(KeyStore.STATUS_REJECTED, "rejecting", self._keystore.reject)
+        return self._set_keys_status(KeyStore.STATUS_REJECTED, "rejecting", self._keystore.reject)
 
     def delete(self):
         """
@@ -140,7 +155,7 @@ class SugarKeyManager(object):
 
         :return:
         """
-        self._set_keys_status(KeyStore.STATUS_ACCEPTED, "deleting", self._keystore.delete)
+        return self._set_keys_status(KeyStore.STATUS_ACCEPTED, "deleting", self._keystore.delete)
 
     def run(self):
         """
@@ -159,4 +174,6 @@ class SugarKeyManager(object):
             self.cli.error("Error: please specify fingerprint to delete a key.")
             sys.exit(1)
 
-        getattr(self, self.args.command)()
+        if getattr(self, self.args.command)():
+            self.send_to_master()
+
