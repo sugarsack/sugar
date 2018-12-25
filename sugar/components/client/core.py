@@ -5,8 +5,8 @@ Core client operations.
 from __future__ import unicode_literals, absolute_import
 
 import os
-import queue
 
+from sugar.lib.compat import queue
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki import Crypto
