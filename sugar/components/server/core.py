@@ -134,6 +134,12 @@ class ServerSystemEvents(object):
         client_key = None
         for key in self.core.keystore.get_key_by_machine_id(machine_id):
             client_key = key
+            pem = self.core.keystore.get_key_pem(client_key)
+            if not self.core.crypto.verify_signature(pem, cipher, signature):
+                self.log.error("SECURITY ALERT: Key signature verification failure. Might be spoofing attack!")
+                client_key.status = KeyStore.STATUS_INVALID
+            else:
+                self.log.info("Signature verification passed.")
             # TODO: Check for duplicate machine id? This should never happen though
             break
 
