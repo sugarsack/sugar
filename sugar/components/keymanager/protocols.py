@@ -6,6 +6,7 @@ from __future__ import absolute_import, unicode_literals
 from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientFactory
 from twisted.internet.protocol import ClientFactory
 
+from sugar.components.keymanager.core import KeyManagerCore
 from sugar.transport import KeymanagerMsgFactory, ServerMsgFactory, any_binary
 
 
@@ -37,6 +38,7 @@ class SugarKeymanagerFactory(WebSocketClientFactory, ClientFactory):
 
     def __init__(self, *args, **kwargs):
         WebSocketClientFactory.__init__(self, *args, **kwargs)
+        self.core = KeyManagerCore(self)
         self.maxDelay = 10
 
     def clientConnectionFailed(self, connector, reason):
