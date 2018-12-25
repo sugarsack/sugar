@@ -10,6 +10,7 @@ import queue
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki import Crypto
+from sugar.lib.pki.keystore import KeyStore
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
 import sugar.utils.network
@@ -37,6 +38,16 @@ class ClientCore(object):
         self._queue = {"_": queue.Queue()}
         self._proto = {}
         self.traits = Traits()
+        self.reactor_connection = None
+
+    def set_reactor_connection(self, connection):
+        """
+        Set pointer to the reactor connection.
+
+        :param connection:
+        :return:
+        """
+        self.reactor_connection = connection
 
     def set_protocol(self, id, proto):
         """
@@ -157,8 +168,8 @@ class ClientSystemEvents(object):
 
         :return:
         """
-        client_id = sugar.utils.network.generate_client_id()
-        self.log.info("Creating master token...")
+        client_id = self.core.traits.data["machine-id"]
+        self.log.info("Creating master token... ({})".format(client_id))
 
         try:
             with open(os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)) as master_pubkey_fh:
@@ -227,7 +238,13 @@ class ClientSystemEvents(object):
                 reply = self.core.get_queue().get()  # This is blocking and is waiting for the master to continue
                 if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP:
                     self.log.info("Master response: {}".format(reply.internal["payload"]))
-                    proto._handshaked = reply.internal["payload"]
+                    ret = proto._handshaked = reply.internal["payload"] == KeyStore.STATUS_ACCEPTED
+                    if not proto._handshaked:
+                        self.log.info("Connection to the master {}. Shutting down.".format(reply.internal["payload"]))
+                        self.core.reactor_connection.disconnect()
+                        proto.factory.reactor.stop()
+                        # todo: wait for deferreds
+                        break
                 elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP:
                     # send RSA, wait for response for acceptance until forever.
                     registration_request = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
@@ -237,9 +254,6 @@ class ClientSystemEvents(object):
                     proto.sendMessage(ClientMsgFactory.pack(registration_request), is_binary=True)
                     self.log.info("Waiting for key accepted...")
                     reply = self.core.get_queue().get()  # This is blocking and is waiting for the master to accept key
-
-                    # what to do? if it is accepted, handshake complete. If candidate, wait. Otherwise disconnect
-                    print(reply.payload)
-                break
+                    print(">>> UNFINISHED:", reply)
 
         self.log.info("Master/client handshake finished")

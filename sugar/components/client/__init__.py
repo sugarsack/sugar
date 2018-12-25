@@ -45,5 +45,5 @@ class SugarClient(object):
         Run client.
         :return:
         """
-        connectWS(self.factory, ssl.ClientContextFactory())
+        self.factory.core.set_reactor_connection(connectWS(self.factory, ssl.ClientContextFactory()))
         reactor.run()

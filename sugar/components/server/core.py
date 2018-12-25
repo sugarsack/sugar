@@ -130,16 +130,21 @@ class ServerSystemEvents(object):
         cipher = msg.internal["cipher"]
         signature = msg.internal["signature"]
         machine_id = self.core.crypto.decrypt_rsa(priv_master_key, cipher)
-        res = self.core.keystore.get_key_by_machine_id(machine_id)
-        if not res:
+
+        client_key = None
+        for key in self.core.keystore.get_key_by_machine_id(machine_id):
+            client_key = key
+            # TODO: Check for duplicate machine id? This should never happen though
+            break
+
+        if not client_key:
             # No key in the database yet. Request for RSA send, then repeat handshake
             self.log.info("RSA key not found for {}. Client is not registered yet.".format(machine_id))
             reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP)
         else:
             # Check if token is accepted or denied/rejected
-            raise NotImplementedError("Not implemented yet")
-            #reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP)
-            #reply.internal["payload"] = self.core.keystore.STATUS_CANDIDATE
+            reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP)
+            reply.internal["payload"] = client_key.status  # Put status string into the "payload" section
 
         return reply
 

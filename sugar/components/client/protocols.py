@@ -69,9 +69,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
         """
         if binary:
             msg = ObjectGate().load(payload, binary)
-            if msg.kind in [ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP,
-                            ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP,
-                            ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP]:
+            if msg.kind != ServerMsgFactory.KIND_OPR_REQ:
                 self.factory.core.put_message(msg)
 
     def onClose(self, wasClean, code, reason):
