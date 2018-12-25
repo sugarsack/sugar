@@ -57,6 +57,7 @@ class KeyStore(object):
     STATUS_ACCEPTED = "accepted"
     STATUS_DENIED = "denied"
     STATUS_REJECTED = "rejected"
+    STATUS_INVALID = "invalid"  # Usually set on signature verification failure on responses
 
     LOCKFILE = ".keystore.lck"
 
