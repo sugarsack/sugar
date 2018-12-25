@@ -167,6 +167,26 @@ class KeyStore(object):
 
         return ret
 
+    def get_key_pem(self, key: StoredKey) -> str:
+        """
+        Retrieve PEM key from the FS.
+
+        :param key:
+        :return:
+        """
+        self._lock_transation()
+        try:
+            with open(key.filename, "r") as key_fh:
+                pem = key_fh.read()
+        except Exception as err:
+            pem = ""
+        self._unlock_transaction()
+
+        if not pem:
+            raise sugar.lib.exceptions.SugarKeyStoreException("Broken key! Key PEM data not found.")
+
+        return pem
+
     def get_new(self):
         """
         List candidate keys in the store by name.
