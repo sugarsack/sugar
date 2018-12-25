@@ -210,7 +210,7 @@ class KeyStore(object):
         :return:
         """
         self._lock_transation()
-        filename = "{}.bin".format(os.path.join(self.__keys_path, machine_id))
+        filename = "{}.pem".format(os.path.join(self.__keys_path, machine_id))
         with open(filename, "wb") as rsa_pem_h:
             pubkey_pem = sugar.utils.stringutils.to_bytes(pubkey_pem)
             rsa_pem_h.write(pubkey_pem)
