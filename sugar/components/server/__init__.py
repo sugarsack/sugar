@@ -42,6 +42,14 @@ class SugarServer(object):
         self.console_factory = SugarConsoleServerFactory("wss://*:5507")
         self.console_factory.protocol = SugarConsoleServerProtocol
 
+    def on_shutdown(self):
+        """
+        Perform actions on shutdown.
+
+        :return:
+        """
+        self.factory.core.master_local_token.cleanup()
+
     def run(self):
         """
         Run Sugar Server.
@@ -56,4 +64,5 @@ class SugarServer(object):
         listenWS(self.factory, contextFactory)
         listenWS(self.console_factory, contextFactory)
 
+        reactor.addSystemEventTrigger("before", "shutdown", self.on_shutdown)
         reactor.run()
