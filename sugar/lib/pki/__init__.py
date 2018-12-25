@@ -148,7 +148,7 @@ class Crypto(object):
 
         return PKCS1_v1_5.new(RSA.importKey(priv_key)).sign(digest)
 
-    def verify_signature(self, pubkey_pem, data, signature):
+    def verify_signature(self, pubkey_pem: str, data: str, signature: str) -> bool:
         """
         Verify signature.
 
