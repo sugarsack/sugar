@@ -49,6 +49,31 @@ class KeyDB(object):
         return instance
 
 
+class StoredKey(KeyDB.db.Entity):
+    """
+    Key meta.
+    """
+    id = orm.PrimaryKey(int, auto=True)
+    hostname = orm.Required(str, unique=True)
+    machine_id = orm.Required(str, unique=True)
+    fingerprint = orm.Required(str, unique=True)
+    status = orm.Required(str)
+    filename = orm.Required(str, unique=True)
+    notes = orm.Optional(str)
+
+    def clone(self):
+        """
+        Clone itself into the serialisable object.
+
+        :return:
+        """
+        export_obj = Serialisable()
+        for attr in self.__class__.__dict__:
+            if not attr.startswith('_') and not callable(self.__class__.__dict__[attr]):
+                setattr(export_obj, attr, getattr(self, attr))
+        return export_obj
+
+
 class KeyStore(object):
     """
     Key Store implementation with the SQLite3.
@@ -343,31 +368,6 @@ class KeyStore(object):
         """
         return self.__clone_rs(orm.select(k for k in StoredKey
                                           if k.hostname == sugar.utils.stringutils.to_str(hostname)))
-
-
-class StoredKey(KeyDB.db.Entity):
-    """
-    Key meta.
-    """
-    id = orm.PrimaryKey(int, auto=True)
-    hostname = orm.Required(str, unique=True)
-    machine_id = orm.Required(str, unique=True)
-    fingerprint = orm.Required(str, unique=True)
-    status = orm.Required(str)
-    filename = orm.Required(str, unique=True)
-    notes = orm.Optional(str)
-
-    def clone(self):
-        """
-        Clone itself into the serialisable object.
-
-        :return:
-        """
-        export_obj = Serialisable()
-        for attr in self.__class__.__dict__:
-            if not attr.startswith('_') and not callable(self.__class__.__dict__[attr]):
-                setattr(export_obj, attr, getattr(self, attr))
-        return export_obj
 
 
 if __name__ == '__main__':
