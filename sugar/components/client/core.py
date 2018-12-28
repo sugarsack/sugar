@@ -6,20 +6,63 @@ from __future__ import unicode_literals, absolute_import
 
 import os
 
-from sugar.lib.compat import queue
 from sugar.config import get_config
+from sugar.lib.compat import queue
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki import Crypto
 from sugar.lib.pki.keystore import KeyStore
+from sugar.lib.exceptions import SugarClientException
+from sugar.lib.traits import Traits
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
 import sugar.utils.network
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
 from sugar.transport.serialisable import Serialisable
-from sugar.transport import ClientMsgFactory, ServerMsgFactory, ObjectGate
-from sugar.lib.exceptions import SugarClientException
-from sugar.lib.traits import Traits
+from sugar.transport import ClientMsgFactory, ServerMsgFactory
+
+
+class HandshakeStatus(object):
+    """
+    Handshake status.
+    """
+
+    def __init__(self):
+        """
+        Constructor.
+        """
+        self.__ended = False
+        self.__successful = False
+        self.__tries = 0
+        self.rsa_accept_wait = False
+
+    def reset(self):
+        self.__ended = False
+        self.__successful = False
+        self.__tries = 0
+        self.rsa_accept_wait = False
+
+    @property
+    def ended(self):
+        return self.__ended
+
+    @property
+    def success(self):
+        return self.__successful
+
+    def set_successfull(self):
+        self.__successful = True
+        self.__ended = True
+
+    def set_failed(self):
+        self.__successful = False
+        self.__ended = True
+
+    def start(self):
+        self.__tries += 1
+        if self.__tries > 5:
+            self.__ended = True
+            self.__successful = False
 
 
 @Singleton
@@ -39,6 +82,7 @@ class ClientCore(object):
         self._proto = {}
         self.traits = Traits()
         self.reactor_connection = None
+        self.hs = HandshakeStatus()
 
     def set_reactor_connection(self, connection):
         """
