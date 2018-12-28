@@ -189,12 +189,15 @@ class ServerSystemEvents(object):
 
         if not client_key:
             # No key in the database yet. Request for RSA send, then repeat handshake
-            self.log.info("RSA key not found for {}. Client is not registered yet.".format(machine_id))
+            self.log.info("RSA key not found for {} or client is not registered yet.".format(machine_id))
             reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP)
+        elif client_key.status != KeyStore.STATUS_ACCEPTED:
+            reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
+            reply.internal["payload"] = client_key.status
         else:
-            # Check if token is accepted or denied/rejected
+            assert client_key.status == KeyStore.STATUS_ACCEPTED
             reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP)
-            reply.internal["payload"] = client_key.status  # Put status string into the "payload" section
+            reply.internal["payload"] = client_key.status
 
         return reply
 
