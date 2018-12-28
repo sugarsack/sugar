@@ -61,6 +61,39 @@ class ServerCore(object):
         print(evt.jid)
         print('-' * 80)
 
+    def register_client_protocol(self, machine_id, proto):
+        """
+        Register machine connection.
+
+        :param machine_id:
+        :param proto:
+        :return:
+        """
+        if getattr(proto, "machine_id", None):
+            self.__client_connection_protocols.setdefault(machine_id,  proto)
+            self.log.info("Registered client connection with the machine id: {}".format(machine_id))
+
+    def remove_client_protocol(self, proto):
+        """
+        Unregister machine connection.
+
+        :param proto:
+        :return:
+        """
+        machine_id = proto.get_machine_id()
+        if machine_id in self.__client_connection_protocols:
+            del self.__client_connection_protocols[machine_id]
+            self.log.info("Removed client connection with the machine id: {}".format(machine_id))
+
+    def get_client_protocol(self, machine_id):
+        """
+        Get registered client protocol to send a message to the client.
+
+        :param machine_id:
+        :return:
+        """
+        return self.__client_connection_protocols.get(machine_id)
+
     def console_request(self, evt):
         """
         Accepts request from the console.
