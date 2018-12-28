@@ -23,15 +23,20 @@ class MasterLocalToken(object):
     Master token for local connections.
     """
 
-    def __init__(self):
+    def __init__(self, filename=None):
         """
         Creates master local token.
 
         :param path:
         """
-        self._filename = tempfile.mktemp(".token", ".sugar.")
-        with os.fdopen(os.open(self._filename, os.O_WRONLY | os.O_CREAT, 0o600), "wb") as fh:
-            fh.write(sugar.utils.stringutils.to_bytes(hashlib.sha256(os.urandom(0xfff)).hexdigest()))
+        self._filename = filename or tempfile.mktemp(SUFFIX, PREFIX)
+        if not filename:  # New token needs to be created
+            with os.fdopen(os.open(self._filename, os.O_WRONLY | os.O_CREAT, 0o600), "wb") as fh:
+                fh.write(sugar.utils.stringutils.to_bytes(hashlib.sha256(os.urandom(0xfff)).hexdigest()))
+        elif not os.path.exists(self._filename):
+            raise OSError("Token file '{}' does not exists.".format(self._filename))
+
+        self.__token = None
 
     def get_token(self):
         """
@@ -39,8 +44,10 @@ class MasterLocalToken(object):
 
         :return:
         """
-        with open(self._filename) as fh:
-            return fh.read().strip()
+        if self.__token is None:
+            with open(self._filename) as fh:
+                self.__token = fh.read().strip()
+        return self.__token
 
     def cleanup(self):
         """
