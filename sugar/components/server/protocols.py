@@ -103,23 +103,18 @@ class SugarServerProtocol(WebSocketServerProtocol):
     def onMessage(self, payload, binary):
         if binary:
             msg = ObjectGate().load(payload, binary)
+            self.set_machine_id(msg.machine_id)
             if msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ:
-                self.log.info("Public key request")
+                self.log.info("** Public key request")
                 self.sendMessage(ObjectGate(self.factory.core.system.on_pub_rsa_request()).pack(binary), binary)
+
             elif msg.kind == ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ:
-                self.log.info("Signed token request")
+                self.log.info("** Signed token request")
                 self.sendMessage(ObjectGate(self.factory.core.system.on_token_request(msg)).pack(binary), binary)
+
             elif msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ:
                 self.log.info("New RSA key registration accepted")
-                self.sendMessage(ObjectGate(self.factory.core.system.on_register_rsa_key(msg)).pack(binary), binary)
-
-                # TODO:
-                # - [x] Add to the keystore
-                # - [ ] "sugar keys accept <ENTER>"
-                # - [ ] This should kick master and let it send a message "Accepted" or "Rejected" or "Denied"
-                # - [ ] client should reset handshake and go again, if "Accepted"
-
-        #self.sendMessage("replied!".encode("utf-8"), False)
+                self.sendMessage(ObjectGate(self.factory.core.system.on_add_new_rsa_key(msg)).pack(binary), binary)
 
     def onClose(self, wasClean, code, reason):
         self.log.info("WebSocket connection closed: {0}".format(reason))
