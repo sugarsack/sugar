@@ -13,6 +13,9 @@ from sugar.utils.objects import Singleton
 
 log = get_logger(__name__)
 
+SUFFIX = ".token"
+PREFIX = ".sugar."
+
 
 @Singleton
 class MasterLocalToken(object):
@@ -49,3 +52,22 @@ class MasterLocalToken(object):
             os.remove(self._filename)
         except Exception as ex:
             log.error("General error while removing token file: {}".format(ex))
+
+
+def get_probable_token_filename(directory="/tmp"):
+    """
+    Try to get possible filename
+
+    :return:
+    """
+    files = {}
+    for fn in os.listdir(directory):
+        if fn.startswith(PREFIX) and fn.endswith(SUFFIX):
+            path = os.path.join(directory, fn)
+            files[os.path.getctime(path)] = path
+    try:
+        path = files[max(files)]
+    except ValueError:
+        path = None
+
+    return path
