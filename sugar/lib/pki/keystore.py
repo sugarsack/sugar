@@ -283,7 +283,7 @@ class KeyStore(object):
         self._unlock_transaction()
 
     @orm.db_session
-    def reject(self, fingerprint, hostname=None):
+    def reject(self, fingerprint, hostname=None) -> str:
         """
         Reject key by either hostname or fingerprint.
         If both are None, an exception is raised.
@@ -302,9 +302,10 @@ class KeyStore(object):
             key.status = self.STATUS_REJECTED
             orm.commit()
         self._unlock_transaction()
+        return self.STATUS_REJECTED
 
     @orm.db_session
-    def deny(self, fingerprint):
+    def deny(self, fingerprint) -> str:
         """
         Deny key by fingerprint.
 
@@ -317,9 +318,10 @@ class KeyStore(object):
             key.status = self.STATUS_DENIED
             orm.commit()
         self._unlock_transaction()
+        return self.STATUS_DENIED
 
     @orm.db_session
-    def accept(self, fingerprint):
+    def accept(self, fingerprint) -> str:
         """
         Accept key by fingerprint.
 
@@ -335,6 +337,7 @@ class KeyStore(object):
                 raise sugar.lib.exceptions.SugarKeyStoreException("Key not found with the fingerprint {}".format(fingerprint))
         finally:
             self._unlock_transaction()
+        return self.STATUS_ACCEPTED
 
     @orm.db_session
     def get_key_by_fingerprint(self, fingerprint):
