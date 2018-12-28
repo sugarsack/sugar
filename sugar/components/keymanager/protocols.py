@@ -7,7 +7,7 @@ from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientF
 from twisted.internet.protocol import ClientFactory
 
 from sugar.components.keymanager.core import KeyManagerCore
-from sugar.transport import KeymanagerMsgFactory, ServerMsgFactory, any_binary
+from sugar.transport import KeymanagerMsgFactory
 
 
 class SugarKeymanagerProtocol(WebSocketClientProtocol):
@@ -21,13 +21,23 @@ class SugarKeymanagerProtocol(WebSocketClientProtocol):
         self.log.debug("Keymanager connected: {0}".format(response.peer))
 
     def onOpen(self):
-        msg_obj = self.factory.core.get_command()
+        for key in self.factory.core.get_changed_keys():
+            key_message = KeymanagerMsgFactory().create()
+            key_message.internal = key
+            key_message.token = self.factory.core.local_token.get_token()
+            self.sendMessage(KeymanagerMsgFactory.pack(key_message), isBinary=True)
 
     def onMessage(self, payload, binary):
         self.factory.reactor.stop()
 
     def onClose(self, wasClean, code, reason):
         self.log.debug("Socket closed: {0}".format(reason))
+
+    def connectionLost(self, reason):
+        try:
+            self.factory.reactor.stop()
+        except Exception:
+            pass
 
 
 class SugarKeymanagerFactory(WebSocketClientFactory, ClientFactory):

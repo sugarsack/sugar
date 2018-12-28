@@ -15,7 +15,7 @@ from sugar.config import get_config
 from sugar.components.keymanager.protocols import SugarKeymanagerProtocol, SugarKeymanagerFactory
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki.keystore import KeyStore
-from sugar.lib.outputters.console import IterableOutput, TitleOutput, Highlighter, ConsoleMessages
+from sugar.lib.outputters.console import IterableOutput, TitleOutput, ConsoleMessages
 from sugar.lib import exceptions
 import sugar.utils.console
 
@@ -101,8 +101,9 @@ class SugarKeyManager(object):
         if keys:
             self.cli.info("*{} {} key{}* ({}):", doing.title(), len(keys), len(keys) > 1 and "s" or "", by_type)
             for key in keys:
-                func(key.fingerprint)
+                key.status = func(key.fingerprint)  # The instance of this "key" is beyound the transaction.
                 self.cli.info("  - {}... (*{}*)", key.fingerprint[:29], key.hostname)
+                self.factory.core.add_key(key)
         else:
             self.cli.warning("*No keys* is matching your criteria.")
 
@@ -122,8 +123,9 @@ class SugarKeyManager(object):
 
         :return:
         """
-        connectWS(self.factory, ssl.ClientContextFactory())
-        reactor.run()
+        if self.factory.core.local_token is not None:
+            connectWS(self.factory, ssl.ClientContextFactory())
+            reactor.run()
 
     def accept(self):
         """
