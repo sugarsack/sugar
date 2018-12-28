@@ -1,10 +1,14 @@
 service_identity
+#pycryptodome
 observable
 autobahn
+colored
 twisted
 pylint
 pytest
 partd
 mock
+pudb
+pony
 
 #pip install service_identity --force --upgrade

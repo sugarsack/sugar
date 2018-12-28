@@ -7,7 +7,7 @@ import sys
 from twisted.internet import reactor, ssl
 
 from autobahn.twisted.websocket import connectWS
-from sugar.client.protocols import SugarClientFactory
+from sugar.components.client.protocols import SugarClientFactory
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 
@@ -33,7 +33,10 @@ class SugarClient(object):
             break
 
         log.debug('Socket ')
+
         self.factory = SugarClientFactory(url)
+        self.factory.core.system.on_startup()
+
         if not self.factory.isSecure:
             raise Exception('Unable to initialte TLS')
 
@@ -42,5 +45,5 @@ class SugarClient(object):
         Run client.
         :return:
         """
-        connectWS(self.factory, ssl.ClientContextFactory())
+        self.factory.core.set_reactor_connection(connectWS(self.factory, ssl.ClientContextFactory()))
         reactor.run()

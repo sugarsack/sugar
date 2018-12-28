@@ -38,14 +38,14 @@ class _DefaultConfigurations(object):
     _master = {
         'crypto': {
             'ssl': {
-                'path': 'ssh/',
                 'certificate': 'certificate.pem',
                 'private': 'private_key.pem',
             },
-            'clients': {
-                'path': 'pki/',
-            },
         },
+        'terminal': {
+            'colors': 16,
+            'encoding': 'ascii',
+        }
     }
 
 # Default client configuration.
@@ -161,12 +161,14 @@ class CurrentConfiguration(object):
         self.component = get_current_component()
         self.__config = copy.deepcopy(getattr(_DefaultConfigurations, self.component)())
         self.__opts = opts
-
         if self.component and self.component != 'local':
             for path in [altpath, self.HOME_PATH.format(os.path.expanduser("~")), self.DEFAULT_PATH]:
-                if path and os.path.isdir(path):
-                    self._load_config(os.path.join(path, '{}.conf'.format(self.component)))
-        self.__config['config_path'] = altpath or self.DEFAULT_PATH
+                if not path:
+                    continue
+                cfg_file = os.path.join(path, '{}.conf'.format(self.component))
+                if os.path.isdir(path):
+                    self._load_config(cfg_file)
+                    self.__config['config_path'] = path
 
     def _load_config(self, config_path):
         '''

@@ -7,9 +7,10 @@ Server protocols
 from __future__ import absolute_import, unicode_literals, print_function
 from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
-from sugar.transport import ObjectGate, ServerMsgFactory
+from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory, KeymanagerMsgFactory, ConsoleMsgFactory
 from sugar.utils import exitcodes
-from sugar.server.core import get_server_core
+from sugar.components.server.core import get_server_core
+from sugar.utils.tokens import MasterLocalToken
 
 
 class SugarConsoleServerProtocol(WebSocketServerProtocol):
@@ -24,11 +25,20 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
         self.log.info("Console WebSocket connection established")
 
     def onMessage(self, payload, binary):
+        local_token = MasterLocalToken().get_token()
         reply = ServerMsgFactory.create_client_msg()
         if binary:
             msg = ObjectGate().load(payload, binary)
-            self.factory.core.console_request(msg)
-            reply.ret.message = "accepted jid: {}".format(msg.jid)
+            if msg.component == KeymanagerMsgFactory.COMPONENT:
+                # Key manager messages
+                if not self.factory.core.verify_local_token(msg.token):
+                    self.transport.abortConnection()
+                else:
+                    self.factory.core.keymanager.on_key_status(msg.internal)
+            elif msg.component == ConsoleMsgFactory.COMPONENT:
+                # Console messages
+                self.factory.core.console_request(msg)
+                reply.ret.message = "accepted jid: {}".format(msg.jid)
         else:
             reply.ret.message = "Unknown message"
             reply.ret.errcode = exitcodes.EX_GENERIC
@@ -90,14 +100,21 @@ class SugarServerProtocol(WebSocketServerProtocol):
         self.factory.register(self)
         self.log.info("WebSocket connection open")
 
-    def onMessage(self, payload, isBinary):
-        if isBinary:
-            self.log.info("Binary message received: {0} bytes".format(len(payload)))
-        else:
-            self.log.info("Text message received: {0}".format(payload.decode('utf8')))
+    def onMessage(self, payload, binary):
+        if binary:
+            msg = ObjectGate().load(payload, binary)
+            self.set_machine_id(msg.machine_id)
+            if msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ:
+                self.log.info("** Public key request")
+                self.sendMessage(ObjectGate(self.factory.core.system.on_pub_rsa_request()).pack(binary), binary)
 
-        # echo back message verbatim
-        self.sendMessage(payload, isBinary)
+            elif msg.kind == ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ:
+                self.log.info("** Signed token request")
+                self.sendMessage(ObjectGate(self.factory.core.system.on_token_request(msg)).pack(binary), binary)
+
+            elif msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ:
+                self.log.info("New RSA key registration accepted")
+                self.sendMessage(ObjectGate(self.factory.core.system.on_add_new_rsa_key(msg)).pack(binary), binary)
 
     def onClose(self, wasClean, code, reason):
         self.log.info("WebSocket connection closed: {0}".format(reason))
@@ -110,6 +127,26 @@ class SugarServerProtocol(WebSocketServerProtocol):
         """
         WebSocketServerProtocol.connectionLost(self, reason)
         self.factory.unregister(self)
+        self.factory.core.remove_client_protocol(self)
+
+    def get_machine_id(self):
+        """
+        Get machine ID, if any.
+
+        :return:
+        """
+        return getattr(self, "machine_id", None)
+
+    def set_machine_id(self, machine_id):
+        """
+        Set machine ID to the connection.
+
+        :param machine_id:
+        :return:
+        """
+        if self.get_machine_id() != machine_id:
+            setattr(self, "machine_id", machine_id)
+            self.factory.core.register_client_protocol(self.machine_id, self)
 
 
 class SugarServerFactory(WebSocketServerFactory):

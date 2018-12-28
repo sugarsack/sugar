@@ -3,6 +3,7 @@ Main app file, processing CLI
 """
 
 import argparse
+import inspect
 import sys
 
 from sugar.config import CurrentConfiguration
@@ -14,7 +15,7 @@ class SugarCLI(object):
     """
     CLI for running Sugar components in Git style command line interface.
     """
-    COMPONENTS = ['master', 'client', 'local']
+    COMPONENTS = ['master', 'client', 'local', 'keys']
 
     def __init__(self):
         parser = argparse.ArgumentParser(
@@ -27,9 +28,10 @@ wildcard that matches client names.
 
 Available components:
 
-    master     Sugar Master, used to control Sugar Clients
-    client     Sugar Client, receives commands from a remote Sugar Master
-    local      Sugar local orchestration""")
+    master     Used to control Sugar Clients
+    client     Receives commands from a remote Sugar Master
+    keys       Used to manage Sugar authentication keys
+    local      Local orchestration""")
         parser.add_argument('component', help='Component to run')
         args = parser.parse_args(sys.argv[1:2])
         if SugarCLI.is_target(args.component):
@@ -70,9 +72,7 @@ Available components:
         """
         parser.add_argument('-l', '--log-level', help='Set output log level. Default: info',
                             choices=list(sorted(Logger.LOG_LEVELS.keys())), default=None)
-        default = '/etc/sugar'
-        parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory. '
-                                                       'Default: {}'.format(default), default=default)
+        parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory.', default=None)
 
     def setup(self):
         """
@@ -101,7 +101,10 @@ Available components:
         :return:
         """
         try:
-            reactor.run()
+            if inspect.isclass(type(reactor)) and not type(reactor) == type:
+                reactor.run()
+            else:
+                reactor(self.component_args).run()
         except Exception as ex:
             sys.stderr.write('Error running {}:\n  {}\n'.format(sys.argv[1].title(), ex))
             if self.component_args.log_level == 'debug':
@@ -123,7 +126,7 @@ Available components:
         # should be read before. Otherwise logging will be initialised
         # before default configuration is adjusted
 
-        from sugar.server import SugarServer
+        from sugar.components.server import SugarServer
         self.run(SugarServer())
 
     def client(self):
@@ -143,7 +146,7 @@ Available components:
         # should be read before. Otherwise logging will be initialised
         # before default configuration is adjusted
 
-        from sugar.client import SugarClient
+        from sugar.components.client import SugarClient
         self.run(SugarClient())
 
     def console(self):
@@ -161,8 +164,42 @@ Available components:
         self.setup()
         self.log.debug('Calling Console')
 
-        from sugar.console import SugarConsole
+        from sugar.components.console import SugarConsole
         self.run(SugarConsole(self.component_args))
+
+    def keys(self):
+        """
+        Sugar key manager.
+        Used to manage keys of the clients.
+
+        :return:
+        """
+        self.component_cli_parser = argparse.ArgumentParser(
+            description='Sugar Keys Manager, manages authentication keys')
+        self.component_cli_parser.add_argument("command", help="Action on known keys", default=None,
+                                               choices=sorted(["accept", "deny", "reject", "list", "delete"]))
+        self.component_cli_parser.add_argument("-f", "--format", help="Format of the listing. Default: short",
+                                               default="short", choices=sorted(["short", "full"]))
+        self.component_cli_parser.add_argument("-s", "--status", help="List only with the following status. "
+                                                                      " Default: all",
+                                               default="all", choices=sorted(["all", "new", "accepted",
+                                                                              "rejected", "denied"]))
+        self.component_cli_parser.add_argument("-t", "--fingerprint",
+                                               help="Specify key fingerprint for acceptance/rejection/deletion",
+                                               default=None)
+        self.component_cli_parser.add_argument("-n", "--hostname",
+                                               help="Specify hostname of the key for acceptance/rejection/deletion",
+                                               default=None)
+        self.component_cli_parser.add_argument("--match-all-keys-at-once",
+                                               help="Take all keys or acceptance/rejection/deletion",
+                                               action="store_true")
+        SugarCLI.add_common_params(self.component_cli_parser)
+
+        self.setup()
+        self.log.debug('Running key manager')
+
+        from sugar.components.keymanager import SugarKeyManager
+        self.run(SugarKeyManager)
 
     def local(self):
         """
