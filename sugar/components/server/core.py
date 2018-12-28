@@ -116,6 +116,38 @@ class ServerCore(object):
         threads.deferToThread(self.cli_db.accept, evt)
 
 
+class KeyManagerEvents(object):
+    """
+    KeyManager events.
+    """
+    def __init__(self, core: ServerCore):
+        """
+        Constructor
+        :param core:
+        """
+        self.core = core
+
+    def on_key_status(self, key):
+        """
+        Action on key status.
+        :param key:
+        :return:
+        """
+        self.core.log.info("Key Manager key update")
+        print(">>>", key.hostname)
+        print(">>>", key.fingerprint)
+        print(">>>", key.machine_id)
+        print(">>>", key.status)
+        print("---")
+        client_proto = self.core.get_client_protocol(key.machine_id)
+        if client_proto is not None:
+            reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
+            reply.internal["payload"] = key.status
+            client_proto.sendMessage(ObjectGate(reply).pack(True), True)
+            if key.status != KeyStore.STATUS_ACCEPTED:
+                client_proto.dropConnection()
+
+
 class ServerSystemEvents(object):
     """
     Server system events.
