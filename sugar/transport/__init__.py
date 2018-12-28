@@ -9,8 +9,10 @@ import getpass
 from sugar.lib.schemelib import Schema, And, Optional
 from sugar.lib import six
 from sugar.transport.serialisable import Serialisable, ObjectGate
+from sugar.utils.tokens import MasterLocalToken
 from sugar.utils import exitcodes
 from sugar.utils.jid import jidstore
+from sugar.lib.traits import Traits
 
 
 class ErrorLevel(object):
@@ -112,7 +114,7 @@ class KeymanagerMsgFactory(_MessageFactory):
         s.user = getpass.getuser()
         s.uid = os.getuid()
 
-        s.token = ''
+        s.token = MasterLocalToken().get_token()
         s.internal = ''
 
         cls.validate(s)
@@ -180,6 +182,7 @@ class ClientMsgFactory(_MessageFactory):
         And('kind'): int,
         And('user'): str,
         And('uid'): int,
+        And('machine_id'): str,
 
         # Channels
         And('stdout'): str,
@@ -209,6 +212,7 @@ class ClientMsgFactory(_MessageFactory):
         s.kind = kind
         s.user = getpass.getuser()
         s.uid = os.getuid()
+        s.machine_id = Traits().data["machine-id"]
 
         s.stdout = ''
         s.stderr = ''
@@ -240,6 +244,7 @@ class ServerMsgFactory(_MessageFactory):
     KIND_HANDSHAKE_TKEN_RESP = 0xfb              # Signed token response
     KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP = 0xfc    # Public key not found. Client should [re]send one.
     KIND_HANDSHAKE_PKEY_STATUS_RESP = 0xfd       # Public key registered as "{status}"
+
     KIND_OPR_REQ = 0xa1                          # Operational request
 
     scheme = Schema({
