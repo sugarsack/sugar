@@ -7,7 +7,7 @@ Server protocols
 from __future__ import absolute_import, unicode_literals, print_function
 from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
-from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory
+from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory, KeymanagerMsgFactory, ConsoleMsgFactory
 from sugar.utils import exitcodes
 from sugar.components.server.core import get_server_core
 from sugar.utils.tokens import MasterLocalToken
