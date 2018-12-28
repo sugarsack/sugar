@@ -127,6 +127,26 @@ class SugarServerProtocol(WebSocketServerProtocol):
         """
         WebSocketServerProtocol.connectionLost(self, reason)
         self.factory.unregister(self)
+        self.factory.core.remove_client_protocol(self)
+
+    def get_machine_id(self):
+        """
+        Get machine ID, if any.
+
+        :return:
+        """
+        return getattr(self, "machine_id", None)
+
+    def set_machine_id(self, machine_id):
+        """
+        Set machine ID to the connection.
+
+        :param machine_id:
+        :return:
+        """
+        if self.get_machine_id() != machine_id:
+            setattr(self, "machine_id", machine_id)
+            self.factory.core.register_client_protocol(self.machine_id, self)
 
 
 class SugarServerFactory(WebSocketServerFactory):
