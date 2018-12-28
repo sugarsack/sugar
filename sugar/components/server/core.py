@@ -12,7 +12,7 @@ from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
-from sugar.transport import Serialisable, ServerMsgFactory
+from sugar.transport import Serialisable, ServerMsgFactory, ObjectGate
 from sugar.lib.pki import Crypto
 from sugar.lib.pki.keystore import KeyStore
 import sugar.transport
@@ -35,8 +35,19 @@ class ServerCore(object):
         self.cli_db = RegisteredClients()
         self.crypto = Crypto()
         self.system = ServerSystemEvents(self)
+        self.keymanager = KeyManagerEvents(self)
         self.keystore = KeyStore(os.path.abspath(self.config.config_path))
         self.master_local_token = MasterLocalToken()
+        self.__client_connection_protocols = {}  # Machine-ID to Client protocols mapping
+
+    def verify_local_token(self, token):
+        """
+        Verify local token if local client is authorised to connect.
+
+        :param token:
+        :return:
+        """
+        return token == self.master_local_token.get_token()
 
     def _send_task_to_clients(self, evt):
         """
