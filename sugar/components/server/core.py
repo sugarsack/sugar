@@ -210,8 +210,11 @@ class ServerSystemEvents(object):
         client_key = None
         for key in self.core.keystore.get_key_by_machine_id(machine_id):
             client_key = key
-            pem = self.core.keystore.get_key_pem(client_key)
-            if not self.core.crypto.verify_signature(pem, cipher, signature):
+            if client_key.status in [KeyStore.STATUS_DENIED, KeyStore.STATUS_REJECTED]:
+                pem = None
+            else:
+                pem = self.core.keystore.get_key_pem(client_key)
+            if pem is None or not self.core.crypto.verify_signature(pem, cipher, signature):
                 self.log.error("SECURITY ALERT: Key signature verification failure. Might be spoofing attack!")
                 client_key.status = KeyStore.STATUS_INVALID
             else:
