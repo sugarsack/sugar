@@ -8,7 +8,7 @@ from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.internet import threads
 
 from sugar.components.client.core import ClientCore
-from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory
+from sugar.transport import ObjectGate, ServerMsgFactory
 import sugar.transport.utils
 import sugar.utils.stringutils
 
