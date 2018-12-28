@@ -198,7 +198,7 @@ class ServerSystemEvents(object):
 
         return reply
 
-    def on_register_rsa_key(self, msg: Serialisable) -> Serialisable:
+    def on_add_new_rsa_key(self, msg: Serialisable) -> Serialisable:
         """
         Add RSA key to the keystore.
 
