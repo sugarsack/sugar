@@ -111,10 +111,10 @@ class ClientCore(object):
         :param id:
         :return:
         """
+        self.log.debug("Removing protocol, ID: {}".format(id))
         for container in [self._proto, self._queue]:
             try:
                 del container[id]
-                self.log.debug("Removed protocol with ID {} from {}".format(id, container.__class__.__name__))
             except KeyError:
                 self.log.error("Unable to remove protol with ID {} from {}".format(id, container.__class__.__name__))
 
@@ -165,12 +165,10 @@ class ClientSystemEvents(object):
 
         :return:
         """
-        self.log.info("Verifying master public key")
         mpk_path = os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)
         ret = os.path.exists(mpk_path)
         if not ret:
             self.log.warning("Master public key '{}' was not found".format(mpk_path))
-            # self.core.put_message()
 
         return ret
 
@@ -213,8 +211,6 @@ class ClientSystemEvents(object):
         :return:
         """
         client_id = self.core.traits.data["machine-id"]
-        self.log.info("Creating master token... ({})".format(client_id))
-
         try:
             with open(os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)) as master_pubkey_fh:
                 pubkey_rsa = master_pubkey_fh.read()
@@ -245,12 +241,23 @@ class ClientSystemEvents(object):
 
         :return:
         """
-        self.log.info("Creating signature of the master token...")
-
         with open(os.path.join(self.pki_path, sugar.lib.pki.utils.PRIVATE_KEY_FILENAME), "r") as pkey_h:
             pkey_pem = pkey_h.read()
 
         return sugar.utils.stringutils.to_bytes(self.core.crypto.sign(priv_key=pkey_pem, data=cipher))
+
+    def wait_rsa_acceptance(self, proto):
+        """
+        Puts client to wait for the RSA acceptance.
+
+        :param proto:
+        :return:
+        """
+        self.log.info("Waiting for RSA key acceptance...")
+        reply = self.core.get_queue().get()
+        self.log.info("RSA key was {}".format(reply.internal))
+        self.core.hs.rsa_accept_wait = False
+        proto.restart_handshake()
 
     def handshake(self, proto):
         """
@@ -258,46 +265,62 @@ class ClientSystemEvents(object):
 
         :return:
         """
-        self.log.info("Master/client handshake begin")
-        ret = False
-        while not ret:
-            if not self.check_master_pubkey():
-                self.log.info("Master public key was not found.")
-                proto.sendMessage(ClientMsgFactory.pack(ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ)),
-                                  is_binary=True)
-                reply = self.core.get_queue().get()  # This is blocking and is waiting for the master to continue
-                if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP:
-                    self.save_master_pubkey(reply.internal["payload"])
-                    continue
+        key_status = None
+        self.log.debug("Master/client handshake begin")
+        self.log.info("Verifying master public key")
+
+        # Phase 1: Get Master's RSA public key on board
+        if not self.check_master_pubkey():
+            self.log.error("ERROR: Master public key not found")
+            proto.sendMessage(ClientMsgFactory.pack(ClientMsgFactory().create(
+                ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ)), is_binary=True)
+            reply = self.core.get_queue().get()  # This is blocking and is waiting for the master to continue
+            if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP:
+                self.save_master_pubkey(reply.internal["payload"])
+        else:
+            self.log.debug("Master's RSA public key is saved")
+
+        # Phase 2: Tell Master client is authentic
+        cipher = self.create_master_token()
+        signature = self.create_master_signature(cipher)
+        msg = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ)
+        msg.internal["cipher"] = cipher
+        msg.internal["signature"] = signature
+        proto.sendMessage(ClientMsgFactory.pack(msg), is_binary=True)
+
+        self.log.debug("Master token cipher created, signed and sent")
+        reply = self.core.get_queue().get()
+        self.log.debug("Got server response: {}".format(hex(reply.kind)))
+
+        if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP:
+            self.log.debug("KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP")
+            self.log.info("Key needs to be sent for the registration")
+            registration_request = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
+            registration_request.internal["payload"] = sugar.lib.pki.utils.get_public_key(self.pki_path)
+            registration_request.internal["machine-id"] = self.core.traits.data.get('machine-id')
+            registration_request.internal["host-fqdn"] = self.core.traits.data.get("host-fqdn")
+            proto.sendMessage(ClientMsgFactory.pack(registration_request), is_binary=True)
+            self.log.debug("RSA key bound to the metadata and sent")
+        elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP:
+            self.log.debug("KIND_HANDSHAKE_PKEY_STATUS_RESP")
+            if reply.internal.get("payload") == KeyStore.STATUS_CANDIDATE:
+                self.log.debug("Handshake: Waiting for key to be accepted...")
+                self.core.hs.rsa_accept_wait = True
+            elif reply.internal.get("payload") != KeyStore.STATUS_ACCEPTED:
+                self.core.hs.set_failed()
+                key_status = reply.internal["payload"]
+                self.log.info("RSA key {}".format(key_status))
+        elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP:
+            self.log.debug("KIND_HANDSHAKE_PKEY_TKEN_RESP")
+            self.log.debug("Master token response: {}".format(reply.internal["payload"]))
+            key_status = reply.internal["payload"]
+            if key_status == KeyStore.STATUS_ACCEPTED:
+                self.core.hs.set_successfull()
             else:
-                self.log.info("Master public RSA key passed. Checking token.")
-                cipher = self.create_master_token()
-                signature = self.create_master_signature(cipher)
+                self.core.hs.set_failed()
+            self.log.info("RSA key {}".format(key_status))
 
-                msg = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ)
-                msg.internal["cipher"] = cipher
-                msg.internal["signature"] = signature
-                proto.sendMessage(ClientMsgFactory.pack(msg), is_binary=True)
-
-                reply = self.core.get_queue().get()  # This is blocking and is waiting for the master to continue
-                if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP:
-                    self.log.info("Master response: {}".format(reply.internal["payload"]))
-                    ret = proto._handshaked = reply.internal["payload"] == KeyStore.STATUS_ACCEPTED
-                    if not proto._handshaked:
-                        self.log.info("Connection to the master {}. Shutting down.".format(reply.internal["payload"]))
-                        self.core.reactor_connection.disconnect()
-                        proto.factory.reactor.stop()
-                        # todo: wait for deferreds
-                        break
-                elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP:
-                    # send RSA, wait for response for acceptance until forever.
-                    registration_request = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
-                    registration_request.internal["payload"] = sugar.lib.pki.utils.get_public_key(self.pki_path)
-                    registration_request.internal["machine-id"] = self.core.traits.data.get('machine-id')
-                    registration_request.internal["host-fqdn"] = self.core.traits.data.get("host-fqdn")
-                    proto.sendMessage(ClientMsgFactory.pack(registration_request), is_binary=True)
-                    self.log.info("Waiting for key accepted...")
-                    reply = self.core.get_queue().get()  # This is blocking and is waiting for the master to accept key
-                    print(">>> UNFINISHED:", reply)
-
-        self.log.info("Master/client handshake finished")
+        if key_status is not None and key_status != KeyStore.STATUS_ACCEPTED:
+            proto.factory.reactor.stop()
+        else:
+            proto.restart_handshake()

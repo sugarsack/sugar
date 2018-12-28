@@ -20,7 +20,6 @@ class SugarClientProtocol(WebSocketClientProtocol):
     def __init__(self):
         WebSocketClientProtocol.__init__(self)
         self._id = sugar.transport.utils.gen_id()
-        self._handshaked = False
 
     def onConnect(self, response):
         """
@@ -55,9 +54,23 @@ class SugarClientProtocol(WebSocketClientProtocol):
 
         :return:
         """
-        self.log.info("WebSocket connection open")
-        if not self._handshaked:
+        self.restart_handshake()
+
+    def restart_handshake(self):
+        """
+        Restarts handshake
+        :return:
+        """
+        self.factory.core.hs.start()
+
+        if not self.factory.core.hs.ended and not self.factory.core.hs.rsa_accept_wait:
             threads.deferToThread(self.factory.core.system.handshake, self)
+        elif not self.factory.core.hs.ended and self.factory.core.hs.rsa_accept_wait:
+            threads.deferToThread(self.factory.core.system.wait_rsa_acceptance, self)
+        elif self.factory.core.hs.ended and not self.factory.core.hs.rsa_accept_wait:
+            self.log.debug("Handshake is finished")
+        else:
+            self.dropConnection()  # Something entirely went wrong
 
     def onMessage(self, payload, binary):
         """
@@ -71,6 +84,8 @@ class SugarClientProtocol(WebSocketClientProtocol):
             msg = ObjectGate().load(payload, binary)
             if msg.kind != ServerMsgFactory.KIND_OPR_REQ:
                 self.factory.core.put_message(msg)
+        else:
+            self.log.debug("non-binary message: {}".format(payload))
 
     def onClose(self, wasClean, code, reason):
         """
@@ -83,6 +98,8 @@ class SugarClientProtocol(WebSocketClientProtocol):
         """
         self.log.info("WebSocket connection closed: {0}".format(reason))
         self.factory.core.remove_protocol(self._id)
+        self.factory.core.get_queue().queue.clear()
+        self.factory.core.hs.reset()
 
 
 class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
@@ -105,7 +122,6 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         :param reason:
         :return:
         """
-        self.log.info("Client connection failed .. retrying ..")
         self.retry(connector)
 
     def clientConnectionLost(self, connector, reason):
@@ -116,6 +132,5 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         :param reason:
         :return:
         """
-        self.log.info("Client connection lost .. retrying ..")
         self.resetDelay()
         self.retry(connector)
