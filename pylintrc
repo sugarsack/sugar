@@ -343,7 +343,6 @@ logging-modules=logging
 # List of note tags to take in consideration, separated by a comma.
 notes=FIXME,
       XXX,
-      TODO
 
 
 [SIMILARITIES]
