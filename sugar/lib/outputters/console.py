@@ -17,21 +17,21 @@ class _BaseOutput(object):
 
     _ident = "   "
 
-    _symbols_ascii = {
+    symbols_ascii = {
         "leaf": "\\__",
         "bullet": "*",
         "list": "-",
         "n/a": " <N/A>",
     }
 
-    _symbols_utf = {
+    symbols_utf = {
         "leaf": "\u2514\u2500\u2500\u2510",
         "bullet": chr(0x25a0),
         "list": chr(0x2509),
         "n/a": " \u25a0N/A\u25a0",
     }
 
-    _colors_16 = {
+    colors_16 = {
         "types": {
             "bool": colored.fg(13),
             "int": colored.fg(12),
@@ -45,7 +45,7 @@ class _BaseOutput(object):
         }
     }
 
-    _colors_256 = {
+    colors_256 = {
         "types": {
             "bool": colored.fg(208),
             "int": colored.fg(183),
@@ -68,14 +68,14 @@ class _BaseOutput(object):
         Get color scheme
         :return:
         """
-        return getattr(self, "_colors_{}".format(self._colors))
+        return getattr(self, "colors_{}".format(self._colors))
 
     def _get_symbol_scheme(self):
         """
         Get symbols scheme
         :return:
         """
-        return getattr(self, "_symbols_{}".format(self._encoding))
+        return getattr(self, "symbols_{}".format(self._encoding))
 
     def c_type(self, value):
         """

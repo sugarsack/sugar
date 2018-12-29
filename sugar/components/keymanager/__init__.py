@@ -43,7 +43,7 @@ class SugarKeyManager(object):
 
         self._list_output = IterableOutput(colors=self.config.terminal.colors,
                                            encoding=self.config.terminal.encoding)
-        self._list_output._symbols_utf["n/a"] = self._list_output._symbols_ascii["n/a"] = "   No keys"
+        self._list_output.symbols_utf["n/a"] = self._list_output.symbols_ascii["n/a"] = "   No keys"
 
         url = 'wss://{h}:{p}'.format(h='localhost', p=5507)
         self.factory = SugarKeymanagerFactory(url)
