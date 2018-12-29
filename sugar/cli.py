@@ -57,8 +57,8 @@ Available components:
         :param command:
         :return:
         """
-        for c in ['*', '.', ':']:
-            if c in command:
+        for char in ['*', '.', ':']:
+            if char in command:
                 return True
         return command not in SugarCLI.COMPONENTS
 
@@ -101,7 +101,7 @@ Available components:
         :return:
         """
         try:
-            if inspect.isclass(type(reactor)) and not type(reactor) == type:
+            if inspect.isclass(type(reactor)) and not type(reactor) == type:  # pylint: disable=C0123
                 reactor.run()
             else:
                 reactor(self.component_args).run()
