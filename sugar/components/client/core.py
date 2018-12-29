@@ -111,7 +111,7 @@ class ClientCore(object):
         self._proto = {}
         self.traits = Traits()
         self.reactor_connection = None
-        self.hs = HandshakeStatus()
+        self.hds = HandshakeStatus()
 
     def set_reactor_connection(self, connection):
         """
@@ -122,30 +122,31 @@ class ClientCore(object):
         """
         self.reactor_connection = connection
 
-    def set_protocol(self, id, proto):
+    def set_protocol(self, proto_id, proto):
         """
         Set protocol.
 
         :param proto:
         :return:
         """
-        self._proto.setdefault(id, proto)
-        self._queue.setdefault(id, queue.Queue())
-        self.log.debug("Added protocol with ID {}".format(id))
+        self._proto.setdefault(proto_id, proto)
+        self._queue.setdefault(proto_id, queue.Queue())
+        self.log.debug("Added protocol with ID {}".format(proto_id))
 
-    def remove_protocol(self, id):
+    def remove_protocol(self, proto_id):
         """
         Remove protocol.
 
-        :param id:
+        :param proto_id:
         :return:
         """
-        self.log.debug("Removing protocol, ID: {}".format(id))
+        self.log.debug("Removing protocol, ID: {}".format(proto_id))
         for container in [self._proto, self._queue]:
             try:
-                del container[id]
+                del container[proto_id]
             except KeyError:
-                self.log.error("Unable to remove protol with ID {} from {}".format(id, container.__class__.__name__))
+                self.log.error("Unable to remove protol with ID {} from {}".format(
+                    proto_id, container.__class__.__name__))
 
     def get_queue(self, channel="_") -> queue.Queue:
         """
@@ -285,7 +286,7 @@ class ClientSystemEvents(object):
         self.log.info("Waiting for RSA key acceptance...")
         reply = self.core.get_queue().get()
         self.log.info("RSA key was {}".format(reply.internal))
-        self.core.hs.rsa_accept_wait = False
+        self.core.hds.rsa_accept_wait = False
         proto.restart_handshake()
 
     def handshake(self, proto):
@@ -295,7 +296,6 @@ class ClientSystemEvents(object):
         :return:
         """
         key_status = None
-        self.log.debug("Master/client handshake begin")
         self.log.info("Verifying master public key")
 
         # Phase 1: Get Master's RSA public key on board
