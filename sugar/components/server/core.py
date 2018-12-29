@@ -56,10 +56,7 @@ class ServerCore(object):
         :param evt:
         :return:
         """
-        print('-' * 80)
-        print("SEND TASK TO CLIENTS")
-        print(evt.jid)
-        print('-' * 80)
+        self.log.info(">>> SEND TASK TO CLIENTS: {}".format(evt))
 
     def register_client_protocol(self, machine_id, proto):
         """
