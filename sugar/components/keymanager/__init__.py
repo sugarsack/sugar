@@ -59,10 +59,10 @@ class SugarKeyManager(object):
         :return:
         """
         title_output = TitleOutput(colors=self.config.terminal.colors, encoding=self.config.terminal.encoding)
-        all = [("accepted", "success"), ("rejected", "alert"), ("denied", "warning"), ("new", "info")]
+        all_sections = [("accepted", "success"), ("rejected", "alert"), ("denied", "warning"), ("new", "info")]
         ret = OrderedDict()
 
-        for section in all:
+        for section in all_sections:
             text, style = section
             if self.args.status == "all" or self.args.status == text:
                 out = []
