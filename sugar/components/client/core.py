@@ -322,7 +322,6 @@ class ClientSystemEvents(object):
         self.log.debug("Got server response: {}".format(hex(reply.kind)))
 
         if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP:
-            self.log.debug("KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP")
             self.log.info("Key needs to be sent for the registration")
             registration_request = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
             registration_request.internal["payload"] = sugar.lib.pki.utils.get_public_key(self.pki_path)
@@ -331,22 +330,20 @@ class ClientSystemEvents(object):
             proto.sendMessage(ClientMsgFactory.pack(registration_request), is_binary=True)
             self.log.debug("RSA key bound to the metadata and sent")
         elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP:
-            self.log.debug("KIND_HANDSHAKE_PKEY_STATUS_RESP")
             if reply.internal.get("payload") == KeyStore.STATUS_CANDIDATE:
                 self.log.debug("Handshake: Waiting for key to be accepted...")
-                self.core.hs.rsa_accept_wait = True
+                self.core.hds.rsa_accept_wait = True
             elif reply.internal.get("payload") != KeyStore.STATUS_ACCEPTED:
-                self.core.hs.set_failed()
+                self.core.hds.set_failed()
                 key_status = reply.internal["payload"]
                 self.log.info("RSA key {}".format(key_status))
         elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP:
-            self.log.debug("KIND_HANDSHAKE_PKEY_TKEN_RESP")
             self.log.debug("Master token response: {}".format(reply.internal["payload"]))
             key_status = reply.internal["payload"]
             if key_status == KeyStore.STATUS_ACCEPTED:
-                self.core.hs.set_successfull()
+                self.core.hds.set_successfull()
             else:
-                self.core.hs.set_failed()
+                self.core.hds.set_failed()
             self.log.info("RSA key {}".format(key_status))
 
         if key_status is not None and key_status != KeyStore.STATUS_ACCEPTED:
