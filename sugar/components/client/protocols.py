@@ -111,7 +111,7 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
     def __init__(self, *args, **kwargs):
         WebSocketClientFactory.__init__(self, *args, **kwargs)
         ReconnectingClientFactory.__init__(self)
-        self.maxDelay = 10
+        self.maxDelay = 10  # pylint: disable=C0103
         self.core = ClientCore()
 
     def clientConnectionFailed(self, connector, reason):
@@ -132,5 +132,6 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         :param reason:
         :return:
         """
+        self.log.debug("Connection lost: {}".format(reason))
         self.resetDelay()
         self.retry(connector)
