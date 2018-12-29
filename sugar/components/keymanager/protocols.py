@@ -27,7 +27,7 @@ class SugarKeymanagerProtocol(WebSocketClientProtocol):
             key_message.token = self.factory.core.local_token.get_token()
             self.sendMessage(KeymanagerMsgFactory.pack(key_message), isBinary=True)
 
-    def onMessage(self, payload, binary):
+    def onMessage(self, payload, binary):  # pylint: disable=W0613
         self.factory.reactor.stop()
 
     def onClose(self, wasClean, code, reason):
@@ -49,7 +49,7 @@ class SugarKeymanagerFactory(WebSocketClientFactory, ClientFactory):
     def __init__(self, *args, **kwargs):
         WebSocketClientFactory.__init__(self, *args, **kwargs)
         self.core = KeyManagerCore(self)
-        self.maxDelay = 10
+        self.maxDelay = 10  # pylint: disable=C0103
 
     def clientConnectionFailed(self, connector, reason):
         """
