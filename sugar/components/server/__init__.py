@@ -56,13 +56,13 @@ class SugarServer(object):
         :return:
         """
         self.factory.core.system.on_startup()
-        contextFactory = ssl.DefaultOpenSSLContextFactory(
+        context_factory = ssl.DefaultOpenSSLContextFactory(
             os.path.join(self.config.config_path, "ssl", "key.pem"),
             os.path.join(self.config.config_path, "ssl", "certificate.pem"),
         )
 
-        listenWS(self.factory, contextFactory)
-        listenWS(self.console_factory, contextFactory)
+        listenWS(self.factory, context_factory)
+        listenWS(self.console_factory, context_factory)
 
         reactor.addSystemEventTrigger("before", "shutdown", self.on_shutdown)
         reactor.run()
