@@ -70,7 +70,7 @@ class ServerCore(object):
         :return:
         """
         if getattr(proto, "machine_id", None):
-            self.__client_connection_protocols.setdefault(machine_id,  proto)
+            self.__client_connection_protocols.setdefault(machine_id, proto)
             self.log.info("Registered client connection with the machine id: {}".format(machine_id))
 
     def remove_client_protocol(self, proto):
