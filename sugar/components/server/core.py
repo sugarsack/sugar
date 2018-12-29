@@ -285,4 +285,8 @@ class RegisteredClients(object):
 
 
 def get_server_core():
+    """
+    Get server core instance.
+    :return:
+    """
     return ServerCore()
