@@ -31,12 +31,15 @@ class HandshakeStatus(object):
         """
         Constructor.
         """
-        self.__ended = False
-        self.__successful = False
-        self.__tries = 0
-        self.rsa_accept_wait = False
+        self.__ended = self.__successful = self.__tries = self.rsa_accept_wait = None
+        self.reset()
 
     def reset(self):
+        """
+        Reset the handshake status to the initial.
+
+        :return:
+        """
         self.__ended = False
         self.__successful = False
         self.__tries = 0
@@ -44,25 +47,51 @@ class HandshakeStatus(object):
 
     @property
     def ended(self):
+        """
+        Flag: Is handshake ended.
+
+        :return:
+        """
         return self.__ended
 
     @property
     def success(self):
+        """
+        Flag: is handshake succeeded.
+
+        :return:
+        """
         return self.__successful
 
     def set_successfull(self):
+        """
+        Set handshake succeeded.
+
+        :return:
+        """
         self.__successful = True
         self.__ended = True
 
     def set_failed(self):
+        """
+        Set handshake failed.
+
+        :return:
+        """
         self.__successful = False
         self.__ended = True
 
     def start(self):
+        """
+        Kick handshake status, every time it is restarting its cycle.
+        This prevents infinite loop on failure.
+
+        :return:
+        """
         self.__tries += 1
         if self.__tries > 5:
             self.__ended = True
-            self.__successful = False
+            self.set_failed()
 
 
 @Singleton
