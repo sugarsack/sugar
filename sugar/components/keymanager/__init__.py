@@ -178,4 +178,3 @@ class SugarKeyManager(object):
 
         if getattr(self, self.args.command)():
             self.send_to_master()
-

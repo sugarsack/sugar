@@ -43,4 +43,3 @@ class KeyManagerCore(object):
                 yield self._queue.get(True, 0)
             except queue.Empty:
                 break
-
