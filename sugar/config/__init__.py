@@ -1,10 +1,16 @@
 # coding=utf-8
+"""
+Configuration handler.
+This keeps configuration schema, validation and singleton to pick
+it up from every point of project code at any time without re-reading
+the whole thing from the disk.
+"""
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+import os
 import copy
 import yaml
-import os
 
 from sugar.utils.structs import merge_dicts, ImmutableDict, dict_to_object, merge_missing
 from sugar.utils.objects import Singleton
@@ -112,7 +118,7 @@ class _DefaultConfigurations(object):
     #   2. Add parameter: takes life conf data and command line opts to override them.
 
     @staticmethod
-    def __default_client_master_ports(config, opts):
+    def __default_client_master_ports(config, opts):  # pylint: disable=W0613
         """
         Update ctrl/data ports on the client.
 
