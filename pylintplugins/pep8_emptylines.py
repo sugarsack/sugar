@@ -19,7 +19,7 @@ class PEP8EmptyLinesChecker(checkers.BaseChecker):
     name = 'pep8-empty-lines'
     msgs = {
         'E3010': (
-            "Expected 1 blank line between class methods, 2 blank lines between functions.",
+            "Expected %s",
             'pep8-empty-lines',
             'Emitted when backslash is found at the end of the line, but no necessity of its use.'
             ),
@@ -77,8 +77,12 @@ class PEP8EmptyLinesChecker(checkers.BaseChecker):
             if element in ["f", "m"]:
                 offset = self.get_empty_lines(idx, index)
                 if offset is not None:
-                    if (element == "f" and offset != 2) or (element == "m" and offset != 1):
-                        self.add_message("pep8-empty-lines", node=node, line=idx + 1)
+                    if element == "f" and offset != 2:
+                        self.add_message("pep8-empty-lines", node=node, line=idx + 1,
+                                         args=("2 blank lines before function, found {}.".format(offset),))
+                    elif element == "m" and offset != 1:
+                        self.add_message("pep8-empty-lines", node=node, line=idx + 1,
+                                         args=("1 blank line before class method, found {}.".format(offset or "nothing"),))
 
 
 def register(linter):
