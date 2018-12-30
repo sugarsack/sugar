@@ -40,7 +40,7 @@ class SchemaError(Exception):
             seen = set()
             seen_add = seen.add
             # This way removes duplicates while preserving the order.
-            return [x for x in seq if x not in seen and not seen_add(x)]
+            return [element for element in seq if element not in seen and not seen_add(element)]
         data_set = uniq(i for i in self.autos if i is not None)
         error_list = uniq(i for i in self.errors if i is not None)
         if error_list:
@@ -91,10 +91,9 @@ class And(object):
         :param data: to be validated with sub defined schemas.
         :return: returns validated data
         """
-        for s in [self._schema(s, error=self._error,
-                               ignore_extra_keys=self._ignore_extra_keys)
-                  for s in self._args]:
-            data = s.validate(data)
+        for expr in [self._schema(expr, error=self._error,
+                                  ignore_extra_keys=self._ignore_extra_keys) for expr in self._args]:
+            data = expr.validate(data)
         return data
 
 
@@ -109,18 +108,14 @@ class Or(And):
         :return: return validated data if not validation
         """
         autos, errors = [], []
-        for s in [self._schema(s, error=self._error,
-                               ignore_extra_keys=self._ignore_extra_keys)
-                  for s in self._args]:
+        for stmt in [self._schema(expr, error=self._error,
+                               ignore_extra_keys=self._ignore_extra_keys) for expr in self._args]:
             try:
-                return s.validate(data)
-            except SchemaError as _x:
-                autos, errors = _x.autos, _x.errors
+                return stmt.validate(data)
+            except SchemaError as exc:
+                autos, errors = exc.autos, exc.errors
         raise SchemaError(['Did not validate %r' % data] + autos,
                           [self._error.format(data) if self._error else None] + errors)
-        # raise SchemaError(['%r did not validate %r' % (self, data)] + autos,
-        #                   [self._error.format(data) if self._error else None] +
-        #                   errors)
 
 
 class Regex(object):
