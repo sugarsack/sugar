@@ -85,7 +85,6 @@ class _DefaultConfigurations(object):
         """
         return _DefaultConfigurations._get_config(_DefaultConfigurations._client)
 
-
     @staticmethod
     def _get_config(config):
         """
@@ -177,12 +176,12 @@ class CurrentConfiguration(object):
                     self.__config['config_path'] = path
 
     def _load_config(self, config_path):
-        '''
+        """
         Load configuration of the specific path.
 
         :param target:
         :return:
-        '''
+        """
         if config_path and os.path.isfile(config_path):
             with open(config_path) as cfg_fh:
                 self.__merge(yaml.load(cfg_fh.read()))
