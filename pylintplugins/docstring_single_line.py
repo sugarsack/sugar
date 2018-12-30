@@ -28,15 +28,36 @@ class DocstringNewlineChecker(checkers.BaseChecker):
             ),
         }
 
-    @utils.check_messages('docstring-triple-quotes')
-    def visit_functiondef(self, node):
+    def _check_docstring(self, node):
         """
         Check if docstring always starts and ends from/by triple double-quotes
         and they are on the new line.
+
+        :param node:
+        :return:
         """
         if hasattr(node, "doc") and node.doc:
             if not node.doc.startswith(os.linesep) or node.doc.endswith(os.linesep):
                 self.add_message("docstring-newlines", node=node)
+
+    @utils.check_messages('docstring-triple-quotes')
+    def visit_functiondef(self, node):
+        """
+        Examine function or method.
+
+        :param node:
+        :return:
+        """
+        self._check_docstring(node)
+
+    def visit_classdef(self, node):
+        """
+        Examine class definition.
+
+        :param node:
+        :return:
+        """
+        self._check_docstring(node)
 
 
 def register(linter):
