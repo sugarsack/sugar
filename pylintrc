@@ -31,7 +31,8 @@ limit-inference-results=100
 load-plugins=multireturns,
              docstring_triplequotes,
              docstring_single_line,
-             backslashy
+             backslashy,
+             pep8_emptylines
 
 # Pickle collected data for later comparisons.
 persistent=yes
