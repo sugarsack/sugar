@@ -109,7 +109,7 @@ class Or(And):
         """
         autos, errors = [], []
         for stmt in [self._schema(expr, error=self._error,
-                               ignore_extra_keys=self._ignore_extra_keys) for expr in self._args]:
+                                  ignore_extra_keys=self._ignore_extra_keys) for expr in self._args]:
             try:
                 return stmt.validate(data)
             except SchemaError as exc:
