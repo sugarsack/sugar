@@ -284,13 +284,10 @@ class Schema(object):
                                 nvalue = Schema(svalue, error=e).validate(value)
                             except SchemaError:
                                 continue
-                            raise SchemaForbiddenKeyError(
-                                    'Forbidden key encountered: %r in %r' %
-                                    (nkey, data), e)
+                            raise SchemaForbiddenKeyError('Forbidden key encountered: %r in %r' % (nkey, data), e)
                         else:
                             try:
-                                nvalue = Schema(svalue, error=e,
-                                                ignore_extra_keys=i).validate(value)
+                                nvalue = Schema(svalue, error=e, ignore_extra_keys=i).validate(value)
                             except SchemaError as x:
                                 k = "Configuration key '%s' error:" % nkey
                                 raise SchemaError([k] + x.autos, [e] + x.errors)
