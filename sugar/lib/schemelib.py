@@ -7,6 +7,7 @@ NOTE: This is a fixed fork of: https://github.com/keleshev/schema
 """
 
 import re
+import os
 
 __all__ = ['Schema',
            'And', 'Or', 'Regex', 'Optional', 'Use', 'Forbidden', 'Const',
@@ -23,9 +24,17 @@ class SchemaError(Exception):
     """
 
     def __init__(self, autos, errors=None):
-        self.autos = autos if type(autos) is list else [autos]
-        self.errors = errors if type(errors) is list else [errors]
+        self.autos = autos if isinstance(autos, list) else [autos]
+        self.errors = errors if isinstance(errors, list) else [errors]
         Exception.__init__(self, self.code)
+
+    @staticmethod
+    def uniq(seq):
+        """
+        Utility function that removes duplicate.
+        """
+        seen = set()
+        return [element for element in seq if element not in seen and not seen.add(element)]
 
     @property
     def code(self):
@@ -33,19 +42,10 @@ class SchemaError(Exception):
         Removes duplicates values in auto and error list.
         parameters.
         """
-        def uniq(seq):
-            """
-            Utility function that removes duplicate.
-            """
-            seen = set()
-            seen_add = seen.add
-            # This way removes duplicates while preserving the order.
-            return [element for element in seq if element not in seen and not seen_add(element)]
-        data_set = uniq(i for i in self.autos if i is not None)
-        error_list = uniq(i for i in self.errors if i is not None)
-        if error_list:
-            return '\n'.join(error_list)
-        return '\n'.join(data_set)
+        data_set = self.uniq(i for i in self.autos if i is not None)
+        error_list = self.uniq(i for i in self.errors if i is not None)
+
+        return os.linesep.join(error_list if error_list else data_set)
 
 
 class SchemaWrongKeyError(SchemaError):
