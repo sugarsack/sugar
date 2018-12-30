@@ -51,25 +51,21 @@ class SchemaError(Exception):
 class SchemaWrongKeyError(SchemaError):
     """Error Should be raised when an unexpected key is detected within the
     data set being."""
-    pass
 
 
 class SchemaMissingKeyError(SchemaError):
     """Error should be raised when a mandatory key is not found within the
     data set being validated"""
-    pass
 
 
 class SchemaForbiddenKeyError(SchemaError):
     """Error should be raised when a forbidden key is found within the
     data set being validated, and its value matches the value that was specified"""
-    pass
 
 
 class SchemaUnexpectedTypeError(SchemaError):
     """Error should be raised when a type mismatch is detected within the
     data set being validated."""
-    pass
 
 
 class And(object):
