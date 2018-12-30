@@ -76,7 +76,7 @@ class ObjectGate(object):
         :return:
         """
         data = self._dumper(self.__obj)
-        return binary and pickle.dumps(data) or data
+        return pickle.dumps(data) if binary else data
 
 
 class Serialisable(object):

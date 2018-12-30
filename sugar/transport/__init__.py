@@ -108,18 +108,18 @@ class KeymanagerMsgFactory(_MessageFactory):
 
         :return:
         """
-        s = Serialisable()
-        s.component = cls.COMPONENT
-        s.kind = cls.TASK_REQUEST
-        s.user = getpass.getuser()
-        s.uid = os.getuid()
+        obj = Serialisable()
+        obj.component = cls.COMPONENT
+        obj.kind = cls.TASK_REQUEST
+        obj.user = getpass.getuser()
+        obj.uid = os.getuid()
 
-        s.token = MasterLocalToken().get_token()
-        s.internal = ''
+        obj.token = MasterLocalToken().get_token()
+        obj.internal = ''
 
-        cls.validate(s)
+        cls.validate(obj)
 
-        return s
+        return obj
 
 
 class ConsoleMsgFactory(_MessageFactory):
@@ -150,20 +150,20 @@ class ConsoleMsgFactory(_MessageFactory):
 
         :return:
         """
-        s = Serialisable()
-        s.component = cls.COMPONENT
-        s.kind = cls.TASK_REQUEST
-        s.user = getpass.getuser()
-        s.uid = os.getuid()
+        obj = Serialisable()
+        obj.component = cls.COMPONENT
+        obj.kind = cls.TASK_REQUEST
+        obj.user = getpass.getuser()
+        obj.uid = os.getuid()
 
-        s.target = ''
-        s.function = ''
-        s.args = []
-        s.jid = jidstore.create()
+        obj.target = ''
+        obj.function = ''
+        obj.args = []
+        obj.jid = jidstore.create()
 
-        cls.validate(s)
+        cls.validate(obj)
 
-        return s
+        return obj
 
 
 class ClientMsgFactory(_MessageFactory):
@@ -207,27 +207,27 @@ class ClientMsgFactory(_MessageFactory):
 
         :return:
         """
-        s = Serialisable()
-        s.component = cls.COMPONENT
-        s.kind = kind
-        s.user = getpass.getuser()
-        s.uid = os.getuid()
-        s.machine_id = Traits().data["machine-id"]
+        obj = Serialisable()
+        obj.component = cls.COMPONENT
+        obj.kind = kind
+        obj.user = getpass.getuser()
+        obj.uid = os.getuid()
+        obj.machine_id = Traits().data["machine-id"]
 
-        s.stdout = ''
-        s.stderr = ''
-        s.messages.success = []
-        s.messages.warning = []
-        s.messages.error = []
-        s.log = []
-        s.changes = {}
-        s.internal = {}
+        obj.stdout = ''
+        obj.stderr = ''
+        obj.messages.success = []
+        obj.messages.warning = []
+        obj.messages.error = []
+        obj.log = []
+        obj.changes = {}
+        obj.internal = {}
 
-        s.jid = jidstore.create()
+        obj.jid = jidstore.create()
 
-        cls.validate(s)
+        cls.validate(obj)
 
-        return s
+        return obj
 
 
 class ServerMsgFactory(_MessageFactory):
@@ -269,9 +269,9 @@ class ServerMsgFactory(_MessageFactory):
         Create console message for client
         :return:
         """
-        s = cls().create()
-        s.kind = cls.CONSOLE_RESPONSE
-        return s
+        obj = cls().create()
+        obj.kind = cls.CONSOLE_RESPONSE
+        return obj
 
     @classmethod
     def create_client_msg(cls):
@@ -279,9 +279,9 @@ class ServerMsgFactory(_MessageFactory):
         Create client message for client
         :return:
         """
-        s = cls().create()
-        s.kind = cls.TASK_RESPONSE
-        return s
+        obj = cls().create()
+        obj.kind = cls.TASK_RESPONSE
+        return obj
 
     def create(self, kind=KIND_OPR_REQ):
         """
@@ -289,20 +289,20 @@ class ServerMsgFactory(_MessageFactory):
 
         :return:
         """
-        s = Serialisable()
-        s.component = self.COMPONENT
-        s.kind = kind
-        s.user = getpass.getuser()
-        s.uid = os.getuid()
-        s.jid = jidstore.create()
-        s.ret.errcode = exitcodes.EX_OK
-        s.ret.message = ''
-        s.ret.function = {}
-        s.internal = {}
+        obj = Serialisable()
+        obj.component = self.COMPONENT
+        obj.kind = kind
+        obj.user = getpass.getuser()
+        obj.uid = os.getuid()
+        obj.jid = jidstore.create()
+        obj.ret.errcode = exitcodes.EX_OK
+        obj.ret.message = ''
+        obj.ret.function = {}
+        obj.internal = {}
 
-        self.validate(s)
+        self.validate(obj)
 
-        return s
+        return obj
 
 
 def any_binary(data):
@@ -313,12 +313,6 @@ def any_binary(data):
     :param data:
     :return:
     """
-    msg_class = {
-        ConsoleMsgFactory.COMPONENT: ConsoleMsgFactory,
-        ServerMsgFactory.COMPONENT: ServerMsgFactory,
-        ClientMsgFactory.COMPONENT: ClientMsgFactory
-    }
-
     if not isinstance(data, six.text_type):
         data = pickle.loads(data)
 
