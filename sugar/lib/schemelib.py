@@ -193,7 +193,7 @@ class Use(object):
 COMPARABLE, CALLABLE, VALIDATOR, TYPE, DICT, ITERABLE = range(6)
 
 
-def _priority(obj):
+def get_object_priority(obj):
     """Return priority for a given object."""
     if isinstance(obj, (list, tuple, set, frozenset)):
         return ITERABLE
@@ -219,17 +219,34 @@ class Schema(object):
         self._error = error
         self._ignore_extra_keys = ignore_extra_keys
 
+    @property
+    def scheme(self):
+        """
+        Get scheme object.
+
+        :return:
+        """
+        return self._schema
+
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self._schema)
 
     @staticmethod
-    def _dict_key_priority(s):
-        """Return priority for a given key object."""
-        if isinstance(s, Forbidden):
-            return _priority(s._schema) - 0.5
-        if isinstance(s, Optional):
-            return _priority(s._schema) + 0.5
-        return _priority(s)
+    def _dict_key_priority(d_key):
+        """
+        Return priority for a given key object.
+
+        :param d_key:
+        :return:
+        """
+        if isinstance(d_key, Forbidden):
+            ret = get_object_priority(d_key.scheme) - 0.5
+        elif isinstance(d_key, Optional):
+            ret = get_object_priority(d_key.scheme) + 0.5
+        else:
+            ret = get_object_priority(d_key)
+
+        return ret
 
     def is_valid(self, data):
         """Return whether the given data has passed all the validations
@@ -249,28 +266,28 @@ class Schema(object):
         :param data:
         :return:
         """
-        Schema = self.__class__
-        s = self._schema
-        e = self._error
-        i = self._ignore_extra_keys
-        flavor = _priority(s)
+        schema_class = self.__class__
+        schema_data = self._schema
+        err_set = self._error
+        ign_ex_keys = self._ignore_extra_keys
+        flavor = get_object_priority(schema_data)
 
         if flavor == ITERABLE:
-            data = Schema(type(s), error=e).validate(data)
-            o = Or(*s, error=e, schema=Schema, ignore_extra_keys=i)
-            return type(data)(o.validate(d) for d in data)
+            data = schema_class(type(schema_data), error=err_set).validate(data)
+            or_stat = Or(*schema_data, error=err_set, schema=schema_class, ignore_extra_keys=ign_ex_keys)
+            return type(data)(or_stat.validate(d) for d in data)
 
         if flavor == DICT:
-            data = Schema(dict, error=e).validate(data)
+            data = schema_class(dict, error=err_set).validate(data)
             new = type(data)()  # new - is a dict of the validated values
             coverage = set()  # matched schema keys
             # for each key and value find a schema entry matching them, if any
-            sorted_skeys = sorted(s, key=self._dict_key_priority)
+            sorted_skeys = sorted(schema_data, key=self._dict_key_priority)
             for key, value in data.items():
                 for skey in sorted_skeys:
-                    svalue = s[skey]
+                    svalue = schema_data[skey]
                     try:
-                        nkey = Schema(skey, error=e).validate(key)
+                        nkey = schema_class(skey, error=err_set).validate(key)
                     except SchemaError:
                         pass
                     else:
@@ -283,73 +300,69 @@ class Schema(object):
                             # and allowing Forbidden to work well in combination
                             # with Optional.
                             try:
-                                nvalue = Schema(svalue, error=e).validate(value)
+                                nvalue = schema_class(svalue, error=err_set).validate(value)
                             except SchemaError:
                                 continue
-                            raise SchemaForbiddenKeyError('Forbidden key encountered: %r in %r' % (nkey, data), e)
+                            raise SchemaForbiddenKeyError('Forbidden key encountered: %r in %r' % (nkey, data), err_set)
                         else:
                             try:
-                                nvalue = Schema(svalue, error=e, ignore_extra_keys=i).validate(value)
-                            except SchemaError as x:
-                                k = "Configuration key '%s' error:" % nkey
-                                raise SchemaError([k] + x.autos, [e] + x.errors)
+                                nvalue = schema_class(svalue, error=err_set,
+                                                      ignore_extra_keys=ign_ex_keys).validate(value)
+                            except SchemaError as exc:
+                                msg = "Configuration key '%s' error:" % nkey
+                                raise SchemaError([msg] + exc.autos, [err_set] + exc.errors)
                             else:
                                 new[nkey] = nvalue
                                 coverage.add(skey)
                                 break
-            required = set(k for k in s if type(k) not in [Optional, Forbidden])
+            required = set(obj for obj in schema_data if not isinstance(obj, (Optional, Forbidden)))
 
             if not required.issubset(coverage):
                 missing_keys = required - coverage
-                s_missing_keys = ', '.join(repr(k) for k in sorted(missing_keys, key=repr))
-                raise SchemaMissingKeyError('Missing options: ' + s_missing_keys, e)
+                s_missing_keys = ', '.join(repr(key) for key in sorted(missing_keys, key=repr))
+                raise SchemaMissingKeyError('Missing options: ' + s_missing_keys, err_set)
 
             if not self._ignore_extra_keys and (len(new) != len(data)):
                 wrong_keys = set(data.keys()) - set(new.keys())
-                s_wrong_keys = ', '.join(repr(k) for k in sorted(wrong_keys, key=repr))
+                s_wrong_keys = ', '.join(repr(key) for key in sorted(wrong_keys, key=repr))
                 raise SchemaWrongKeyError('Unexpected option %s in %r' % (s_wrong_keys, data),
-                                          e.format(data) if e else None)
+                                          err_set.format(data) if err_set else None)
 
             # Apply default-having optionals that haven't been used:
-            defaults = set(k for k in s if type(k) is Optional and
-                           hasattr(k, 'default')) - coverage
+            defaults = set(key for key in schema_data if isinstance(key, Optional)
+                           and hasattr(key, 'default')) - coverage
             for default in defaults:
                 new[default.key] = default.default
 
             return new
         if flavor == TYPE:
-            if isinstance(data, s):
+            if isinstance(data, schema_data):
                 return data
             else:
-                raise SchemaUnexpectedTypeError(
-                    '%r should be type of %r' % (data, s.__name__),
-                    e.format(data) if e else None)
+                raise SchemaUnexpectedTypeError('%r should be type of %r' % (data, schema_data.__name__),
+                                                err_set.format(data) if err_set else None)
         if flavor == VALIDATOR:
             try:
-                return s.validate(data)
-            except SchemaError as x:
-                raise SchemaError([None] + x.autos, [e] + x.errors)
-            except BaseException as x:
-                raise SchemaError(
-                    '%r.validate(%r) raised %r' % (s, data, x),
-                    self._error.format(data) if self._error else None)
+                return schema_data.validate(data)
+            except SchemaError as exc:
+                raise SchemaError([None] + exc.autos, [err_set] + exc.errors)
+            except BaseException as exc:
+                raise SchemaError('%r.validate(%r) raised %r' % (schema_data, data, exc),
+                                  self._error.format(data) if self._error else None)
         if flavor == CALLABLE:
-            f = _callable_str(s)
+            f = _callable_str(schema_data)
             try:
-                if s(data):
+                if schema_data(data):
                     return data
-            except SchemaError as x:
-                raise SchemaError([None] + x.autos, [e] + x.errors)
-            except BaseException as x:
-                raise SchemaError(
-                    '%s(%r) raised %r' % (f, data, x),
-                    self._error.format(data) if self._error else None)
-            raise SchemaError('%s(%r) should evaluate to True' % (f, data), e)
-        if s == data:
+            except SchemaError as exc:
+                raise SchemaError([None] + exc.autos, [err_set] + exc.errors)
+            except BaseException as exc:
+                raise SchemaError('%s(%r) raised %r' % (f, data, exc), self._error.format(data) if self._error else None)
+            raise SchemaError('%s(%r) should evaluate to True' % (f, data), err_set)
+        if schema_data == data:
             return data
         else:
-            raise SchemaError('%r does not match %r' % (s, data),
-                              e.format(data) if e else None)
+            raise SchemaError('%r does not match %r' % (schema_data, data), err_set.format(data) if err_set else None)
 
 
 class Optional(Schema):
@@ -361,7 +374,7 @@ class Optional(Schema):
         super(Optional, self).__init__(*args, **kwargs)
         if default is not self._MARKER:
             # See if I can come up with a static key to use for myself:
-            if _priority(self._schema) != COMPARABLE:
+            if get_object_priority(self._schema) != COMPARABLE:
                 raise TypeError(
                     'Optional keys with defaults must have simple, '
                     'predictable values, like literal strings or ints. '
