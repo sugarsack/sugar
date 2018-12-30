@@ -22,7 +22,7 @@ class DocstringNewlineChecker(checkers.BaseChecker):
 
     msgs = {
         'C8001': (
-            "Any docstring should have start and end with the new line.",
+            "Docstring definition error: %s",
             'docstring-newlines',
             'Emitted when docstring is not multi-line.'
             ),
@@ -37,8 +37,14 @@ class DocstringNewlineChecker(checkers.BaseChecker):
         :return:
         """
         if hasattr(node, "doc") and node.doc:
-            if not node.doc.startswith(os.linesep) or node.doc.endswith(os.linesep):
-                self.add_message("docstring-newlines", node=node)
+            doc = node.doc.strip("\t").strip(" ")
+            msg = None
+            if not doc.startswith(os.linesep):
+                msg = "should start with the newline after triple double-quotes"
+            if not doc.endswith(os.linesep):
+                msg = "should end with the newline before triple double-quotes"
+            if msg is not None:
+                self.add_message("docstring-newlines", node=node, args=(msg,))
 
     @utils.check_messages('docstring-triple-quotes')
     def visit_functiondef(self, node):
@@ -53,6 +59,15 @@ class DocstringNewlineChecker(checkers.BaseChecker):
     def visit_classdef(self, node):
         """
         Examine class definition.
+
+        :param node:
+        :return:
+        """
+        self._check_docstring(node)
+
+    def visit_module(self, node):
+        """
+        Examine module.
 
         :param node:
         :return:
