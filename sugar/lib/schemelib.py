@@ -369,15 +369,16 @@ class Schema(object):
                 raise SchemaError('%r.validate(%r) raised %r' % (schema_data, data, exc),
                                   self._error.format(data) if self._error else None)
         if flavor == CALLABLE:
-            f = _callable_str(schema_data)
+            fnc = _callable_str(schema_data)
             try:
                 if schema_data(data):
                     return data
             except SchemaError as exc:
                 raise SchemaError([None] + exc.autos, [err_set] + exc.errors)
             except BaseException as exc:
-                raise SchemaError('%s(%r) raised %r' % (f, data, exc), self._error.format(data) if self._error else None)
-            raise SchemaError('%s(%r) should evaluate to True' % (f, data), err_set)
+                raise SchemaError('%s(%r) raised %r' % (fnc, data, exc),
+                                  self._error.format(data) if self._error else None)
+            raise SchemaError('%s(%r) should evaluate to True' % (fnc, data), err_set)
         if schema_data == data:
             return data
         else:
@@ -410,7 +411,7 @@ class Optional(Schema):
         return (self.__class__ is other.__class__ and
                 getattr(self, 'default', self._MARKER) ==
                 getattr(other, 'default', self._MARKER) and
-                self._schema == other._schema)
+                self._schema == other.scheme)
 
 
 class Forbidden(Schema):
