@@ -1,10 +1,13 @@
-"""schema is a library for validating Python data structures, such as those
+"""
+Schema is a library for validating Python data structures, such as those
 obtained from config-files, forms, external services or command-line
-parsing, converted from JSON/YAML (or something else) to Python data-types."""
+parsing, converted from JSON/YAML (or something else) to Python data-types.
+
+NOTE: This is a fixed fork of: https://github.com/keleshev/schema
+"""
 
 import re
 
-__version__ = '0.6.8'
 __all__ = ['Schema',
            'And', 'Or', 'Regex', 'Optional', 'Use', 'Forbidden', 'Const',
            'SchemaError',
