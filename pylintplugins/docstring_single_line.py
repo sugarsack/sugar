@@ -21,7 +21,7 @@ class DocstringNewlineChecker(checkers.BaseChecker):
     name = 'docstring-newlines'
 
     msgs = {
-        'E8001': (
+        'C8001': (
             "Any docstring should have start and end with the new line.",
             'docstring-newlines',
             'Emitted when docstring is not multi-line.'

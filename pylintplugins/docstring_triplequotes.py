@@ -25,22 +25,12 @@ class TripleDoublequotesChecker(checkers.BaseChecker):
     name = 'docstring-triple-double-quotes'
 
     msgs = {
-        'R8002': (
-            "Any docstring should have triple double-quotes and start from the new line.",
+        'C8002': (
+            "Triple single-quotes are banned. Please use triple double-quotes instead.",
             'docstring-triple-double-quotes',
-            'Emitted when docstring is not multi-line and has no triple double-quotes.'
+            'Emitted when docstring has no triple double-quotes.'
             ),
         }
-
-    @utils.check_messages('docstring-triple-quotes')
-    def visit_functiondef(self, node):
-        """
-        Check if docstring always starts and ends from/by triple double-quotes
-        and they are on the new line.
-        """
-        if hasattr(node, "doc") and node.doc:
-            if not node.doc.startswith(os.linesep) or node.doc.endswith(os.linesep):
-                self.add_message("docstring-triple-double-quotes", node=node)
 
     def visit_module(self, node):
         """
