@@ -49,23 +49,31 @@ class SchemaError(Exception):
 
 
 class SchemaWrongKeyError(SchemaError):
-    """Error Should be raised when an unexpected key is detected within the
-    data set being."""
+    """
+    Error Should be raised when an unexpected key is detected within the
+    data set being.
+    """
 
 
 class SchemaMissingKeyError(SchemaError):
-    """Error should be raised when a mandatory key is not found within the
-    data set being validated"""
+    """
+    Error should be raised when a mandatory key is not found within the
+    data set being validated.
+    """
 
 
 class SchemaForbiddenKeyError(SchemaError):
-    """Error should be raised when a forbidden key is found within the
-    data set being validated, and its value matches the value that was specified"""
+    """
+    Error should be raised when a forbidden key is found within the
+    data set being validated, and its value matches the value that was specified.
+    """
 
 
 class SchemaUnexpectedTypeError(SchemaError):
-    """Error should be raised when a type mismatch is detected within the
-    data set being validated."""
+    """
+    Error should be raised when a type mismatch is detected within the
+    data set being validated.
+    """
 
 
 class And(object):
@@ -98,12 +106,15 @@ class And(object):
 
 
 class Or(And):
-    """Utility function to combine validation directives in a OR Boolean
-    fashion."""
+    """
+    Utility function to combine validation directives in a OR Boolean
+    fashion.
+    """
     def validate(self, data):
         """
         Validate data using sub defined schema/expressions ensuring at least
         one value is valid.
+
         :param data: data to be validated by provided schema.
         :return: return validated data if not validation
         """
@@ -194,7 +205,12 @@ COMPARABLE, CALLABLE, VALIDATOR, TYPE, DICT, ITERABLE = range(6)
 
 
 def get_object_priority(obj):
-    """Return priority for a given object."""
+    """
+    Return priority for a given object
+
+    :param obj:
+    :return:
+    """
     if isinstance(obj, (list, tuple, set, frozenset)):
         return ITERABLE
     if isinstance(obj, dict):
@@ -249,7 +265,8 @@ class Schema(object):
         return ret
 
     def is_valid(self, data):
-        """Return whether the given data has passed all the validations
+        """
+        Return whether the given data has passed all the validations
         that were specified in the given schema.
         """
         try:
@@ -366,7 +383,9 @@ class Schema(object):
 
 
 class Optional(Schema):
-    """Marker for an optional part of the validation Schema."""
+    """
+    Marker for an optional part of the validation Schema.
+    """
     _MARKER = object()
 
     def __init__(self, *args, **kwargs):
@@ -393,18 +412,28 @@ class Optional(Schema):
 
 
 class Forbidden(Schema):
+    """
+    Forbidden object.
+    """
     def __init__(self, *args, **kwargs):
         super(Forbidden, self).__init__(*args, **kwargs)
         self.key = self._schema
 
 
 class Const(Schema):
+    """
+    Constant object.
+    """
     def validate(self, data):
         super(Const, self).validate(data)
         return data
 
 
-def _callable_str(callable_):
-    if hasattr(callable_, '__name__'):
-        return callable_.__name__
-    return str(callable_)
+def _callable_str(callable_object):
+    """
+    Get a name of the callable object.
+
+    :param callable_object:
+    :return:
+    """
+    return callable_object.__name__ if hasattr(callable_object, '__name__') else str(callable_object)
