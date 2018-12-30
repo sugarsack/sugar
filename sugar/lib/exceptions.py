@@ -54,8 +54,8 @@ class SugarFileLockException(SugarException):
     """
     Used when an error occurs obtaining a file lock
     """
-    def __init__(self, message, time_start=None, *args, **kwargs):
-        SugarException.__init__(self, message, *args, **kwargs)
+    def __init__(self, message, time_start=None):
+        SugarException.__init__(self, message)
         if time_start is None:
             self.time_start = time.time()
         else:
