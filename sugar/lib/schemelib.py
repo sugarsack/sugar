@@ -212,17 +212,19 @@ def get_object_priority(obj):
     :return:
     """
     if isinstance(obj, (list, tuple, set, frozenset)):
-        return ITERABLE
-    if isinstance(obj, dict):
-        return DICT
-    if issubclass(type(obj), type):
-        return TYPE
-    if hasattr(obj, 'validate'):
-        return VALIDATOR
-    if callable(obj):
-        return CALLABLE
+        ret = ITERABLE
+    elif isinstance(obj, dict):
+        ret = DICT
+    elif issubclass(type(obj), type):
+        ret = TYPE
+    elif hasattr(obj, 'validate'):
+        ret = VALIDATOR
+    elif callable(obj):
+        ret = CALLABLE
     else:
-        return COMPARABLE
+        ret = COMPARABLE
+
+    return ret
 
 
 class Schema(object):
