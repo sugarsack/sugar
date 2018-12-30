@@ -28,7 +28,9 @@ limit-inference-results=100
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
-load-plugins=multireturns,uglyquotes
+load-plugins=multireturns,
+             docstring_triplequotes,
+             docstring_single_line
 
 # Pickle collected data for later comparisons.
 persistent=yes
