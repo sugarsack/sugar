@@ -30,7 +30,8 @@ limit-inference-results=100
 # usually to register additional checkers.
 load-plugins=multireturns,
              docstring_triplequotes,
-             docstring_single_line
+             docstring_single_line,
+             backslashy
 
 # Pickle collected data for later comparisons.
 persistent=yes
