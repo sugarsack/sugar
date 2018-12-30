@@ -18,7 +18,9 @@ __all__ = ['Schema',
 
 
 class SchemaError(Exception):
-    """Error during Schema validation."""
+    """
+    Error during Schema validation.
+    """
 
     def __init__(self, autos, errors=None):
         self.autos = autos if type(autos) is list else [autos]
