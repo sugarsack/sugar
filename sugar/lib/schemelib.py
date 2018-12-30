@@ -140,9 +140,7 @@ class Regex(object):
         self._error = error
 
     def __repr__(self):
-        return '%s(%r%s)' % (
-            self.__class__.__name__, self._pattern_str, self._flags_names
-        )
+        return '%s(%r%s)' % (self.__class__.__name__, self._pattern_str, self._flags_names)
 
     def validate(self, data):
         """
@@ -150,15 +148,16 @@ class Regex(object):
         :param data: data to be validated
         :return: return validated data.
         """
-        e = self._error
-
+        err = self._error
         try:
             if self._pattern.search(data):
-                return data
+                ret = data
             else:
-                raise SchemaError('%r does not match %r' % (self, data), e)
+                raise SchemaError('%r does not match %r' % (self, data), err)
         except TypeError:
-            raise SchemaError('%r is not string nor buffer' % data, e)
+            raise SchemaError('%r is not string nor buffer' % data, err)
+
+        return ret
 
 
 class Use(object):
@@ -175,33 +174,36 @@ class Use(object):
         return '%s(%r)' % (self.__class__.__name__, self._callable)
 
     def validate(self, data):
+        """
+        Validate object.
+
+        :param data:
+        :return:
+        """
         try:
-            return self._callable(data)
-        except SchemaError as x:
-            raise SchemaError([None] + x.autos,
-                              [self._error.format(data)
-                               if self._error else None] + x.errors)
-        except BaseException as x:
-            f = _callable_str(self._callable)
-            raise SchemaError('%s(%r) raised %r' % (f, data, x),
-                              self._error.format(data)
-                              if self._error else None)
+            result = self._callable(data)
+        except SchemaError as exc:
+            raise SchemaError([None] + exc.autos, [self._error.format(data) if self._error else None] + exc.errors)
+        except BaseException as exc:
+            raise SchemaError('%s(%r) raised %r' % (_callable_str(self._callable), data, exc),
+                              self._error.format(data) if self._error else None)
+        return result
 
 
 COMPARABLE, CALLABLE, VALIDATOR, TYPE, DICT, ITERABLE = range(6)
 
 
-def _priority(s):
+def _priority(obj):
     """Return priority for a given object."""
-    if type(s) in (list, tuple, set, frozenset):
+    if isinstance(obj, (list, tuple, set, frozenset)):
         return ITERABLE
-    if type(s) is dict:
+    if isinstance(obj, dict):
         return DICT
-    if issubclass(type(s), type):
+    if issubclass(type(obj), type):
         return TYPE
-    if hasattr(s, 'validate'):
+    if hasattr(obj, 'validate'):
         return VALIDATOR
-    if callable(s):
+    if callable(obj):
         return CALLABLE
     else:
         return COMPARABLE
