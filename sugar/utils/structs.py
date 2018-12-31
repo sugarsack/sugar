@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+Structs utility.
+"""
 
 from __future__ import absolute_import, print_function, unicode_literals
 import collections
@@ -67,8 +70,8 @@ class ObjectMap(object):
         return self.__getattr__(args[0])
 
     def __iter__(self):
-        for k in self.__dict__.keys():
-            yield k
+        for key in self.__dict__:
+            yield key
 
 
 def dict_to_object(src):
@@ -123,11 +126,12 @@ def merge_missing(dst, src):
     :param src:
     :return:
     """
-    for k in src:
-        if k not in dst:
-            dst[k] = src[k]
+    for key in src:
+        if key not in dst:
+            dst[key] = src[key]
 
 
+# pylint: disable=R0911
 def update(dest, upd, recursive_update=True, merge_lists=False):
     """
     Recursive version of the default dict.update
@@ -172,11 +176,12 @@ def update(dest, upd, recursive_update=True, merge_lists=False):
         return dest
 
     try:
-        for k in upd:
-            dest[k] = upd[k]
+        for key in upd:
+            dest[key] = upd[key]
     except AttributeError:
         # not a dict
-        for k in upd:
-            dest[k] = upd[k]
+        for key in upd:
+            dest[key] = upd[key]
 
     return dest
+# pylint: enable=R0911
