@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Functions for working with files
-'''
+"""
 
 from __future__ import absolute_import, unicode_literals, print_function
 
@@ -49,9 +49,9 @@ HASHES_REVMAP = dict([(y, x) for x, y in six.iteritems(HASHES)])
 
 
 def __clean_tmp(tmp):
-    '''
+    """
     Remove temporary files
-    '''
+    """
     try:
         rm_rf(tmp)
     except Exception:
@@ -62,9 +62,9 @@ def __clean_tmp(tmp):
 # UNUSED @@@
 #
 def guess_archive_type(name):
-    '''
+    """
     Guess an archive type (tar, zip, or rar) by its file extension
-    '''
+    """
     name = name.lower()
     for ending in ('tar', 'tar.gz', 'tgz',
                    'tar.bz2', 'tbz2', 'tbz',
@@ -79,12 +79,12 @@ def guess_archive_type(name):
 
 
 def mkstemp(*args, **kwargs):
-    '''
+    """
     Helper function which does exactly what ``tempfile.mkstemp()`` does but
     accepts another argument, ``close_fd``, which, by default, is true and closes
     the fd before returning the file path. Something commonly done throughout
     Salt's code.
-    '''
+    """
     if 'prefix' not in kwargs:
         kwargs['prefix'] = '__salt.tmp.'
     close_fd = kwargs.pop('close_fd', True)
@@ -97,12 +97,12 @@ def mkstemp(*args, **kwargs):
 
 
 # def recursive_copy(source, dest):
-#     '''
+#     """
 #     Recursively copy the source directory to the destination,
 #     leaving files with the source does not explicitly overwrite.
 #
 #     (identical to cp -r on a unix machine)
-#     '''
+#     """
 #     for root, _, files in salt.utils.path.os_walk(source):
 #         path_from_source = root.replace(source, '').lstrip(os.sep)
 #         target_directory = os.path.join(dest, path_from_source)
@@ -118,10 +118,10 @@ def mkstemp(*args, **kwargs):
 # UNUSED @@@
 #
 def copyfile(source, dest, cachedir=''):
-    '''
+    """
     Copy files from a source to a destination in an atomic way, and if
     specified cache the file.
-    '''
+    """
     if not os.path.isfile(source):
         raise IOError('[Errno 2] No such file or directory: {0}'.format(source))
 
@@ -168,11 +168,11 @@ def copyfile(source, dest, cachedir=''):
 # UNUSED @@@
 #
 def rename(src, dst):
-    '''
+    """
     On Windows, os.rename() will fail with a WindowsError exception if a file
     exists at the destination path. This function checks for this error and if
     found, it deletes the destination path first.
-    '''
+    """
     try:
         os.rename(src, dst)
     except OSError as exc:
@@ -209,9 +209,9 @@ def process_read_exception(exc, path):
 #
 @contextlib.contextmanager
 def wait_lock(path, lock_fn=None, timeout=5, sleep=0.1, time_start=None):
-    '''
+    """
     Obtain a write lock. If one exists, wait for it to release first
-    '''
+    """
     if not isinstance(path, six.string_types):
         raise sugar.lib.exceptions.SugarFileLockException('path must be a string')
     if lock_fn is None:
@@ -221,9 +221,9 @@ def wait_lock(path, lock_fn=None, timeout=5, sleep=0.1, time_start=None):
     obtained_lock = False
 
     def _raise_error(msg, race=False):
-        '''
+        """
         Raise a FileLockError
-        '''
+        """
         raise sugar.lib.exceptions.SugarFileLockException(msg, time_start=time_start)
 
     try:
@@ -281,9 +281,9 @@ def wait_lock(path, lock_fn=None, timeout=5, sleep=0.1, time_start=None):
 # UNUSED @@@
 #
 def get_umask():
-    '''
+    """
     Returns the current umask
-    '''
+    """
     ret = os.umask(0)
     os.umask(ret)
 
@@ -295,9 +295,9 @@ def get_umask():
 #
 @contextlib.contextmanager
 def set_umask(mask):
-    '''
+    """
     Temporarily set the umask and restore once the contextmanager exits
-    '''
+    """
     orig_mask = None
     if mask is None or sugar.utils.platform.is_windows():
         yield
@@ -311,7 +311,7 @@ def set_umask(mask):
 
 
 def fopen(*args, **kwargs):
-    '''
+    """
     Wrapper around open() built-in to set CLOEXEC on the fd.
 
     This flag specifies that the file descriptor should be closed when an exec
@@ -322,7 +322,7 @@ def fopen(*args, **kwargs):
     survive into the new program after exec.
 
     NB! We still have small race condition between open and fcntl.
-    '''
+    """
     if six.PY3:
         try:
             # Don't permit stdin/stdout/stderr to be opened. The boolean False
@@ -389,9 +389,9 @@ def fopen(*args, **kwargs):
 #
 @contextlib.contextmanager
 def flopen(*args, **kwargs):
-    '''
+    """
     Shortcut for fopen with lock and context manager.
-    '''
+    """
     with fopen(*args, **kwargs) as f_handle:
         try:
             if is_fcntl_available(check_sunos=True):
@@ -410,7 +410,7 @@ def flopen(*args, **kwargs):
 #
 @contextlib.contextmanager
 def fpopen(*args, **kwargs):
-    '''
+    """
     Shortcut for fopen with extra uid, gid, and mode options.
 
     Supported optional Keyword Arguments:
@@ -429,7 +429,7 @@ def fpopen(*args, **kwargs):
         made. Same applies if the path is already owned by this gid.
         Must be int. Works only on unix/unix-like systems.
 
-    '''
+    """
     # Remove uid, gid and mode from kwargs if present
     uid = kwargs.pop('uid', -1)  # -1 means no change to current uid
     gid = kwargs.pop('gid', -1)  # -1 means no change to current gid
@@ -454,10 +454,10 @@ def fpopen(*args, **kwargs):
 
 
 def safe_walk(top, topdown=True, onerror=None, followlinks=True, _seen=None):
-    '''
+    """
     A clone of the python os.walk function with some checks for recursive
     symlinks. Unlike os.walk this follows symlinks by default.
-    '''
+    """
     if _seen is None:
         _seen = set()
 
@@ -507,9 +507,9 @@ def safe_walk(top, topdown=True, onerror=None, followlinks=True, _seen=None):
 # UNUSED @@@
 #
 def safe_rm(tgt):
-    '''
+    """
     Safely remove a file
-    '''
+    """
     try:
         os.remove(tgt)
     except (IOError, OSError):
@@ -517,12 +517,12 @@ def safe_rm(tgt):
 
 
 def rm_rf(path):
-    '''
+    """
     Platform-independent recursive delete. Includes code from
     http://stackoverflow.com/a/2656405
-    '''
+    """
     def _onerror(func, path, exc_info):
-        '''
+        """
         Error handler for `shutil.rmtree`.
 
         If the error is due to an access error (read only file)
@@ -531,7 +531,7 @@ def rm_rf(path):
         If the error is for another reason it re-raises the error.
 
         Usage : `shutil.rmtree(path, onerror=onerror)`
-        '''
+        """
         if sugar.utils.platform.is_windows() and not os.access(path, os.W_OK):
             # Is the error an access error ?
             os.chmod(path, stat.S_IWUSR)
@@ -553,9 +553,9 @@ def rm_rf(path):
 # UNUSED @@@
 #
 def is_empty(filename):
-    '''
+    """
     Is a file empty?
-    '''
+    """
     try:
         return os.stat(filename).st_size == 0
     except OSError:
@@ -564,12 +564,12 @@ def is_empty(filename):
 
 
 def is_fcntl_available(check_sunos=False):
-    '''
+    """
     Simple function to check if the ``fcntl`` module is available or not.
 
     If ``check_sunos`` is passed as ``True`` an additional check to see if host is
     SunOS is also made. For additional information see: http://goo.gl/159FF8
-    '''
+    """
     if check_sunos and sugar.utils.platform.is_sunos():
         return False
     return HAS_FCNTL
@@ -579,12 +579,12 @@ def is_fcntl_available(check_sunos=False):
 # UNUSED @@@
 #
 def is_text(fp_, blocksize=512):
-    '''
+    """
     Uses heuristics to guess whether the given file is text or binary,
     by reading a single block of bytes from the file.
     If more than 30% of the chars in the block are non-text, or there
     are NUL ('\x00') bytes in the block, assume this is a binary file.
-    '''
+    """
     int2byte = (lambda x: bytes((x,))) if six.PY3 else chr
     text_characters = (
         b''.join(int2byte(i) for i in range(32, 127)) +
@@ -620,10 +620,10 @@ def is_text(fp_, blocksize=512):
 # UNUSED @@@
 #
 def is_binary(path):
-    '''
+    """
     Detects if the file is a binary, returns bool. Returns True if the file is
     a bin, False if the file is not and None if the file is not available.
-    '''
+    """
     if not os.path.isfile(path):
         return False
     try:
@@ -643,9 +643,9 @@ def is_binary(path):
 # UNUSED @@@
 #
 def remove(path):
-    '''
+    """
     Runs os.remove(path) and suppresses the OSError if the file doesn't exist
-    '''
+    """
     try:
         os.remove(path)
     except OSError as exc:
@@ -657,9 +657,9 @@ def remove(path):
 # UNUSED @@@
 #
 def list_files(directory):
-    '''
+    """
     Return a list of all files found under directory (and its subdirectories)
-    '''
+    """
     ret = set()
     ret.add(directory)
     for root, dirs, files in safe_walk(directory):
@@ -675,10 +675,10 @@ def list_files(directory):
 # UNUSED @@@
 #
 def st_mode_to_octal(mode):
-    '''
+    """
     Convert the st_mode value from a stat(2) call (as returned from os.stat())
     to an octal mode.
-    '''
+    """
     try:
         return oct(mode)[-4:]
     except (TypeError, IndexError):
@@ -689,13 +689,13 @@ def st_mode_to_octal(mode):
 # UNUSED @@@
 #
 def normalize_mode(mode):
-    '''
+    """
     Return a mode value, normalized to a string and containing a leading zero
     if it does not have one.
 
     Allow "keep" as a valid mode (used by file state/module to preserve mode
     from the Salt fileserver in file states).
-    '''
+    """
     if mode is None:
         return None
     if not isinstance(mode, six.string_types):
@@ -711,9 +711,9 @@ def normalize_mode(mode):
 # UNUSED @@@
 #
 def human_size_to_bytes(human_size):
-    '''
+    """
     Convert human-readable units to bytes
-    '''
+    """
     size_exp_map = {'K': 1, 'M': 2, 'G': 3, 'T': 4, 'P': 5}
     human_size_str = six.text_type(human_size)
     match = re.match(r'^(\d+)([KMGTP])?$', human_size_str)
@@ -728,9 +728,9 @@ def human_size_to_bytes(human_size):
 
 
 def backup_client(path, bkroot):
-    '''
+    """
     Backup a file on the client
-    '''
+    """
     dname, bname = os.path.split(path)
     if sugar.utils.platform.is_windows():
         src_dir = dname.replace(':', '_')
@@ -759,7 +759,7 @@ def backup_client(path, bkroot):
 # UNUSED @@@
 #
 def get_encoding(path):
-    '''
+    """
     Detect a file's encoding using the following:
     - Check for Byte Order Marks (BOM)
     - Check for UTF-8 Markers
@@ -775,7 +775,7 @@ def get_encoding(path):
 
     Raises:
         CommandExecutionError: If the encoding cannot be detected
-    '''
+    """
     def check_ascii(_data):
         # If all characters can be decoded to ASCII, then it's ASCII
         try:
