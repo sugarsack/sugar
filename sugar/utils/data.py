@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Functions for manipulating, inspecting, or otherwise working with data types
 and data structures.
-'''
+"""
 
 from __future__ import absolute_import, print_function, unicode_literals
 
 # Import Python libs
-import copy
 import fnmatch
 import logging
 import re
@@ -19,7 +18,6 @@ except ImportError:
 
 from sugar.lib import six
 from sugar.utils import stringutils
-from sugar.lib import exceptions
 
 try:
     import jmespath
