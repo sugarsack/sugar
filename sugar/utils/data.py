@@ -4,6 +4,13 @@ Functions for manipulating, inspecting, or otherwise working with data types
 and data structures.
 """
 
+# NOTE: This code is taken from Salt and should be cleaned up on demand.
+#       Not everything is used here, many parts do not even need to exist.
+#       Therefore many crucial pylint checks are simply disabled not to waste
+#       time on something that might be even not really needed.
+#       However, if you are touching something related and using it, please
+#       Remove pylint block and refactor the code accordingly!
+
 from __future__ import absolute_import, print_function, unicode_literals
 
 # Import Python libs
@@ -95,15 +102,13 @@ def decode(data, encoding=None, errors='strict', keep=False,
     """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     if isinstance(data, Mapping):
-        return decode_dict(data, encoding, errors, keep, normalize,
-                           preserve_dict_class, preserve_tuples, to_str)
+        ret = decode_dict(data, encoding, errors, keep, normalize, preserve_dict_class, preserve_tuples, to_str)
     elif isinstance(data, list):
-        return decode_list(data, encoding, errors, keep, normalize,
-                           preserve_dict_class, preserve_tuples, to_str)
+        ret = decode_list(data, encoding, errors, keep, normalize, preserve_dict_class, preserve_tuples, to_str)
     elif isinstance(data, tuple):
-        return (decode_tuple(data, encoding, errors, keep, normalize, preserve_dict_class, to_str)
-                if preserve_tuples else decode_list(data, encoding, errors, keep, normalize,
-                                                    preserve_dict_class, preserve_tuples, to_str))
+        ret = (decode_tuple(data, encoding, errors, keep, normalize, preserve_dict_class, to_str)
+               if preserve_tuples else decode_list(data, encoding, errors, keep, normalize,
+                                                   preserve_dict_class, preserve_tuples, to_str))
     else:
         try:
             data = _decode_func(data, encoding, errors, normalize)
@@ -115,7 +120,9 @@ def decode(data, encoding=None, errors='strict', keep=False,
         except UnicodeDecodeError:
             if not keep:
                 raise
-        return data
+        ret = data
+
+    return ret
 
 
 def decode_dict(data, encoding=None, errors='strict', keep=False,
@@ -171,6 +178,7 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
     return rv_dt
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def decode_list(data, encoding=None, errors='strict', keep=False,
                 normalize=False, preserve_dict_class=False,
                 preserve_tuples=False, to_str=False):
@@ -205,6 +213,7 @@ def decode_list(data, encoding=None, errors='strict', keep=False,
         ret.append(item)
 
     return ret
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
 def decode_tuple(data, encoding=None, errors='strict', keep=False,
@@ -219,6 +228,7 @@ def decode_tuple(data, encoding=None, errors='strict', keep=False,
     )
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def encode(data, encoding=None, errors='strict', keep=False,
            preserve_dict_class=False, preserve_tuples=False):
     """
@@ -251,8 +261,10 @@ def encode(data, encoding=None, errors='strict', keep=False,
             if not keep:
                 raise
         return data
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def encode_dict(data, encoding=None, errors='strict', keep=False,
                 preserve_dict_class=False, preserve_tuples=False):
     """
@@ -300,6 +312,7 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
 
         ret[key] = value
     return ret
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
 def encode_list(data, encoding=None, errors='strict', keep=False,
@@ -425,10 +438,12 @@ def traverse_dict(data, key, default=None, delimiter=DEFAULT_TARGET_DELIMETER):
             ptr = ptr[each]
     except (KeyError, IndexError, TypeError):
         # Encountered a non-indexable value in the middle of traversing
-        return default
+        ptr = default
+
     return ptr
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def traverse_dict_and_list(data, key, default=None, delimiter=DEFAULT_TARGET_DELIMETER):
     """
     Traverse a dict or list using a colon-delimited (or otherwise delimited,
@@ -469,8 +484,10 @@ def traverse_dict_and_list(data, key, default=None, delimiter=DEFAULT_TARGET_DEL
             except (KeyError, TypeError):
                 return default
     return ptr
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def subdict_match(data, expr, delimiter=DEFAULT_TARGET_DELIMETER,
                   regex_match=False, exact_match=False):
     """
@@ -602,6 +619,7 @@ def subdict_match(data, expr, delimiter=DEFAULT_TARGET_DELIMETER,
                   exact_match=exact_match):
             return True
     return False
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
 def substr_in_list(string_to_search_for, list_to_search):
@@ -617,15 +635,18 @@ def is_dictlist(data):
     Returns True if data is a list of one-element dicts (as found in many SLS
     schemas), otherwise returns False
     """
+
+    is_one_element = False
     if isinstance(data, list):
         for element in data:
             if isinstance(element, dict):
-                if len(element) != 1:
-                    return False
+                is_one_element = len(element) == 1
+                if not is_one_element:
+                    break
             else:
-                return False
-        return True
-    return False
+                break
+
+    return is_one_element
 
 
 # def repack_dictlist(data,
@@ -720,12 +741,15 @@ def is_iter(data, ignore=six.string_types):
     """
 
     if ignore and isinstance(data, ignore):
-        return False
-    try:
-        iter(data)
-        return True
-    except TypeError:
-        return False
+        ret = False
+    else:
+        try:
+            iter(data)
+            ret = True
+        except TypeError:
+            ret = False
+
+    return ret
 
 
 def sorted_ignorecase(to_sort):
@@ -761,13 +785,14 @@ def is_true(value=None):
     except (ValueError, TypeError):
         pass
 
-    # Now check for truthiness
     if isinstance(value, (six.integer_types, float)):
-        return value > 0
+        ret = value > 0
     elif isinstance(value, six.string_types):
-        return six.text_type(value).lower() == 'true'
+        ret = six.text_type(value).lower() == 'true'
     else:
-        return bool(value)
+        ret = bool(value)
+
+    return ret
 
 
 def simple_types_filter(data):
@@ -775,9 +800,6 @@ def simple_types_filter(data):
     Convert the data list, dictionary into simple types, i.e., int, float, string,
     bool, etc.
     """
-    if data is None:
-        return data
-
     simpletypes_keys = (six.string_types, six.text_type, six.integer_types, float, bool)
     simpletypes_values = tuple(list(simpletypes_keys) + [list, tuple])
 
@@ -790,9 +812,9 @@ def simple_types_filter(data):
                 elif not isinstance(value, simpletypes_values):
                     value = repr(value)
             simplearray.append(value)
-        return simplearray
+        data = simplearray
 
-    if isinstance(data, dict):
+    elif isinstance(data, dict):
         simpledict = {}
         for key, value in six.iteritems(data):
             if key is not None and not isinstance(key, simpletypes_keys):
@@ -802,7 +824,7 @@ def simple_types_filter(data):
             elif value is not None and not isinstance(value, simpletypes_values):
                 value = repr(value)
             simpledict[key] = value
-        return simpledict
+        data = simpledict
 
     return data
 
