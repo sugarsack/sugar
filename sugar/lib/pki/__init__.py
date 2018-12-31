@@ -92,9 +92,9 @@ class Crypto(object):
 
         :return: Binary data
         """
-        iv = Random.new().read(AES.block_size)
+        iv_pad = Random.new().read(AES.block_size)
         out = BytesIO()
-        for chunk in (iv, AES.new(self.key, AES.MODE_CBC, iv).encrypt(self._pad(data))):
+        for chunk in (iv_pad, AES.new(self.key, AES.MODE_CBC, iv_pad).encrypt(self._pad(data))):
             out.write(chunk)
         out.seek(0)
 
@@ -110,8 +110,8 @@ class Crypto(object):
             raise exceptions.SugarDependencyException("AES algorithm is not available.")
 
         handle = BytesIO(data)
-        vi, data = [handle.read(x) for x in (16, -1)]
-        return self._unpad(AES.new(self.key, AES.MODE_CBC, vi).decrypt(data))
+        iv_pad, data = [handle.read(x) for x in (16, -1)]
+        return self._unpad(AES.new(self.key, AES.MODE_CBC, iv_pad).decrypt(data))
 
     @staticmethod
     def encrypt_rsa(pubkey_pem, data):
