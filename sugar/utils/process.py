@@ -126,6 +126,12 @@ class SignalHandlingMultiprocessingProcess(MultiprocessingProcess):
 
 @contextlib.contextmanager
 def default_signals(*signals):
+    """
+    Set default signals.
+
+    :param signals:
+    :return:
+    """
     old_signals = {}
     for signum in signals:
         try:
