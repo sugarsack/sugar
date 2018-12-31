@@ -159,7 +159,8 @@ class KeyStore(object):
 
         return not self.__is_locked
 
-    def __clone_rs(self, dbr):
+    @staticmethod
+    def __clone_rs(dbr):
         """
         Detach db session.
 
@@ -179,8 +180,9 @@ class KeyStore(object):
         finally:
             self._unlock_transaction(force=force)
 
+    @staticmethod
     @orm.db_session
-    def __get_keys_by_status(self, status):
+    def __get_keys_by_status(status):
         """
         Get keys by status.
 
