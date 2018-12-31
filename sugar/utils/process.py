@@ -37,17 +37,24 @@ except ImportError:
 
 
 def appendproctitle(name):
-    '''
-    Append "name" to the current process title
-    '''
+    """
+    Append 'name' to the current process title
+    """
     if HAS_SETPROCTITLE:
         setproctitle.setproctitle(setproctitle.getproctitle() + ' ' + name)
 
 
 def systemd_notify_call(action):
+    """
+    Notify call to the systemd.
+
+    :param action:
+    :return:
+    """
     process = subprocess.Popen(['systemd-notify', action], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     process.communicate()
     status = process.poll()
+
     return status == 0
 
 
