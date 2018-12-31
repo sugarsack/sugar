@@ -64,7 +64,8 @@ class PEP8EmptyLinesChecker(checkers.BaseChecker):
                     index.append("f")
                 elif not line.startswith("def ") and line.strip().startswith("def "):
                     index.append("m")
-                elif "'''" in line or '"""' in line or line.endswith("'") or line.endswith('"'):
+                elif ("'''" in line or '"""' in line or line.endswith("'")
+                      or line.endswith('"') or line.strip().startswith("#")):
                     index.append("d")
                 elif line.strip().startswith("@"):
                     index.append("c")
