@@ -82,4 +82,4 @@ class LoggerManager(object):
         return self.logger_store.setdefault(name, Logger(name))
 
 
-get_logger = LoggerManager().get_logger
+get_logger = LoggerManager().get_logger  # pylint: disable=C0103
