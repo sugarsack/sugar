@@ -19,13 +19,13 @@ import unicodedata
 # Import 3rd-party libs
 from sugar.lib import six
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__)  # pylint: disable=C0103
 
-
-def to_bytes(s, encoding=None, errors='strict'):
+# pylint: disable=R0911,R1705
+def to_bytes(data, encoding=None, errors='strict'):
     """
-    Given bytes, bytearray, str, or unicode (python 2), return bytes (str for
-    python 2)
+    Given bytes, bytearray, str, or unicode (python 2),
+    return bytes (str for python 2)
     """
     if encoding is None:
         # Try utf-8 first, and fall back to detected encoding
@@ -38,14 +38,14 @@ def to_bytes(s, encoding=None, errors='strict'):
 
     exc = None
     if six.PY3:
-        if isinstance(s, bytes):
-            return s
-        if isinstance(s, bytearray):
-            return bytes(s)
-        if isinstance(s, six.string_types):
+        if isinstance(data, bytes):
+            return data
+        if isinstance(data, bytearray):
+            return bytes(data)
+        if isinstance(data, six.string_types):
             for enc in encoding:
                 try:
-                    return s.encode(enc, errors)
+                    return data.encode(enc, errors)
                 except UnicodeEncodeError as err:
                     exc = err
                     continue
@@ -55,18 +55,20 @@ def to_bytes(s, encoding=None, errors='strict'):
             raise exc  # pylint: disable=raising-bad-type
         raise TypeError('expected bytes, bytearray, or str')
     else:
-        return to_str(s, encoding, errors)
+        return to_str(data, encoding, errors)
+# pylint: enable=R0911,R1705
 
 
-def to_str(s, encoding=None, errors='strict', normalize=False):
+# pylint: disable=R0911,R1705
+def to_str(str_data, encoding=None, errors='strict', normalize=False):
     """
     Given str, bytes, bytearray, or unicode (py2), return str
     """
-    def _normalize(s):
+    def _normalize(val):
         try:
-            return unicodedata.normalize('NFC', s) if normalize else s
+            return unicodedata.normalize('NFC', val) if normalize else val
         except TypeError:
-            return s
+            return val
 
     if encoding is None:
         encoding = ('utf-8', 'ascii')
@@ -76,40 +78,42 @@ def to_str(s, encoding=None, errors='strict', normalize=False):
     if not encoding:
         raise ValueError('encoding cannot be empty')
 
-    if isinstance(s, str):
-        return _normalize(s)
+    if isinstance(str_data, str):
+        return _normalize(str_data)
 
     exc = None
     if six.PY3:
-        if isinstance(s, (bytes, bytearray)):
+        if isinstance(str_data, (bytes, bytearray)):
             for enc in encoding:
                 try:
-                    return _normalize(s.decode(enc, errors))
+                    return _normalize(str_data.decode(enc, errors))
                 except UnicodeDecodeError as err:
                     exc = err
                     continue
             raise exc
-        raise TypeError('expected str, bytes, or bytearray not {}'.format(type(s)))
+        raise TypeError('expected str, bytes, or bytearray not {}'.format(type(str_data)))
     else:
-        if isinstance(s, bytearray):
-            return str(s)
-        if isinstance(s, six.text_type):
+        if isinstance(str_data, bytearray):
+            return str(str_data)
+        if isinstance(str_data, six.text_type):
             for enc in encoding:
                 try:
-                    return _normalize(s).encode(enc, errors)
+                    return _normalize(str_data).encode(enc, errors)
                 except UnicodeEncodeError as err:
                     exc = err
                     continue
             raise exc  # pylint: disable=raising-bad-type
         raise TypeError('expected str, bytearray, or unicode')
+# pylint: enable=R0911,R1705
 
 
-def to_unicode(s, encoding=None, errors='strict', normalize=False):
+# pylint: disable=R0911,R1705
+def to_unicode(str_data, encoding=None, errors='strict', normalize=False):
     """
     Given str or unicode, return unicode (str for python 3)
     """
-    def _normalize(s):
-        return unicodedata.normalize('NFC', s) if normalize else s
+    def _normalize(val):
+        return unicodedata.normalize('NFC', val) if normalize else val
 
     if encoding is None:
         # Try utf-8 first, and fall back to detected encoding
@@ -122,25 +126,27 @@ def to_unicode(s, encoding=None, errors='strict', normalize=False):
 
     exc = None
     if six.PY3:
-        if isinstance(s, str):
-            return _normalize(s)
-        elif isinstance(s, (bytes, bytearray)):
-            return _normalize(to_str(s, encoding, errors))
+        if isinstance(str_data, str):
+            return _normalize(str_data)
+        elif isinstance(str_data, (bytes, bytearray)):
+            return _normalize(to_str(str_data, encoding, errors))
         raise TypeError('expected str, bytes, or bytearray')
     else:
-        if isinstance(s, six.text_type):
-            return _normalize(s)
-        elif isinstance(s, (str, bytearray)):
+        if isinstance(str_data, six.text_type):
+            return _normalize(str_data)
+        elif isinstance(str_data, (str, bytearray)):
             for enc in encoding:
                 try:
-                    return _normalize(s.decode(enc, errors))
+                    return _normalize(str_data.decode(enc, errors))
                 except UnicodeDecodeError as err:
                     exc = err
                     continue
             raise exc
         raise TypeError('expected str or bytearray')
+# pylint: enable=R0911,R1705
 
 
+# pylint: disable=R0911,R1705
 def to_num(text):
     """
     Convert a string to a number.
@@ -155,8 +161,10 @@ def to_num(text):
             return float(text)
         except ValueError:
             return text
+# pylint: enable=R0911,R1705
 
 
+# pylint: disable=R0911,R1705
 def to_bool(text):
     """
     Convert the string name of a boolean to that boolean value.
@@ -168,6 +176,7 @@ def to_bool(text):
     elif downcased_text == 'true':
         return True
     return text
+# pylint: enable=R0911,R1705
 
 
 def to_none(text):
@@ -211,6 +220,7 @@ def is_hex(value):
     return ret
 
 
+# pylint: disable=R0911,R1705
 def is_binary(data):
     """
     Detects if the passed string of data is binary or text
@@ -247,9 +257,16 @@ def is_binary(data):
     if float(len(nontext)) / len(data) > 0.30:
         return True
     return False
+# pylint: enable=R0911,R1705
 
 
 def random(size=32):
+    """
+    Get random unicode data.
+
+    :param size:
+    :return:
+    """
     key = os.urandom(size)
     return to_unicode(base64.b64encode(key).replace(b'\n', b'')[:size])
 
@@ -288,6 +305,7 @@ def human_to_bytes(size):
     return sbytes
 
 
+# pylint: disable=R0911,R1705
 def build_whitespace_split_regex(text):
     """
     Create a regular expression at runtime which should match ignoring the
@@ -300,7 +318,7 @@ def build_whitespace_split_regex(text):
         >>> import re
         >>> import sugar.utils.stringutils
         >>> regex = sugar.utils.stringutils.build_whitespace_split_regex(
-        ...     """if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then"""
+        ...     'if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then'
         ... )
 
         >>> regex
@@ -310,7 +328,7 @@ def build_whitespace_split_regex(text):
         'then(?:[\\s]+)?'
         >>> re.search(
         ...     regex,
-        ...     """if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then"""
+        ...     'if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then'
         ... )
 
         <_sre.SRE_Match object at 0xb70639c0>
@@ -332,8 +350,10 @@ def build_whitespace_split_regex(text):
         parts = [re.escape(s) for s in __build_parts(line)]
         regex += r'(?:[\s]+)?{0}(?:[\s]+)?'.format(r'(?:[\s]+)?'.join(parts))
     return r'(?m)^{0}$'.format(regex)
+# pylint: enable=R0911,R1705
 
 
+# pylint: disable=R0911,R1705
 def expr_match(line, expr):
     """
     Checks whether or not the passed value matches the specified expression.
@@ -360,8 +380,10 @@ def expr_match(line, expr):
     except TypeError:
         log.exception('Value %r or expression %r is not a string', line, expr)
     return False
+# pylint: enable=R0911,R1705
 
 
+# pylint: disable=R0911,R1705
 def check_whitelist_blacklist(value, whitelist=None, blacklist=None):
     """
     Check a whitelist and/or blacklist to see if the value matches it.
@@ -424,8 +446,10 @@ def check_whitelist_blacklist(value, whitelist=None, blacklist=None):
     else:
         # No blacklist or whitelist passed
         return True
+# pylint: enable=R0911,R1705
 
 
+# pylint: disable=R0911,R1705
 def check_include_exclude(path_str, include_pat=None, exclude_pat=None):
     """
     Check for glob or regexp patterns for include_pat and exclude_pat in the
@@ -480,6 +504,7 @@ def check_include_exclude(path_str, include_pat=None, exclude_pat=None):
         ret = True
 
     return ret
+# pylint: enable=R0911,R1705
 
 
 def print_cli(msg, retries=10, step=0.01):
@@ -496,11 +521,7 @@ def print_cli(msg, retries=10, step=0.01):
         except IOError as exc:
             err = "{0}".format(exc)
             if exc.errno != errno.EPIPE:
-                if (
-                    ("temporarily unavailable" in err or
-                     exc.errno in (errno.EAGAIN,)) and
-                    retries
-                ):
+                if ("temporarily unavailable" in err or exc.errno in (errno.EAGAIN,)) and retries:
                     time.sleep(step)
                     retries -= 1
                     continue
@@ -521,27 +542,27 @@ def get_context(template, line, num_lines=5, marker=None):
     # In test mode, a single line template would return a crazy line number like,
     # 357. Do this sanity check and if the given line is obviously wrong, just
     # return the entire template
-    if line > num_template_lines:
-        return template
+    if not line > num_template_lines:
+        context_start = max(0, line - num_lines - 1)  # subt 1 for 0-based indexing
+        context_end = min(num_template_lines, line + num_lines)
+        error_line_in_context = line - context_start - 1  # subtr 1 for 0-based idx
 
-    context_start = max(0, line - num_lines - 1)  # subt 1 for 0-based indexing
-    context_end = min(num_template_lines, line + num_lines)
-    error_line_in_context = line - context_start - 1  # subtr 1 for 0-based idx
+        buf = []
+        if context_start > 0:
+            buf.append('[...]')
+            error_line_in_context += 1
 
-    buf = []
-    if context_start > 0:
-        buf.append('[...]')
-        error_line_in_context += 1
+        buf.extend(template_lines[context_start:context_end])
 
-    buf.extend(template_lines[context_start:context_end])
+        if context_end < num_template_lines:
+            buf.append('[...]')
 
-    if context_end < num_template_lines:
-        buf.append('[...]')
+        if marker:
+            buf[error_line_in_context] += marker
 
-    if marker:
-        buf[error_line_in_context] += marker
+        template = '---\n{0}\n---'.format('\n'.join(buf))
 
-    return '---\n{0}\n---'.format('\n'.join(buf))
+    return template
 
 
 def get_diff(a, b, *args, **kwargs):
