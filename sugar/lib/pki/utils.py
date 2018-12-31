@@ -11,7 +11,7 @@ from sugar.lib.pki import Crypto
 from sugar.utils.cli import get_current_component
 import sugar.utils.stringutils
 
-log = get_logger(__name__)
+log = get_logger(__name__)  # pylint: disable=C0103
 
 
 PUBLIC_KEY_FILENAME = "public_{}.pem".format(get_current_component())
