@@ -126,7 +126,7 @@ class Crypto(object):
             data = data.encode("utf-8")
         encrypted = RSA.importKey(pubkey_pem).encrypt(data, 32)
 
-        return isinstance(encrypted, (list, tuple)) and encrypted[0] or encrypted
+        return encrypted[0] if isinstance(encrypted, (list, tuple)) else encrypted
 
     @staticmethod
     def decrypt_rsa(privkey_pem, data):
