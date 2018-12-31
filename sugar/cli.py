@@ -57,10 +57,13 @@ Available components:
         :param command:
         :return:
         """
+        ret = False
         for char in ['*', '.', ':']:
             if char in command:
-                return True
-        return command not in SugarCLI.COMPONENTS
+                ret = True
+                break
+
+        return ret if ret else command not in SugarCLI.COMPONENTS
 
     @staticmethod
     def add_common_params(parser):
