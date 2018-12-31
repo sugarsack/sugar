@@ -325,6 +325,7 @@ def fopen(*args, **kwargs):
 
     NB! We still have small race condition between open and fcntl.
     """
+    # pylint: disable=R0912
     if six.PY3:
         try:
             # Don't permit stdin/stdout/stderr to be opened. The boolean False
@@ -383,6 +384,7 @@ def fopen(*args, **kwargs):
         old_flags = fcntl.fcntl(f_handle.fileno(), fcntl.F_GETFD)
         fcntl.fcntl(f_handle.fileno(), fcntl.F_SETFD, old_flags | FD_CLOEXEC)
 
+    # pylint: enable=R0912
     return f_handle
 
 
