@@ -57,42 +57,45 @@ def __clean_tmp(tmp):
         pass
 
 
-#
-# UNUSED @@@
-#
 def guess_archive_type(name):
     """
     Guess an archive type (tar, zip, or rar) by its file extension
     """
     name = name.lower()
-    for ending in ('tar', 'tar.gz', 'tgz',
-                   'tar.bz2', 'tbz2', 'tbz',
-                   'tar.xz', 'txz',
-                   'tar.lzma', 'tlz'):
+    arch_type = None
+    for ending in ('tar', 'tar.gz', 'tgz', 'tar.bz2', 'tbz2', 'tbz', 'tar.xz', 'txz', 'tar.lzma', 'tlz'):
         if name.endswith('.' + ending):
-            return 'tar'
-    for ending in ('zip', 'rar'):
-        if name.endswith('.' + ending):
-            return ending
-    return None
+            arch_type = 'tar'
+            break
+
+    if arch_type is None:
+        for ending in ('zip', 'rar'):
+            if name.endswith('.' + ending):
+                arch_type = ending
+                break
+
+    return arch_type
 
 
 def mkstemp(*args, **kwargs):
     """
     Helper function which does exactly what ``tempfile.mkstemp()`` does but
     accepts another argument, ``close_fd``, which, by default, is true and closes
-    the fd before returning the file path. Something commonly done throughout
-    Salt's code.
+    the fd before returning the file path.
     """
     if 'prefix' not in kwargs:
         kwargs['prefix'] = '__salt.tmp.'
     close_fd = kwargs.pop('close_fd', True)
+
     fd_, f_path = tempfile.mkstemp(*args, **kwargs)
-    if close_fd is False:
-        return fd_, f_path
-    os.close(fd_)
-    del fd_
-    return f_path
+    if not close_fd:
+        ret = fd_, f_path
+    else:
+        os.close(fd_)
+        del fd_
+        ret = None, f_path
+
+    return ret
 
 
 # def recursive_copy(source, dest):
