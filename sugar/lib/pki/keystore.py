@@ -375,15 +375,3 @@ class KeyStore(object):
         """
         return self.__clone_rs(orm.select(k for k in StoredKey
                                           if k.hostname == sugar.utils.stringutils.to_str(hostname)))
-
-
-if __name__ == '__main__':
-    ks = KeyStore("/tmp/ks")
-    #c = Crypto()
-    #pri, pub = c.create_rsa_keypair()
-    #ks.add(pub, "bla", "blabla")
-    from sugar.transport.serialisable import ObjectGate
-    for x in ks.get_rejected():
-        print(ObjectGate(x).pack())
-
-    ks.reject(fingerprint='5a:fb:17:c8:a0:a5:7c:19:bd:14:9f:3c:52:de:b4:15:b2:d4:d7:0d:1b:50:cd:ca:8c:3b:21:cc:2e:d9:17:39')
