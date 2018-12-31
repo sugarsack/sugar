@@ -36,7 +36,8 @@ class BackslashChecker(checkers.BaseChecker):
         """
         with open(node.file) as mod_fh:
             for idx, line in enumerate(mod_fh.read().split(os.linesep)):
-                if line.strip().endswith("\\") and "with " not in line:
+                line = line.strip()
+                if line.endswith("\\") and "with " not in line and not line.startswith("#"):
                     self.add_message("unnecessary-backslash", node=node, line=idx+1)
 
 
