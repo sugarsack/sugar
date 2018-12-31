@@ -12,14 +12,10 @@ import subprocess
 import multiprocessing
 import multiprocessing.util
 
-
-# Import salt libs
 import sugar.utils.exitcodes
 from sugar.lib.logger.manager import get_logger
-# Import 3rd-party libs
-from sugar.lib import six
 
-log = get_logger(__name__)
+log = get_logger(__name__)  # pylint: disable=C0103
 
 # pylint: disable=import-error
 HAS_PSUTIL = False
