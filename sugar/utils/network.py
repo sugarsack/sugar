@@ -1,7 +1,7 @@
 # coding: utf-8
-'''
+"""
 Define some generic socket functions for network modules
-'''
+"""
 
 # Import python libs
 from __future__ import absolute_import, unicode_literals, print_function
@@ -43,18 +43,18 @@ except (ImportError, OSError, AttributeError, TypeError):
 
 
 def sanitize_host(host):
-    '''
+    """
     Sanitize host string.
-    '''
+    """
     return ''.join([
         c for c in host[0:255] if c in (ascii_letters + digits + '.-_')
     ])
 
 
 def isportopen(host, port):
-    '''
+    """
     Return status of a port
-    '''
+    """
 
     if not 1 <= int(port) <= 65535:
         return False
@@ -66,9 +66,9 @@ def isportopen(host, port):
 
 
 def host_to_ips(host):
-    '''
+    """
     Returns a list of IP addresses of a given hostname or None if not found.
-    '''
+    """
     ips = []
     try:
         for family, socktype, proto, canonname, sockaddr in socket.getaddrinfo(
@@ -86,22 +86,22 @@ def host_to_ips(host):
 
 
 def _generate_client_id():
-    '''
+    """
     Get list of possible host names and convention names.
 
     :return:
-    '''
+    """
     # There are three types of hostnames:
     # 1. Network names. How host is accessed from the network.
     # 2. Host aliases. They might be not available in all the network or only locally (/etc/hosts)
     # 3. Convention names, an internal nodename.
 
     class DistinctList(list):
-        '''
+        """
         List, which allows one to append only distinct objects.
         Needs to work on Python 2.6, because of collections.OrderedDict only since 2.7 version.
         Override 'filter()' for custom filtering.
-        '''
+        """
         localhost_matchers = [r'localhost.*', r'ip6-.*', r'127[.]\d', r'0\.0\.0\.0',
                               r'::1.*', r'ipv6-.*', r'fe00::.*', r'fe02::.*', r'1.0.0.*.ip6.arpa']
 
@@ -155,11 +155,11 @@ def _generate_client_id():
 
 
 def generate_client_id():
-    '''
+    """
     Return only first element of the hostname from all possible list.
 
     :return:
-    '''
+    """
     try:
         ret = _generate_client_id().first()
     except TypeError:
@@ -168,10 +168,10 @@ def generate_client_id():
 
 
 def get_socket(addr, type=socket.SOCK_STREAM, proto=0):
-    '''
+    """
     Return a socket object for the addr
     IP-version agnostic
-    '''
+    """
 
     version = ipaddress.ip_address(addr).version
     if version == 4:
@@ -182,9 +182,9 @@ def get_socket(addr, type=socket.SOCK_STREAM, proto=0):
 
 
 def get_fqhostname():
-    '''
+    """
     Returns the fully qualified hostname
-    '''
+    """
     # try getaddrinfo()
     fqdn = None
     try:
@@ -209,9 +209,9 @@ def get_fqhostname():
 
 
 def ip_to_host(ip):
-    '''
+    """
     Returns the hostname of a given IP
-    '''
+    """
     try:
         hostname, aliaslist, ipaddrlist = socket.gethostbyaddr(ip)
     except Exception as exc:
@@ -223,11 +223,11 @@ def ip_to_host(ip):
 
 
 def is_reachable_host(entity_name):
-    '''
+    """
     Returns a bool telling if the entity name is a reachable host (IPv4/IPv6/FQDN/etc).
     :param hostname:
     :return:
-    '''
+    """
     try:
         assert type(socket.getaddrinfo(entity_name, 0, 0, 0, 0)) == list
         ret = True
@@ -238,16 +238,16 @@ def is_reachable_host(entity_name):
 
 
 def is_ip(ip):
-    '''
+    """
     Returns a bool telling if the passed IP is a valid IPv4 or IPv6 address.
-    '''
+    """
     return is_ipv4(ip) or is_ipv6(ip)
 
 
 def is_ipv4(ip):
-    '''
+    """
     Returns a bool telling if the value passed to it was a valid IPv4 address
-    '''
+    """
     try:
         return ipaddress.ip_address(ip).version == 4
     except ValueError:
@@ -255,9 +255,9 @@ def is_ipv4(ip):
 
 
 def is_ipv6(ip):
-    '''
+    """
     Returns a bool telling if the value passed to it was a valid IPv6 address
-    '''
+    """
     try:
         return ipaddress.ip_address(ip).version == 6
     except ValueError:
@@ -265,16 +265,16 @@ def is_ipv6(ip):
 
 
 def is_subnet(cidr):
-    '''
+    """
     Returns a bool telling if the passed string is an IPv4 or IPv6 subnet
-    '''
+    """
     return is_ipv4_subnet(cidr) or is_ipv6_subnet(cidr)
 
 
 def is_ipv4_subnet(cidr):
-    '''
+    """
     Returns a bool telling if the passed string is an IPv4 subnet
-    '''
+    """
     try:
         return '/' in cidr and bool(ipaddress.IPv4Network(cidr))
     except Exception:
@@ -282,9 +282,9 @@ def is_ipv4_subnet(cidr):
 
 
 def is_ipv6_subnet(cidr):
-    '''
+    """
     Returns a bool telling if the passed string is an IPv6 subnet
-    '''
+    """
     try:
         return '/' in cidr and bool(ipaddress.IPv6Network(cidr))
     except Exception:
@@ -292,9 +292,9 @@ def is_ipv6_subnet(cidr):
 
 
 def is_ip_filter(ip, options=None):
-    '''
+    """
     Returns a bool telling if the passed IP is a valid IPv4 or IPv6 address.
-    '''
+    """
     return is_ipv4_filter(ip, options=options) or is_ipv6_filter(ip, options=options)
 
 
@@ -394,7 +394,7 @@ def _is_ipv(ip, version, options=None):
 
 
 def is_ipv4_filter(ip, options=None):
-    '''
+    """
     Returns a bool telling if the value passed to it was a valid IPv4 address.
 
     ip
@@ -405,13 +405,13 @@ def is_ipv4_filter(ip, options=None):
 
     options
         CSV of options regarding the nature of the IP address. E.g.: loopback, multicast, private etc.
-    '''
+    """
     _is_ipv4 = _is_ipv(ip, 4, options=options)
     return isinstance(_is_ipv4, six.string_types)
 
 
 def is_ipv6_filter(ip, options=None):
-    '''
+    """
     Returns a bool telling if the value passed to it was a valid IPv6 address.
 
     ip
@@ -422,7 +422,7 @@ def is_ipv6_filter(ip, options=None):
 
     options
         CSV of options regarding the nature of the IP address. E.g.: loopback, multicast, private etc.
-    '''
+    """
     _is_ipv6 = _is_ipv(ip, 6, options=options)
     return isinstance(_is_ipv6, six.string_types)
 
@@ -446,23 +446,23 @@ def _ipv_filter(value, version, options=None):
 
 
 def ipv4(value, options=None):
-    '''
+    """
     Filters a list and returns IPv4 values only.
-    '''
+    """
     return _ipv_filter(value, 4, options=options)
 
 
 def ipv6(value, options=None):
-    '''
+    """
     Filters a list and returns IPv6 values only.
-    '''
+    """
     return _ipv_filter(value, 6, options=options)
 
 
 def ipaddr(value, options=None):
-    '''
+    """
     Filters and returns only valid IP objects.
-    '''
+    """
     ipv4_obj = ipv4(value, options=options)
     ipv6_obj = ipv6(value, options=options)
     if ipv4_obj is None or ipv6_obj is None:
@@ -491,9 +491,9 @@ def _filter_ipaddr(value, options, version=None):
 
 
 def ip_host(value, options=None, version=None):
-    '''
+    """
     Returns the interfaces IP address, e.g.: 192.168.0.1/28.
-    '''
+    """
     ipaddr_filter_out = _filter_ipaddr(value, options=options, version=version)
     if not ipaddr_filter_out:
         return
@@ -510,14 +510,14 @@ def _network_hosts(ip_addr_entry):
 
 
 def network_hosts(value, options=None, version=None):
-    '''
+    """
     Return the list of hosts within a network.
 
     .. note::
 
         When running this command with a large IPv6 network, the command will
         take a long time to gather all of the hosts.
-    '''
+    """
     ipaddr_filter_out = _filter_ipaddr(value, options=options, version=version)
     if not ipaddr_filter_out:
         return
@@ -534,9 +534,9 @@ def _network_size(ip_addr_entry):
 
 
 def network_size(value, options=None, version=None):
-    '''
+    """
     Get the size of a network.
-    '''
+    """
     ipaddr_filter_out = _filter_ipaddr(value, options=options, version=version)
     if not ipaddr_filter_out:
         return
@@ -549,9 +549,9 @@ def network_size(value, options=None, version=None):
 
 
 def natural_ipv4_netmask(ip, fmt='prefixlen'):
-    '''
+    """
     Returns the "natural" mask of an IPv4 address
-    '''
+    """
     bits = _ipv4_to_bits(ip)
 
     if bits.startswith('11'):
@@ -568,20 +568,20 @@ def natural_ipv4_netmask(ip, fmt='prefixlen'):
 
 
 def rpad_ipv4_network(ip):
-    '''
+    """
     Returns an IP network address padded with zeros.
 
     Ex: '192.168.3' -> '192.168.3.0'
         '10.209' -> '10.209.0.0'
-    '''
+    """
     return '.'.join(itertools.islice(itertools.chain(ip.split('.'), '0000'), 0,
                                      4))
 
 
 def cidr_to_ipv4_netmask(cidr_bits):
-    '''
+    """
     Returns an IPv4 netmask
-    '''
+    """
     try:
         cidr_bits = int(cidr_bits)
         if not 1 <= cidr_bits <= 32:
@@ -603,19 +603,19 @@ def cidr_to_ipv4_netmask(cidr_bits):
 
 
 def _number_of_set_bits_to_ipv4_netmask(set_bits):  # pylint: disable=C0103
-    '''
+    """
     Returns an IPv4 netmask from the integer representation of that mask.
 
     Ex. 0xffffff00 -> '255.255.255.0'
-    '''
+    """
     return cidr_to_ipv4_netmask(_number_of_set_bits(set_bits))
 
 
 # pylint: disable=C0103
 def _number_of_set_bits(x):
-    '''
+    """
     Returns the number of bits that are set in a 32bit int
-    '''
+    """
     # Taken from http://stackoverflow.com/a/4912729. Many thanks!
     x -= (x >> 1) & 0x55555555
     x = ((x >> 2) & 0x33333333) + (x & 0x33333333)
@@ -628,17 +628,17 @@ def _number_of_set_bits(x):
 
 
 def _interfaces_ip(out):
-    '''
+    """
     Uses ip to return a dictionary of interfaces with various information about
     each (up/down state, ip address, netmask, and hwaddr)
-    '''
+    """
     ret = dict()
 
     def parse_network(value, cols):
-        '''
+        """
         Return a tuple of ip, netmask, broadcast
         based on the current set of cols
-        '''
+        """
         brd = None
         scope = None
         if '/' in value:  # we have a CIDR in this address
@@ -721,10 +721,10 @@ def _interfaces_ip(out):
 
 
 def _interfaces_ifconfig(out):
-    '''
+    """
     Uses ifconfig to return a dictionary of interfaces with various information
     about each (up/down state, ip address, netmask, and hwaddr)
-    '''
+    """
     ret = dict()
 
     piface = re.compile(r'^([^\s:]+)')
@@ -817,9 +817,9 @@ def _interfaces_ifconfig(out):
 
 
 def linux_interfaces():
-    '''
+    """
     Obtain interface information for *NIX/BSD variants
-    '''
+    """
     ifaces = dict()
     ip_path = sugar.utils.path.which('ip')
     ifconfig_path = None if ip_path else sugar.utils.path.which('ifconfig')
@@ -850,10 +850,10 @@ def linux_interfaces():
 
 
 def _netbsd_interfaces_ifconfig(out):
-    '''
+    """
     Uses ifconfig to return a dictionary of interfaces with various information
     about each (up/down state, ip address, netmask, and hwaddr)
-    '''
+    """
     ret = dict()
 
     piface = re.compile(r'^([^\s:]+)')
@@ -910,11 +910,11 @@ def _netbsd_interfaces_ifconfig(out):
 
 
 def netbsd_interfaces():
-    '''
+    """
     Obtain interface information for NetBSD >= 8 where the ifconfig
     output diverged from other BSD variants (Netmask is now part of the
     address)
-    '''
+    """
     # NetBSD versions prior to 8.0 can still use linux_interfaces()
     if LooseVersion(os.uname()[2]) < LooseVersion('8.0'):
         return linux_interfaces()
@@ -929,13 +929,13 @@ def netbsd_interfaces():
 
 
 def _interfaces_ipconfig(out):
-    '''
+    """
     Returns a dictionary of interfaces with various information about each
     (up/down state, ip address, netmask, and hwaddr)
 
     NOTE: This is not used by any function and may be able to be removed in the
     future.
-    '''
+    """
     ifaces = dict()
     iface = None
     adapter_iface_regex = re.compile(r'adapter (\S.+):$')
@@ -978,9 +978,9 @@ def _interfaces_ipconfig(out):
 
 
 def win_interfaces():
-    '''
+    """
     Obtain interface information for Windows systems
-    '''
+    """
     with salt.utils.winapi.Com():
         c = wmi.WMI()
         ifaces = {}
@@ -1024,9 +1024,9 @@ def win_interfaces():
 
 
 def interfaces():
-    '''
+    """
     Return a dictionary of information about all the interfaces on the minion
-    '''
+    """
     if sugar.utils.platform.is_windows():
         return win_interfaces()
     elif sugar.utils.platform.is_netbsd():
@@ -1036,18 +1036,18 @@ def interfaces():
 
 
 def get_net_start(ipaddr, netmask):
-    '''
+    """
     Return the address of the network
-    '''
+    """
     net = ipaddress.ip_network('{0}/{1}'.format(ipaddr, netmask), strict=False)
     return six.text_type(net.network_address)
 
 
 def get_net_size(mask):
-    '''
+    """
     Turns an IPv4 netmask into it's corresponding prefix length
     (255.255.255.0 -> 24 as in 192.168.1.10/24).
-    '''
+    """
     binary_str = ''
     for octet in mask.split('.'):
         binary_str += bin(int(octet))[2:].zfill(8)
@@ -1055,11 +1055,11 @@ def get_net_size(mask):
 
 
 def calc_net(ipaddr, netmask=None):
-    '''
+    """
     Takes IP (CIDR notation supported) and optionally netmask
     and returns the network in CIDR-notation.
     (The IP can be any IP inside the subnet)
-    '''
+    """
     if netmask is not None:
         ipaddr = '{0}/{1}'.format(ipaddr, netmask)
 
@@ -1067,18 +1067,18 @@ def calc_net(ipaddr, netmask=None):
 
 
 def _ipv4_to_bits(ipaddr):
-    '''
+    """
     Accepts an IPv4 dotted quad and returns a string representing its binary
     counterpart
-    '''
+    """
     return ''.join([bin(int(x))[2:].rjust(8, '0') for x in ipaddr.split('.')])
 
 
 def _get_iface_info(iface):
-    '''
+    """
     If `iface` is available, return interface info and no error, otherwise
     return no info and log and return an error
-    '''
+    """
     iface_info = interfaces()
 
     if iface in iface_info.keys():
@@ -1091,10 +1091,10 @@ def _get_iface_info(iface):
 
 
 def _hw_addr_aix(iface):
-    '''
+    """
     Return the hardware address (a.k.a. MAC address) for a given interface on AIX
     MAC address not available in through interfaces
-    '''
+    """
     cmd = subprocess.Popen(
         'entstat -d {0} | grep \'Hardware Address\''.format(iface),
         shell=True,
@@ -1113,13 +1113,13 @@ def _hw_addr_aix(iface):
 
 
 def hw_addr(iface):
-    '''
+    """
     Return the hardware address (a.k.a. MAC address) for a given interface
 
     .. versionchanged:: 2016.11.4
         Added support for AIX
 
-    '''
+    """
     if salt.utils.platform.is_aix():
         return _hw_addr_aix
 
@@ -1132,9 +1132,9 @@ def hw_addr(iface):
 
 
 def interface(iface):
-    '''
+    """
     Return the details of `iface` or an error if it does not exist
-    '''
+    """
     iface_info, error = _get_iface_info(iface)
 
     if error is False:
@@ -1144,9 +1144,9 @@ def interface(iface):
 
 
 def interface_ip(iface):
-    '''
+    """
     Return `iface` IPv4 addr or an error if `iface` does not exist
-    '''
+    """
     iface_info, error = _get_iface_info(iface)
 
     if error is False:
@@ -1157,9 +1157,9 @@ def interface_ip(iface):
 
 
 def _subnets(proto='inet', interfaces_=None):
-    '''
+    """
     Returns a list of subnets to which the host belongs
-    '''
+    """
     if interfaces_ is None:
         ifaces = interfaces()
     elif isinstance(interfaces_, list):
@@ -1197,23 +1197,23 @@ def _subnets(proto='inet', interfaces_=None):
 
 
 def subnets(interfaces=None):
-    '''
+    """
     Returns a list of IPv4 subnets to which the host belongs
-    '''
+    """
     return _subnets('inet', interfaces_=interfaces)
 
 
 def subnets6():
-    '''
+    """
     Returns a list of IPv6 subnets to which the host belongs
-    '''
+    """
     return _subnets('inet6')
 
 
 def in_subnet(cidr, addr=None):
-    '''
+    """
     Returns True if host or (any of) addrs is within specified subnet, otherwise False
-    '''
+    """
     try:
         cidr = ipaddress.ip_network(cidr)
     except ValueError:
@@ -1230,11 +1230,11 @@ def in_subnet(cidr, addr=None):
 
 
 def _ip_addrs(interface=None, include_loopback=False, interface_data=None, proto='inet'):
-    '''
+    """
     Return the full list of IP adresses matching the criteria
 
     proto = inet|inet6
-    '''
+    """
     ret = set()
 
     ifaces = interface_data \
@@ -1259,28 +1259,28 @@ def _ip_addrs(interface=None, include_loopback=False, interface_data=None, proto
 
 
 def ip_addrs(interface=None, include_loopback=False, interface_data=None):
-    '''
+    """
     Returns a list of IPv4 addresses assigned to the host. 127.0.0.1 is
     ignored, unless 'include_loopback=True' is indicated. If 'interface' is
     provided, then only IP addresses from that interface will be returned.
-    '''
+    """
     return _ip_addrs(interface, include_loopback, interface_data, 'inet')
 
 
 def ip_addrs6(interface=None, include_loopback=False, interface_data=None):
-    '''
+    """
     Returns a list of IPv6 addresses assigned to the host. ::1 is ignored,
     unless 'include_loopback=True' is indicated. If 'interface' is provided,
     then only IP addresses from that interface will be returned.
-    '''
+    """
     return _ip_addrs(interface, include_loopback, interface_data, 'inet6')
 
 
 def hex2ip(hex_ip, invert=False):
-    '''
+    """
     Convert a hex string to an ip, if a failure occurs the original hex is
     returned. If 'invert=True' assume that ip from /proc/net/<proto>
-    '''
+    """
     if len(hex_ip) == 32:  # ipv6
         ip = []
         for i in range(0, 32, 8):
@@ -1316,10 +1316,10 @@ def hex2ip(hex_ip, invert=False):
 
 
 def mac2eui64(mac, prefix=None):
-    '''
+    """
     Convert a MAC address to a EUI64 identifier
     or, with prefix provided, a full IPv6 address
-    '''
+    """
     # http://tools.ietf.org/html/rfc4291#section-2.5.1
     eui64 = re.sub(r'[.:-]', '', mac).lower()
     eui64 = eui64[0:6] + 'fffe' + eui64[6:]
@@ -1337,9 +1337,9 @@ def mac2eui64(mac, prefix=None):
 
 
 def active_tcp():
-    '''
+    """
     Return a dict describing all active tcp connections as quickly as possible
-    '''
+    """
     ret = {}
     for statf in ['/proc/net/tcp', '/proc/net/tcp6']:
         if os.path.isfile(statf):
@@ -1357,25 +1357,25 @@ def active_tcp():
 
 
 def local_port_tcp(port):
-    '''
+    """
     Return a set of remote ip addrs attached to the specified local port
-    '''
+    """
     ret = _remotes_on(port, 'local_port')
     return ret
 
 
 def remote_port_tcp(port):
-    '''
+    """
     Return a set of ip addrs the current host is connected to on given port
-    '''
+    """
     ret = _remotes_on(port, 'remote_port')
     return ret
 
 
 def _remotes_on(port, which_end):
-    '''
+    """
     Return a set of ip addrs active tcp connections
-    '''
+    """
     port = int(port)
     ret = set()
 
@@ -1413,9 +1413,9 @@ def _remotes_on(port, which_end):
 
 
 def _parse_tcp_line(line):
-    '''
+    """
     Parse a single line from the contents of /proc/net/tcp or /proc/net/tcp6
-    '''
+    """
     ret = {}
     comps = line.strip().split()
     sl = comps[0].rstrip(':')
@@ -1431,7 +1431,7 @@ def _parse_tcp_line(line):
 
 
 def _sunos_remotes_on(port, which_end):
-    '''
+    """
     SunOS specific helper function.
     Returns set of ipv4 host addresses of remote established connections
     on local or remote tcp port.
@@ -1444,7 +1444,7 @@ def _sunos_remotes_on(port, which_end):
        -------------------- -------------------- ----- ------ ----- ------ -----------
        10.0.0.101.4505      10.0.0.1.45329       1064800      0 1055864      0 ESTABLISHED
        10.0.0.101.4505      10.0.0.100.50798     1064800      0 1055864      0 ESTABLISHED
-    '''
+    """
     remotes = set()
     try:
         data = subprocess.check_output(['netstat', '-f', 'inet', '-n'])  # pylint: disable=minimum-python-version
@@ -1469,7 +1469,7 @@ def _sunos_remotes_on(port, which_end):
 
 
 def _freebsd_remotes_on(port, which_end):
-    '''
+    """
     Returns set of ipv4 host addresses of remote established connections
     on local tcp port port.
 
@@ -1486,7 +1486,7 @@ def _freebsd_remotes_on(port, which_end):
     $ sudo sockstat -4 -c -p 4506
     USER    COMMAND     PID     FD  PROTO  LOCAL ADDRESS    FOREIGN ADDRESS
     root    python2.7   1294    41  tcp4   127.0.0.1:61115  127.0.0.1:4506
-    '''
+    """
 
     port = int(port)
     remotes = set()
@@ -1529,7 +1529,7 @@ def _freebsd_remotes_on(port, which_end):
 
 
 def _netbsd_remotes_on(port, which_end):
-    '''
+    """
     Returns set of ipv4 host addresses of remote established connections
     on local tcp port port.
 
@@ -1546,7 +1546,7 @@ def _netbsd_remotes_on(port, which_end):
     $ sudo sockstat -4 -c -n -p 4506
     USER    COMMAND     PID     FD  PROTO  LOCAL ADDRESS    FOREIGN ADDRESS
     root    python2.7   1294    41  tcp    127.0.0.1.61115  127.0.0.1.4506
-    '''
+    """
 
     port = int(port)
     remotes = set()
@@ -1588,7 +1588,7 @@ def _netbsd_remotes_on(port, which_end):
 
 
 def _openbsd_remotes_on(port, which_end):
-    '''
+    """
     OpenBSD specific helper function.
     Returns set of ipv4 host addresses of remote established connections
     on local or remote tcp port.
@@ -1600,7 +1600,7 @@ def _openbsd_remotes_on(port, which_end):
     Proto   Recv-Q Send-Q  Local Address          Foreign Address        (state)
     tcp          0      0  10.0.0.101.4505        10.0.0.1.45329         ESTABLISHED
     tcp          0      0  10.0.0.101.4505        10.0.0.100.50798       ESTABLISHED
-    '''
+    """
     remotes = set()
     try:
         data = subprocess.check_output(['netstat', '-nf', 'inet'])  # pylint: disable=minimum-python-version
@@ -1625,7 +1625,7 @@ def _openbsd_remotes_on(port, which_end):
 
 
 def _windows_remotes_on(port, which_end):
-    r'''
+    r"""
     Windows specific helper function.
     Returns set of ipv4 host addresses of remote established connections
     on local or remote tcp port.
@@ -1639,7 +1639,7 @@ def _windows_remotes_on(port, which_end):
        Proto  Local Address          Foreign Address        State
        TCP    10.2.33.17:3007        130.164.12.233:10123   ESTABLISHED
        TCP    10.2.33.17:3389        130.164.30.5:10378     ESTABLISHED
-    '''
+    """
     remotes = set()
     try:
         data = subprocess.check_output(['netstat', '-n'])  # pylint: disable=minimum-python-version
@@ -1663,7 +1663,7 @@ def _windows_remotes_on(port, which_end):
 
 
 def _linux_remotes_on(port, which_end):
-    '''
+    """
     Linux specific helper function.
     Returns set of ip host addresses of remote established connections
     on local tcp port port.
@@ -1678,7 +1678,7 @@ def _linux_remotes_on(port, which_end):
     Python  10152 root   22u  IPv4 0x18a8464a29c8cab5      0t0  TCP 127.0.0.1:55703->127.0.0.1:4505 (ESTABLISHED)
     Python  10153 root   22u  IPv4 0x18a8464a29c8cab5      0t0  TCP [fe80::249a]:4505->[fe80::150]:59367 (ESTABLISHED)
 
-    '''
+    """
     remotes = set()
 
     try:
@@ -1720,7 +1720,7 @@ def _linux_remotes_on(port, which_end):
 
 
 def _aix_remotes_on(port, which_end):
-    '''
+    """
     AIX specific helper function.
     Returns set of ipv4 host addresses of remote established connections
     on local or remote tcp port.
@@ -1745,7 +1745,7 @@ def _aix_remotes_on(port, which_end):
     tcp        0      0  127.0.0.1.32777        127.0.0.1.32771        ESTABLISHED
     tcp4       0      0  127.0.0.1.32771        127.0.0.1.32778        ESTABLISHED
     tcp        0      0  127.0.0.1.32778        127.0.0.1.32771        ESTABLISHED
-    '''
+    """
     remotes = set()
     try:
         data = subprocess.check_output(['netstat', '-f', 'inet', '-n'])  # pylint: disable=minimum-python-version
@@ -1770,7 +1770,7 @@ def _aix_remotes_on(port, which_end):
 
 
 def gen_mac(prefix='AC:DE:48'):
-    '''
+    """
     Generates a MAC address with the defined OUI prefix.
 
     Common prefixes:
@@ -1786,7 +1786,7 @@ def gen_mac(prefix='AC:DE:48'):
      - http://standards.ieee.org/develop/regauth/oui/oui.txt
      - https://www.wireshark.org/tools/oui-lookup.html
      - https://en.wikipedia.org/wiki/MAC_address
-    '''
+    """
     return '{0}:{1:02X}:{2:02X}:{3:02X}'.format(prefix,
                                                 random.randint(0, 0xff),
                                                 random.randint(0, 0xff),
@@ -1794,14 +1794,14 @@ def gen_mac(prefix='AC:DE:48'):
 
 
 def mac_str_to_bytes(mac_str):
-    '''
+    """
     Convert a MAC address string into bytes. Works with or without separators:
 
     b1 = mac_str_to_bytes('08:00:27:13:69:77')
     b2 = mac_str_to_bytes('080027136977')
     assert b1 == b2
     assert isinstance(b1, bytes)
-    '''
+    """
     if len(mac_str) == 12:
         pass
     elif len(mac_str) == 17:
@@ -1814,9 +1814,9 @@ def mac_str_to_bytes(mac_str):
 
 
 def refresh_dns():
-    '''
+    """
     issue #21397: force glibc to re-read resolv.conf
-    '''
+    """
     try:
         res_init()
     except NameError:
@@ -1825,20 +1825,20 @@ def refresh_dns():
 
 
 def connection_check(addr, port=80, safe=False, ipv6=None):
-    '''
+    """
     Provides a convenient alias for the dns_check filter.
-    '''
+    """
     return dns_check(addr, port, safe, ipv6)
 
 
 def dns_check(addr, port=80, safe=False, ipv6=None, attempt_connect=True):
-    '''
+    """
     Return the ip resolved by dns, but do not exit on failure, only raise an
     exception. Obeys system preference for IPv4/6 address resolution - this
     can be overridden by the ipv6 flag.
     Tries to connect to the address before considering it useful. If no address
     can be reached, the first one resolved is used as a fallback.
-    '''
+    """
     error = False
     lookup = addr
     seen_ipv6 = False

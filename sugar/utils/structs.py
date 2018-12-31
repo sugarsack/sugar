@@ -57,9 +57,9 @@ class ImmutableDict(dict):
 
 
 class ObjectMap(object):
-    '''
+    """
     Object map access. KeyError is missing as the default is to None.
-    '''
+    """
     def __getattr__(self, item):
         return self.__dict__.get(item)
 
@@ -72,12 +72,12 @@ class ObjectMap(object):
 
 
 def dict_to_object(src):
-    '''
+    """
     Creates object out of dictionary.
 
     :param src:
     :return:
-    '''
+    """
     obj = ObjectMap()
     for key in src:
         if isinstance(src[key], collections.Mapping):
@@ -96,7 +96,7 @@ def dict_to_object(src):
 
 
 def merge_dicts(dst, src):
-    '''
+    """
 
     Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
     updating only top-level keys, dict_merge recurses down into dicts nested
@@ -105,7 +105,7 @@ def merge_dicts(dst, src):
     :param dct: dict onto which the merge is executed
     :param merge_dct: dct merged into dct
     :return: None
-    '''
+    """
 
     for key in src:
         if (key in dst and isinstance(dst[key], dict)
@@ -129,7 +129,7 @@ def merge_missing(dst, src):
 
 
 def update(dest, upd, recursive_update=True, merge_lists=False):
-    '''
+    """
     Recursive version of the default dict.update
 
     Merges upd recursively into dest
@@ -144,7 +144,7 @@ def update(dest, upd, recursive_update=True, merge_lists=False):
 
     When merging lists, duplicate values are removed. Values already
     present in the ``dest`` list are not added from the ``upd`` list.
-    '''
+    """
     if (not isinstance(dest, collections.Mapping)) or (not isinstance(upd, collections.Mapping)):
         raise TypeError('Cannot update using non-dict types in dictupdate.update()')
     updkeys = list(upd.keys())
