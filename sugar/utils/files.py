@@ -7,7 +7,6 @@ from __future__ import absolute_import, unicode_literals, print_function
 
 # Import Python libs
 import codecs
-import contextlib
 import errno
 import os
 import re
@@ -30,7 +29,7 @@ except ImportError:
     # fcntl is not available on windows
     HAS_FCNTL = False
 
-log = get_logger(__name__)
+log = get_logger(__name__)  # pylint: disable=C0103
 
 LOCAL_PROTOS = ('', 'file')
 REMOTE_PROTOS = ('http', 'https', 'ftp', 'swift', 's3')
@@ -45,7 +44,7 @@ HASHES = {
     'sha1': 40,
     'md5': 32,
 }
-HASHES_REVMAP = dict([(y, x) for x, y in six.iteritems(HASHES)])
+HASHES_REVMAP = dict([(y, x) for x, y in six.iteritems(HASHES)])  # pylint: disable=R1717
 
 
 def __clean_tmp(tmp):
@@ -497,8 +496,8 @@ def safe_walk(top, topdown=True, onerror=None, followlinks=True, _seen=None):
     for name in dirs:
         new_path = os.path.join(top, name)
         if followlinks or not os.path.islink(new_path):
-            for x in safe_walk(new_path, topdown, onerror, followlinks, _seen):
-                yield x
+            for elm in safe_walk(new_path, topdown, onerror, followlinks, _seen):
+                yield elm
     if not topdown:
         yield top, dirs, nondirs
 
