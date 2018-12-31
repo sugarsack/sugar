@@ -14,9 +14,9 @@ log = get_logger(__name__)
 
 
 def which(exe=None):
-    '''
+    """
     Python clone of /usr/bin/which
-    '''
+    """
     def _is_executable_file_or_link(exe):
         # check for os.X_OK doesn't suffice because directory may executable
         return (os.access(exe, os.X_OK) and
@@ -32,10 +32,10 @@ def which(exe=None):
         ).split(str(';'))
 
         def _exe_has_ext():
-            '''
+            """
             Do a case insensitive test if exe has a file extension match in
             PATHEXT
-            '''
+            """
             for ext in ext_list:
                 try:
                     pattern = r'.*\.{0}$'.format(
@@ -81,9 +81,9 @@ def which(exe=None):
 
 
 def which_bin(exes):
-    '''
+    """
     Scan over some possible executables and return the first one that is found
-    '''
+    """
     if not isinstance(exes, collections.Iterable):
         return None
     for exe in exes:
