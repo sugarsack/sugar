@@ -21,6 +21,7 @@ from sugar.lib import six
 
 log = logging.getLogger(__name__)  # pylint: disable=C0103
 
+
 # pylint: disable=R0911,R1705
 def to_bytes(data, encoding=None, errors='strict'):
     """

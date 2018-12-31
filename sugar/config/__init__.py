@@ -5,7 +5,6 @@ This keeps configuration schema, validation and singleton to pick
 it up from every point of project code at any time without re-reading
 the whole thing from the disk.
 """
-
 from __future__ import absolute_import, print_function, unicode_literals
 
 import os

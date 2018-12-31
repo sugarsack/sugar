@@ -22,6 +22,8 @@ from sugar.transport.serialisable import Serialisable
 from sugar.transport import ClientMsgFactory, ServerMsgFactory
 
 
+# pylint: disable=R0801
+
 class HandshakeStatus(object):
     """
     Handshake status.
