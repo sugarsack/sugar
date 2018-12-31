@@ -11,11 +11,7 @@ import fnmatch
 import logging
 import re
 
-try:
-    from collections.abc import Mapping
-except ImportError:
-    from collections import Mapping
-
+from sugar.lib.compat import CollectionsMapping as Mapping
 from sugar.lib import six
 from sugar.utils import stringutils
 
@@ -24,7 +20,7 @@ try:
 except ImportError:
     jmespath = None
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__)  # pylint: disable=C0103
 
 
 DEFAULT_TARGET_DELIMETER = ":"
