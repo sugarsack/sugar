@@ -1,11 +1,11 @@
 language: python
 python:
     - "2.7"
-    - "3.3"
-    - "3.4"
-    - "3.5"
-    - "3.6"
-    - "3.7"
+#    - "3.3"
+#    - "3.4"
+#    - "3.5"
+#    - "3.6"
+#    - "3.7"
 
 virtualenv:
   system_site_packages: true
@@ -16,5 +16,6 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - pylint sugar/*
-  - pytest
+  - echo "This is all todo still"
+#  - pylint sugar/*
+#  - PYTHONPATH=./sugar pytest
