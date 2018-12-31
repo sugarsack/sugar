@@ -11,8 +11,8 @@ def get_yn_input(prompt):
     :return:
     """
 
-    a = None
-    while a not in ["y", "n", ""]:
-        a = (input(prompt + " (y/N): ") or "").lower() or "n"
+    answer = None
+    while answer not in ["y", "n", ""]:
+        answer = (input(prompt + " (y/N): ") or "").lower() or "n"
 
-    return a == "y"
+    return answer == "y"
