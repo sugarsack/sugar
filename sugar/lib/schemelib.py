@@ -287,7 +287,7 @@ class Schema(object):
         :param data:
         :return:
         """
-        # pylint: disable=R0914,R1702,R1705,R0912,R0915
+        # pylint: disable=R0914,R1702,R1705,R0912,R0915,R0911
         schema_class = self.__class__
         schema_data = self._schema
         err_set = self._error
@@ -386,7 +386,7 @@ class Schema(object):
             return data
         else:
             raise SchemaError('%r does not match %r' % (schema_data, data), err_set.format(data) if err_set else None)
-        #pylint: enable=R0914,R1702,R1705,R0912,R0915
+        #pylint: enable=R0914,R1702,R1705,R0912,R0915,R0911
 
 
 class Optional(Schema):

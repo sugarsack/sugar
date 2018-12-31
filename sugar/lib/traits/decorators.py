@@ -10,7 +10,7 @@ def trait(name):
 
     :return:
     """
-    # pylint: disable=R8001,W0212
+    # pylint: disable=W0212
     def dec(func):
         """
         Decorator function.
@@ -34,4 +34,4 @@ def trait(name):
         return attrset
 
     return dec
-    # pylint: enable=R8001,W0212
+    # pylint: enable=W0212
