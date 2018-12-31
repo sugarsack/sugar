@@ -33,7 +33,6 @@ load-plugins=docstring_triplequotes,
              docstring_rstcheck,
              backslashy,
              pep8_emptylines,
-#             multireturns
 
 # Pickle collected data for later comparisons.
 persistent=yes
