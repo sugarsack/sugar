@@ -27,15 +27,18 @@ class SugarConsoleProtocol(WebSocketClientProtocol):
         self.sendMessage(ConsoleMsgFactory.pack(msg_obj), isBinary=True)
 
     def onMessage(self, payload, binary):
-        response = ServerMsgFactory.unpack(payload)
-        self.log.info('Reply: {}'.format(response.ret.message))
-        self.log.info('Response from the master accepted. Stopping.')
+        if binary:
+            response = ServerMsgFactory.unpack(payload)
+            self.log.info('Reply: {}'.format(response.ret.message))
+            self.log.info('Response from the master accepted. Stopping.')
 
-        print('-' * 80)
-        print(any_binary(payload))
-        print('-' * 80)
+            print('-' * 80)
+            print(any_binary(payload))
+            print('-' * 80)
 
-        self.factory.reactor.stop()
+            self.factory.reactor.stop()
+        else:
+            self.log.error("Non-binary message: {}".format(payload))
 
     def onClose(self, wasClean, code, reason):
         self.log.debug("Socket closed: {0}".format(reason))
@@ -49,7 +52,7 @@ class SugarClientFactory(WebSocketClientFactory, ClientFactory):
 
     def __init__(self, *args, **kwargs):
         WebSocketClientFactory.__init__(self, *args, **kwargs)
-        self.maxDelay = 10
+        self.maxDelay = 10  # pylint: disable=C0103
 
     def clientConnectionFailed(self, connector, reason):
         """

@@ -10,7 +10,6 @@ from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerF
 from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory, KeymanagerMsgFactory, ConsoleMsgFactory
 from sugar.utils import exitcodes
 from sugar.components.server.core import get_server_core
-from sugar.utils.tokens import MasterLocalToken
 
 
 class SugarConsoleServerProtocol(WebSocketServerProtocol):
@@ -25,7 +24,6 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
         self.log.info("Console WebSocket connection established")
 
     def onMessage(self, payload, binary):
-        local_token = MasterLocalToken().get_token()
         reply = ServerMsgFactory.create_client_msg()
         if binary:
             msg = ObjectGate().load(payload, binary)

@@ -56,10 +56,7 @@ class ServerCore(object):
         :param evt:
         :return:
         """
-        print('-' * 80)
-        print("SEND TASK TO CLIENTS")
-        print(evt.jid)
-        print('-' * 80)
+        self.log.info(">>> SEND TASK TO CLIENTS: {}".format(evt))
 
     def register_client_protocol(self, machine_id, proto):
         """
@@ -70,7 +67,7 @@ class ServerCore(object):
         :return:
         """
         if getattr(proto, "machine_id", None):
-            self.__client_connection_protocols.setdefault(machine_id,  proto)
+            self.__client_connection_protocols.setdefault(machine_id, proto)
             self.log.info("Registered client connection with the machine id: {}".format(machine_id))
 
     def remove_client_protocol(self, proto):
@@ -285,4 +282,8 @@ class RegisteredClients(object):
 
 
 def get_server_core():
+    """
+    Get server core instance.
+    :return:
+    """
     return ServerCore()

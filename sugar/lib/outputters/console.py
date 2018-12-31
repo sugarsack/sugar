@@ -6,8 +6,9 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import os
 import sys
-import colored
 import collections
+
+import colored
 
 
 class _BaseOutput(object):
@@ -17,21 +18,21 @@ class _BaseOutput(object):
 
     _ident = "   "
 
-    _symbols_ascii = {
+    symbols_ascii = {
         "leaf": "\\__",
         "bullet": "*",
         "list": "-",
         "n/a": " <N/A>",
     }
 
-    _symbols_utf = {
+    symbols_utf = {
         "leaf": "\u2514\u2500\u2500\u2510",
         "bullet": chr(0x25a0),
         "list": chr(0x2509),
         "n/a": " \u25a0N/A\u25a0",
     }
 
-    _colors_16 = {
+    colors_16 = {
         "types": {
             "bool": colored.fg(13),
             "int": colored.fg(12),
@@ -45,7 +46,7 @@ class _BaseOutput(object):
         }
     }
 
-    _colors_256 = {
+    colors_256 = {
         "types": {
             "bool": colored.fg(208),
             "int": colored.fg(183),
@@ -68,14 +69,14 @@ class _BaseOutput(object):
         Get color scheme
         :return:
         """
-        return getattr(self, "_colors_{}".format(self._colors))
+        return getattr(self, "colors_{}".format(self._colors))
 
     def _get_symbol_scheme(self):
         """
         Get symbols scheme
         :return:
         """
-        return getattr(self, "_symbols_{}".format(self._encoding))
+        return getattr(self, "symbols_{}".format(self._encoding))
 
     def c_type(self, value):
         """
@@ -319,14 +320,14 @@ class Highlighter(object):
         :param highlights:
         :return:
         """
-        hl = {}
+        hlts = {}
         for element, attrs in highlights.items():
             text, mode = attrs
-            hl[element] = "{f}{t}{b}".format(f=colored.fg(self._get_style()[mode]), t=text,
-                                             b=colored.fg(self._get_style()["base"]))
+            hlts[element] = "{f}{t}{b}".format(f=colored.fg(self._get_style()[mode]), t=text,
+                                               b=colored.fg(self._get_style()["base"]))
 
         return "{b}{c}{r}".format(b=colored.fg(self._get_style()["base"]),
-                                  c=pattern.format(**hl),
+                                  c=pattern.format(**hlts),
                                   r=colored.attr("reset"))
 
 
@@ -374,13 +375,13 @@ class ConsoleMessages(object):
         """
         out = []
         bold = False
-        for c in text:
-            if c == "*":
+        for char in text:
+            if char == "*":
                 bold = not bold
                 out.append(colored.attr("bold") if bold else colored.attr("res_bold"))
                 out.append(colored.fg(self.__style()["bold"][section]) if bold else colored.fg(self.__style()[section]))
             else:
-                out.append(c)
+                out.append(char)
 
         return ''.join(out)
 
@@ -442,5 +443,4 @@ class ConsoleMessages(object):
         :return:
         """
         sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["error"]),
-                                           message.format(*args, **kwargs), colored.attr("reset")),
-                                    "error"))
+                                                      message.format(*args, **kwargs), colored.attr("reset")), "error"))

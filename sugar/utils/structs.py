@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+Structs utility.
+"""
 
 from __future__ import absolute_import, print_function, unicode_literals
 import collections
@@ -57,9 +60,9 @@ class ImmutableDict(dict):
 
 
 class ObjectMap(object):
-    '''
+    """
     Object map access. KeyError is missing as the default is to None.
-    '''
+    """
     def __getattr__(self, item):
         return self.__dict__.get(item)
 
@@ -67,17 +70,17 @@ class ObjectMap(object):
         return self.__getattr__(args[0])
 
     def __iter__(self):
-        for k in self.__dict__.keys():
-            yield k
+        for key in self.__dict__:
+            yield key
 
 
 def dict_to_object(src):
-    '''
+    """
     Creates object out of dictionary.
 
     :param src:
     :return:
-    '''
+    """
     obj = ObjectMap()
     for key in src:
         if isinstance(src[key], collections.Mapping):
@@ -96,7 +99,7 @@ def dict_to_object(src):
 
 
 def merge_dicts(dst, src):
-    '''
+    """
 
     Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
     updating only top-level keys, dict_merge recurses down into dicts nested
@@ -105,7 +108,7 @@ def merge_dicts(dst, src):
     :param dct: dict onto which the merge is executed
     :param merge_dct: dct merged into dct
     :return: None
-    '''
+    """
 
     for key in src:
         if (key in dst and isinstance(dst[key], dict)
@@ -123,13 +126,14 @@ def merge_missing(dst, src):
     :param src:
     :return:
     """
-    for k in src:
-        if k not in dst:
-            dst[k] = src[k]
+    for key in src:
+        if key not in dst:
+            dst[key] = src[key]
 
 
+# pylint: disable=R0911
 def update(dest, upd, recursive_update=True, merge_lists=False):
-    '''
+    """
     Recursive version of the default dict.update
 
     Merges upd recursively into dest
@@ -144,7 +148,7 @@ def update(dest, upd, recursive_update=True, merge_lists=False):
 
     When merging lists, duplicate values are removed. Values already
     present in the ``dest`` list are not added from the ``upd`` list.
-    '''
+    """
     if (not isinstance(dest, collections.Mapping)) or (not isinstance(upd, collections.Mapping)):
         raise TypeError('Cannot update using non-dict types in dictupdate.update()')
     updkeys = list(upd.keys())
@@ -172,11 +176,12 @@ def update(dest, upd, recursive_update=True, merge_lists=False):
         return dest
 
     try:
-        for k in upd:
-            dest[k] = upd[k]
+        for key in upd:
+            dest[key] = upd[key]
     except AttributeError:
         # not a dict
-        for k in upd:
-            dest[k] = upd[k]
+        for key in upd:
+            dest[key] = upd[key]
 
     return dest
+# pylint: enable=R0911

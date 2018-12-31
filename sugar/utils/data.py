@@ -1,42 +1,43 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Functions for manipulating, inspecting, or otherwise working with data types
 and data structures.
-'''
+"""
+
+# NOTE: This code is taken from Salt and should be cleaned up on demand.
+#       Not everything is used here, many parts do not even need to exist.
+#       Therefore many crucial pylint checks are simply disabled not to waste
+#       time on something that might be even not really needed.
+#       However, if you are touching something related and using it, please
+#       Remove pylint block and refactor the code accordingly!
 
 from __future__ import absolute_import, print_function, unicode_literals
 
 # Import Python libs
-import copy
 import fnmatch
 import logging
 import re
 
-try:
-    from collections.abc import Mapping
-except ImportError:
-    from collections import Mapping
-
+from sugar.lib.compat import CollectionsMapping as Mapping
 from sugar.lib import six
 from sugar.utils import stringutils
-from sugar.lib import exceptions
 
 try:
     import jmespath
 except ImportError:
     jmespath = None
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__)  # pylint: disable=C0103
 
 
 DEFAULT_TARGET_DELIMETER = ":"
 
 
 def compare_dicts(old=None, new=None):
-    '''
+    """
     Compare before and after results from various salt functions, returning a
     dict describing the changes that were made.
-    '''
+    """
     ret = {}
     for key in set((new or {})).union((old or {})):
         if key not in old:
@@ -55,10 +56,10 @@ def compare_dicts(old=None, new=None):
 
 
 def compare_lists(old=None, new=None):
-    '''
+    """
     Compare before and after results from various salt functions, returning a
     dict describing the changes that were made
-    '''
+    """
     ret = dict()
     for item in new:
         if item not in old:
@@ -72,7 +73,7 @@ def compare_lists(old=None, new=None):
 def decode(data, encoding=None, errors='strict', keep=False,
            normalize=False, preserve_dict_class=False, preserve_tuples=False,
            to_str=False):
-    '''
+    """
     Generic function which will decode whichever type is passed, if necessary.
     Optionally use to_str=True to ensure strings are str types and not unicode
     on Python 2.
@@ -98,20 +99,16 @@ def decode(data, encoding=None, errors='strict', keep=False,
     two strings above, in which "й" is represented as two code points (i.e. one
     for the base character, and one for the breve mark). Normalizing allows for
     a more reliable test case.
-    '''
+    """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     if isinstance(data, Mapping):
-        return decode_dict(data, encoding, errors, keep, normalize,
-                           preserve_dict_class, preserve_tuples, to_str)
+        ret = decode_dict(data, encoding, errors, keep, normalize, preserve_dict_class, preserve_tuples, to_str)
     elif isinstance(data, list):
-        return decode_list(data, encoding, errors, keep, normalize,
-                           preserve_dict_class, preserve_tuples, to_str)
+        ret = decode_list(data, encoding, errors, keep, normalize, preserve_dict_class, preserve_tuples, to_str)
     elif isinstance(data, tuple):
-        return decode_tuple(data, encoding, errors, keep, normalize,
-                            preserve_dict_class, to_str) \
-            if preserve_tuples \
-            else decode_list(data, encoding, errors, keep, normalize,
-                             preserve_dict_class, preserve_tuples, to_str)
+        ret = (decode_tuple(data, encoding, errors, keep, normalize, preserve_dict_class, to_str)
+               if preserve_tuples else decode_list(data, encoding, errors, keep, normalize,
+                                                   preserve_dict_class, preserve_tuples, to_str))
     else:
         try:
             data = _decode_func(data, encoding, errors, normalize)
@@ -123,28 +120,26 @@ def decode(data, encoding=None, errors='strict', keep=False,
         except UnicodeDecodeError:
             if not keep:
                 raise
-        return data
+        ret = data
+
+    return ret
 
 
 def decode_dict(data, encoding=None, errors='strict', keep=False,
                 normalize=False, preserve_dict_class=False,
                 preserve_tuples=False, to_str=False):
-    '''
+    """
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
-    '''
-    _decode_func = stringutils.to_unicode \
-        if not to_str \
-        else stringutils.to_str
+    """
+    _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     # Make sure we preserve OrderedDicts
-    rv = data.__class__() if preserve_dict_class else {}
+    rv_dt = data.__class__() if preserve_dict_class else {}
     for key, value in six.iteritems(data):
         if isinstance(key, tuple):
-            key = decode_tuple(key, encoding, errors, keep, normalize,
-                               preserve_dict_class, to_str) \
-                if preserve_tuples \
-                else decode_list(key, encoding, errors, keep, normalize,
-                                 preserve_dict_class, preserve_tuples, to_str)
+            key = (decode_tuple(key, encoding, errors, keep, normalize, preserve_dict_class, to_str)
+                   if preserve_tuples else decode_list(key, encoding, errors, keep, normalize,
+                                                       preserve_dict_class, preserve_tuples, to_str))
         else:
             try:
                 key = _decode_func(key, encoding, errors, normalize)
@@ -161,11 +156,9 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
             value = decode_list(value, encoding, errors, keep, normalize,
                                 preserve_dict_class, preserve_tuples, to_str)
         elif isinstance(value, tuple):
-            value = decode_tuple(value, encoding, errors, keep, normalize,
-                                 preserve_dict_class, to_str) \
-                if preserve_tuples \
-                else decode_list(value, encoding, errors, keep, normalize,
-                                 preserve_dict_class, preserve_tuples, to_str)
+            value = (decode_tuple(value, encoding, errors, keep, normalize, preserve_dict_class, to_str)
+                     if preserve_tuples else decode_list(value, encoding, errors, keep, normalize,
+                                                         preserve_dict_class, preserve_tuples, to_str))
         elif isinstance(value, Mapping):
             value = decode_dict(value, encoding, errors, keep, normalize,
                                 preserve_dict_class, preserve_tuples, to_str)
@@ -180,30 +173,29 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
             except UnicodeDecodeError:
                 if not keep:
                     raise
+        rv_dt[key] = value
 
-        rv[key] = value
-    return rv
+    return rv_dt
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def decode_list(data, encoding=None, errors='strict', keep=False,
                 normalize=False, preserve_dict_class=False,
                 preserve_tuples=False, to_str=False):
-    '''
+    """
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
-    '''
+    """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
-    rv = []
+    ret = []
     for item in data:
         if isinstance(item, list):
             item = decode_list(item, encoding, errors, keep, normalize,
                                preserve_dict_class, preserve_tuples, to_str)
         elif isinstance(item, tuple):
-            item = decode_tuple(item, encoding, errors, keep, normalize,
-                                preserve_dict_class, to_str) \
-                if preserve_tuples \
-                else decode_list(item, encoding, errors, keep, normalize,
-                                 preserve_dict_class, preserve_tuples, to_str)
+            item = (decode_tuple(item, encoding, errors, keep, normalize, preserve_dict_class, to_str)
+                    if preserve_tuples else decode_list(item, encoding, errors, keep, normalize,
+                                                        preserve_dict_class, preserve_tuples, to_str))
         elif isinstance(item, Mapping):
             item = decode_dict(item, encoding, errors, keep, normalize,
                                preserve_dict_class, preserve_tuples, to_str)
@@ -218,26 +210,28 @@ def decode_list(data, encoding=None, errors='strict', keep=False,
             except UnicodeDecodeError:
                 if not keep:
                     raise
+        ret.append(item)
 
-        rv.append(item)
-    return rv
+    return ret
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
 def decode_tuple(data, encoding=None, errors='strict', keep=False,
                  normalize=False, preserve_dict_class=False, to_str=False):
-    '''
+    """
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
-    '''
+    """
     return tuple(
         decode_list(data, encoding, errors, keep, normalize,
                     preserve_dict_class, True, to_str)
     )
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def encode(data, encoding=None, errors='strict', keep=False,
            preserve_dict_class=False, preserve_tuples=False):
-    '''
+    """
     Generic function which will encode whichever type is passed, if necessary
 
     If `strict` is True, and `keep` is False, and we fail to encode, a
@@ -245,7 +239,7 @@ def encode(data, encoding=None, errors='strict', keep=False,
     original value to silently be returned in cases where encoding fails. This
     can be useful for cases where the data passed to this function is likely to
     contain binary blobs.
-    '''
+    """
     if isinstance(data, Mapping):
         return encode_dict(data, encoding, errors, keep,
                            preserve_dict_class, preserve_tuples)
@@ -253,10 +247,8 @@ def encode(data, encoding=None, errors='strict', keep=False,
         return encode_list(data, encoding, errors, keep,
                            preserve_dict_class, preserve_tuples)
     elif isinstance(data, tuple):
-        return encode_tuple(data, encoding, errors, keep, preserve_dict_class) \
-            if preserve_tuples \
-            else encode_list(data, encoding, errors, keep,
-                             preserve_dict_class, preserve_tuples)
+        return (encode_tuple(data, encoding, errors, keep, preserve_dict_class)
+                if preserve_tuples else encode_list(data, encoding, errors, keep, preserve_dict_class, preserve_tuples))
     else:
         try:
             return stringutils.to_bytes(data, encoding, errors)
@@ -269,20 +261,21 @@ def encode(data, encoding=None, errors='strict', keep=False,
             if not keep:
                 raise
         return data
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def encode_dict(data, encoding=None, errors='strict', keep=False,
                 preserve_dict_class=False, preserve_tuples=False):
-    '''
+    """
     Encode all string values to bytes
-    '''
-    rv = data.__class__() if preserve_dict_class else {}
+    """
+    ret = data.__class__() if preserve_dict_class else {}
     for key, value in six.iteritems(data):
         if isinstance(key, tuple):
-            key = encode_tuple(key, encoding, errors, keep, preserve_dict_class) \
-                if preserve_tuples \
-                else encode_list(key, encoding, errors, keep,
-                                 preserve_dict_class, preserve_tuples)
+            key = (encode_tuple(key, encoding, errors, keep, preserve_dict_class)
+                   if preserve_tuples else encode_list(key, encoding, errors, keep,
+                                                       preserve_dict_class, preserve_tuples))
         else:
             try:
                 key = stringutils.to_bytes(key, encoding, errors)
@@ -299,10 +292,9 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
             value = encode_list(value, encoding, errors, keep,
                                 preserve_dict_class, preserve_tuples)
         elif isinstance(value, tuple):
-            value = encode_tuple(value, encoding, errors, keep, preserve_dict_class) \
-                if preserve_tuples \
-                else encode_list(value, encoding, errors, keep,
-                                 preserve_dict_class, preserve_tuples)
+            value = (encode_tuple(value, encoding, errors, keep, preserve_dict_class)
+                     if preserve_tuples else encode_list(value, encoding, errors, keep,
+                                                         preserve_dict_class, preserve_tuples))
         elif isinstance(value, Mapping):
             value = encode_dict(value, encoding, errors, keep,
                                 preserve_dict_class, preserve_tuples)
@@ -318,28 +310,25 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
                 if not keep:
                     raise
 
-        rv[key] = value
-    return rv
+        ret[key] = value
+    return ret
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
 def encode_list(data, encoding=None, errors='strict', keep=False,
                 preserve_dict_class=False, preserve_tuples=False):
-    '''
+    """
     Encode all string values to bytes
-    '''
-    rv = []
+    """
+    ret = []
     for item in data:
         if isinstance(item, list):
-            item = encode_list(item, encoding, errors, keep,
-                               preserve_dict_class, preserve_tuples)
+            item = encode_list(item, encoding, errors, keep, preserve_dict_class, preserve_tuples)
         elif isinstance(item, tuple):
-            item = encode_tuple(item, encoding, errors, keep, preserve_dict_class) \
-                if preserve_tuples \
-                else encode_list(item, encoding, errors, keep,
-                                 preserve_dict_class, preserve_tuples)
+            item = (encode_tuple(item, encoding, errors, keep, preserve_dict_class) if preserve_tuples
+                    else encode_list(item, encoding, errors, keep, preserve_dict_class, preserve_tuples))
         elif isinstance(item, Mapping):
-            item = encode_dict(item, encoding, errors, keep,
-                               preserve_dict_class, preserve_tuples)
+            item = encode_dict(item, encoding, errors, keep, preserve_dict_class, preserve_tuples)
         else:
             try:
                 item = stringutils.to_bytes(item, encoding, errors)
@@ -352,33 +341,33 @@ def encode_list(data, encoding=None, errors='strict', keep=False,
                 if not keep:
                     raise
 
-        rv.append(item)
-    return rv
+        ret.append(item)
+    return ret
 
 
 def encode_tuple(data, encoding=None, errors='strict', keep=False,
                  preserve_dict_class=False):
-    '''
+    """
     Encode all string values to Unicode
-    '''
+    """
     return tuple(
         encode_list(data, encoding, errors, keep, preserve_dict_class, True))
 
 
-def exactly_n(l, n=1):
-    '''
+def exactly_n(lst, num=1):
+    """
     Tests that exactly N items in an iterable are "truthy" (neither None,
     False, nor 0).
-    '''
-    i = iter(l)
-    return all(any(i) for j in range(n)) and not any(i)
+    """
+    idx = iter(lst)
+    return all(any(idx) for _ in range(num)) and not any(idx)
 
 
-def exactly_one(l):
-    '''
+def exactly_one(lst):
+    """
     Check if only one item is not None, False, or 0 in an iterable.
-    '''
-    return exactly_n(l)
+    """
+    return exactly_n(lst)
 
 
 # def filter_by(lookup_dict,
@@ -387,9 +376,9 @@ def exactly_one(l):
 #               merge=None,
 #               default='default',
 #               base=None):
-#     '''
+#     """
 #     Common code to filter data structures like grains and pillar
-#     '''
+#     """
 #     ret = None
 #     # Default value would be an empty list if lookup not found
 #     val = traverse_dict_and_list(traverse, lookup, [])
@@ -437,24 +426,26 @@ def exactly_one(l):
 
 
 def traverse_dict(data, key, default=None, delimiter=DEFAULT_TARGET_DELIMETER):
-    '''
+    """
     Traverse a dict using a colon-delimited (or otherwise delimited, using the
     'delimiter' param) target string. The target 'foo:bar:baz' will return
     data['foo']['bar']['baz'] if this value exists, and will otherwise return
     the dict in the default argument.
-    '''
+    """
     ptr = data
     try:
         for each in key.split(delimiter):
             ptr = ptr[each]
     except (KeyError, IndexError, TypeError):
         # Encountered a non-indexable value in the middle of traversing
-        return default
+        ptr = default
+
     return ptr
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def traverse_dict_and_list(data, key, default=None, delimiter=DEFAULT_TARGET_DELIMETER):
-    '''
+    """
     Traverse a dict or list using a colon-delimited (or otherwise delimited,
     using the 'delimiter' param) target string. The target 'foo:bar:0' will
     return data['foo']['bar'][0] if this value exists, and will otherwise
@@ -463,7 +454,7 @@ def traverse_dict_and_list(data, key, default=None, delimiter=DEFAULT_TARGET_DEL
     The target 'foo:bar:0' will return data['foo']['bar'][0] if data like
     {'foo':{'bar':['baz']}} , if data like {'foo':{'bar':{'0':'baz'}}}
     then return data['foo']['bar']['0']
-    '''
+    """
     ptr = data
     for each in key.split(delimiter):
         if isinstance(ptr, list):
@@ -493,17 +484,19 @@ def traverse_dict_and_list(data, key, default=None, delimiter=DEFAULT_TARGET_DEL
             except (KeyError, TypeError):
                 return default
     return ptr
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
+# pylint: disable=R1705,R0911,R0912,R0915
 def subdict_match(data, expr, delimiter=DEFAULT_TARGET_DELIMETER,
                   regex_match=False, exact_match=False):
-    '''
+    """
     Check for a match in a dictionary using a delimiter character to denote
     levels of subdicts, and also allowing the delimiter character to be
     matched. Thus, 'foo:bar:baz' will match data['foo'] == 'bar:baz' and
     data['foo']['bar'] == 'baz'. The latter would take priority over the
     former, as more deeply-nested matches are tried first.
-    '''
+    """
     def _match(target, pattern, regex_match=False, exact_match=False):
         # The reason for using six.text_type first and _then_ using
         # to_unicode as a fallback is because we want to eventually have
@@ -530,8 +523,7 @@ def subdict_match(data, expr, delimiter=DEFAULT_TARGET_DELIMETER,
                 log.error('Invalid regex \'%s\' in match', pattern)
                 return False
         else:
-            return target == pattern if exact_match \
-                else fnmatch.fnmatch(target, pattern)
+            return target == pattern if exact_match else fnmatch.fnmatch(target, pattern)
 
     def _dict_match(target, pattern, regex_match=False, exact_match=False):
         wildcard = pattern.startswith('*:')
@@ -627,30 +619,34 @@ def subdict_match(data, expr, delimiter=DEFAULT_TARGET_DELIMETER,
                   exact_match=exact_match):
             return True
     return False
+# pylint: enable=R1705,R0911,R0912,R0915
 
 
 def substr_in_list(string_to_search_for, list_to_search):
-    '''
+    """
     Return a boolean value that indicates whether or not a given
     string is present in any of the strings which comprise a list
-    '''
+    """
     return any(string_to_search_for in s for s in list_to_search)
 
 
 def is_dictlist(data):
-    '''
+    """
     Returns True if data is a list of one-element dicts (as found in many SLS
     schemas), otherwise returns False
-    '''
+    """
+
+    is_one_element = False
     if isinstance(data, list):
         for element in data:
             if isinstance(element, dict):
-                if len(element) != 1:
-                    return False
+                is_one_element = len(element) == 1
+                if not is_one_element:
+                    break
             else:
-                return False
-        return True
-    return False
+                break
+
+    return is_one_element
 
 
 # def repack_dictlist(data,
@@ -658,10 +654,10 @@ def is_dictlist(data):
 #                     recurse=False,
 #                     key_cb=None,
 #                     val_cb=None):
-#     '''
+#     """
 #     Takes a list of one-element dicts (as found in many SLS schemas) and
 #     repacks into a single dictionary.
-#     '''
+#     """
 #     if isinstance(data, six.string_types):
 #         try:
 #             data = salt.utils.yaml.safe_load(data)
@@ -724,14 +720,14 @@ def is_dictlist(data):
 
 
 def is_list(value):
-    '''
+    """
     Check if a variable is a list.
-    '''
+    """
     return isinstance(value, list)
 
 
-def is_iter(y, ignore=six.string_types):
-    '''
+def is_iter(data, ignore=six.string_types):
+    """
     Test if an object is iterable, but not a string type.
 
     Test if an object is an iterator or is iterable itself. By default this
@@ -742,19 +738,22 @@ def is_iter(y, ignore=six.string_types):
     dictionaries or named tuples.
 
     Based on https://bitbucket.org/petershinners/yter
-    '''
+    """
 
-    if ignore and isinstance(y, ignore):
-        return False
-    try:
-        iter(y)
-        return True
-    except TypeError:
-        return False
+    if ignore and isinstance(data, ignore):
+        ret = False
+    else:
+        try:
+            iter(data)
+            ret = True
+        except TypeError:
+            ret = False
+
+    return ret
 
 
 def sorted_ignorecase(to_sort):
-    '''
+    """
     Sort a list of strings ignoring case.
 
     >>> L = ['foo', 'Foo', 'bar', 'Bar']
@@ -763,19 +762,19 @@ def sorted_ignorecase(to_sort):
     >>> sorted(L, key=lambda x: x.lower())
     ['bar', 'Bar', 'foo', 'Foo']
     >>>
-    '''
+    """
     return sorted(to_sort, key=lambda x: x.lower())
 
 
 def is_true(value=None):
-    '''
+    """
     Returns a boolean value representing the "truth" of the value passed. The
     rules for what is a "True" value are:
 
         1. Integer/float values greater than 0
         2. The string values "True" and "true"
         3. Any object for which bool(obj) returns True
-    '''
+    """
     # First, try int/float conversion
     try:
         value = int(value)
@@ -786,23 +785,21 @@ def is_true(value=None):
     except (ValueError, TypeError):
         pass
 
-    # Now check for truthiness
     if isinstance(value, (six.integer_types, float)):
-        return value > 0
+        ret = value > 0
     elif isinstance(value, six.string_types):
-        return six.text_type(value).lower() == 'true'
+        ret = six.text_type(value).lower() == 'true'
     else:
-        return bool(value)
+        ret = bool(value)
+
+    return ret
 
 
 def simple_types_filter(data):
-    '''
+    """
     Convert the data list, dictionary into simple types, i.e., int, float, string,
     bool, etc.
-    '''
-    if data is None:
-        return data
-
+    """
     simpletypes_keys = (six.string_types, six.text_type, six.integer_types, float, bool)
     simpletypes_values = tuple(list(simpletypes_keys) + [list, tuple])
 
@@ -815,9 +812,9 @@ def simple_types_filter(data):
                 elif not isinstance(value, simpletypes_values):
                     value = repr(value)
             simplearray.append(value)
-        return simplearray
+        data = simplearray
 
-    if isinstance(data, dict):
+    elif isinstance(data, dict):
         simpledict = {}
         for key, value in six.iteritems(data):
             if key is not None and not isinstance(key, simpletypes_keys):
@@ -827,16 +824,16 @@ def simple_types_filter(data):
             elif value is not None and not isinstance(value, simpletypes_values):
                 value = repr(value)
             simpledict[key] = value
-        return simpledict
+        data = simpledict
 
     return data
 
 
 def stringify(data):
-    '''
+    """
     Given an iterable, returns its items as a list, with any non-string items
     converted to unicode strings.
-    '''
+    """
     ret = []
     for item in data:
         if six.PY2 and isinstance(item, str):
@@ -848,9 +845,9 @@ def stringify(data):
 
 
 def json_query(data, expr):
-    '''
+    """
     Query data using JMESPath language (http://jmespath.org).
-    '''
+    """
     if jmespath is None:
         err = 'json_query requires jmespath module installed'
         log.error(err)

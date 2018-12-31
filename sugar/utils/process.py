@@ -12,16 +12,12 @@ import subprocess
 import multiprocessing
 import multiprocessing.util
 
-
-# Import salt libs
 import sugar.utils.exitcodes
 from sugar.lib.logger.manager import get_logger
-# Import 3rd-party libs
-from sugar.lib import six
 
-log = get_logger(__name__)
+log = get_logger(__name__)  # pylint: disable=C0103
 
-# pylint: disable=import-error
+# pylint: disable=W0212,W0613,import-error
 HAS_PSUTIL = False
 try:
     import psutil
@@ -37,17 +33,24 @@ except ImportError:
 
 
 def appendproctitle(name):
-    '''
-    Append "name" to the current process title
-    '''
+    """
+    Append 'name' to the current process title
+    """
     if HAS_SETPROCTITLE:
         setproctitle.setproctitle(setproctitle.getproctitle() + ' ' + name)
 
 
 def systemd_notify_call(action):
+    """
+    Notify call to the systemd.
+
+    :param action:
+    :return:
+    """
     process = subprocess.Popen(['systemd-notify', action], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     process.communicate()
     status = process.poll()
+
     return status == 0
 
 
@@ -62,13 +65,14 @@ class MultiprocessingProcess(multiprocessing.Process):
         # class'es run method is overridden.
         instance._original_run = instance.run
         instance.run = instance._run
+
         return instance
 
     # __setstate__ and __getstate__ are only used on Windows.
     # We do this so that __init__ will be invoked on Windows in the child
     # process so that a register_after_fork() equivalent will work on Windows.
     def __setstate__(self, state):
-        self._is_child = True
+        self._is_child = True  # pylint: disable=W0201
         args = state['args']
         kwargs = state['kwargs']
         # This will invoke __init__ of the most derived class.
@@ -79,10 +83,10 @@ class MultiprocessingProcess(multiprocessing.Process):
             return self._original_run()
         except SystemExit:
             # These are handled by multiprocessing.Process._bootstrap()
+            log.error("System exit")
             raise
-        except Exception as exc:
-            log.error("An un-handled exception from the multiprocessing "
-                      "process '{}' was caught:\n".format(self.name,))
+        except Exception:
+            log.error("An un-handled exception from the multiprocessing process '{}' was caught:\n".format(self.name,))
             raise
 
 
@@ -123,6 +127,12 @@ class SignalHandlingMultiprocessingProcess(MultiprocessingProcess):
 
 @contextlib.contextmanager
 def default_signals(*signals):
+    """
+    Set default signals.
+
+    :param signals:
+    :return:
+    """
     old_signals = {}
     for signum in signals:
         try:

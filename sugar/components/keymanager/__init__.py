@@ -43,7 +43,7 @@ class SugarKeyManager(object):
 
         self._list_output = IterableOutput(colors=self.config.terminal.colors,
                                            encoding=self.config.terminal.encoding)
-        self._list_output._symbols_utf["n/a"] = self._list_output._symbols_ascii["n/a"] = "   No keys"
+        self._list_output.symbols_utf["n/a"] = self._list_output.symbols_ascii["n/a"] = "   No keys"
 
         url = 'wss://{h}:{p}'.format(h='localhost', p=5507)
         self.factory = SugarKeymanagerFactory(url)
@@ -59,10 +59,10 @@ class SugarKeyManager(object):
         :return:
         """
         title_output = TitleOutput(colors=self.config.terminal.colors, encoding=self.config.terminal.encoding)
-        all = [("accepted", "success"), ("rejected", "alert"), ("denied", "warning"), ("new", "info")]
+        all_sections = [("accepted", "success"), ("rejected", "alert"), ("denied", "warning"), ("new", "info")]
         ret = OrderedDict()
 
-        for section in all:
+        for section in all_sections:
             text, style = section
             if self.args.status == "all" or self.args.status == text:
                 out = []
@@ -178,4 +178,3 @@ class SugarKeyManager(object):
 
         if getattr(self, self.args.command)():
             self.send_to_master()
-

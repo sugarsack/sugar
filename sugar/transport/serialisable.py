@@ -76,9 +76,10 @@ class ObjectGate(object):
         :return:
         """
         data = self._dumper(self.__obj)
-        return binary and pickle.dumps(data) or data
+        return pickle.dumps(data) if binary else data
 
 
+# pylint: disable=R0902
 class Serialisable(object):
     """
     Serialisable container.
@@ -90,3 +91,4 @@ class Serialisable(object):
 
     def __getattr__(self, item):
         return self.__dict__.setdefault(item, Serialisable())
+# pylint: enable=R0902

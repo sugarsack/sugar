@@ -22,6 +22,8 @@ from sugar.transport.serialisable import Serialisable
 from sugar.transport import ClientMsgFactory, ServerMsgFactory
 
 
+# pylint: disable=R0801
+
 class HandshakeStatus(object):
     """
     Handshake status.
@@ -31,12 +33,15 @@ class HandshakeStatus(object):
         """
         Constructor.
         """
-        self.__ended = False
-        self.__successful = False
-        self.__tries = 0
-        self.rsa_accept_wait = False
+        self.__ended = self.__successful = self.__tries = self.rsa_accept_wait = None
+        self.reset()
 
     def reset(self):
+        """
+        Reset the handshake status to the initial.
+
+        :return:
+        """
         self.__ended = False
         self.__successful = False
         self.__tries = 0
@@ -44,25 +49,51 @@ class HandshakeStatus(object):
 
     @property
     def ended(self):
+        """
+        Flag: Is handshake ended.
+
+        :return:
+        """
         return self.__ended
 
     @property
     def success(self):
+        """
+        Flag: is handshake succeeded.
+
+        :return:
+        """
         return self.__successful
 
     def set_successfull(self):
+        """
+        Set handshake succeeded.
+
+        :return:
+        """
         self.__successful = True
         self.__ended = True
 
     def set_failed(self):
+        """
+        Set handshake failed.
+
+        :return:
+        """
         self.__successful = False
         self.__ended = True
 
     def start(self):
+        """
+        Kick handshake status, every time it is restarting its cycle.
+        This prevents infinite loop on failure.
+
+        :return:
+        """
         self.__tries += 1
         if self.__tries > 5:
             self.__ended = True
-            self.__successful = False
+            self.set_failed()
 
 
 @Singleton
@@ -82,7 +113,7 @@ class ClientCore(object):
         self._proto = {}
         self.traits = Traits()
         self.reactor_connection = None
-        self.hs = HandshakeStatus()
+        self.hds = HandshakeStatus()
 
     def set_reactor_connection(self, connection):
         """
@@ -93,30 +124,31 @@ class ClientCore(object):
         """
         self.reactor_connection = connection
 
-    def set_protocol(self, id, proto):
+    def set_protocol(self, proto_id, proto):
         """
         Set protocol.
 
         :param proto:
         :return:
         """
-        self._proto.setdefault(id, proto)
-        self._queue.setdefault(id, queue.Queue())
-        self.log.debug("Added protocol with ID {}".format(id))
+        self._proto.setdefault(proto_id, proto)
+        self._queue.setdefault(proto_id, queue.Queue())
+        self.log.debug("Added protocol with ID {}".format(proto_id))
 
-    def remove_protocol(self, id):
+    def remove_protocol(self, proto_id):
         """
         Remove protocol.
 
-        :param id:
+        :param proto_id:
         :return:
         """
-        self.log.debug("Removing protocol, ID: {}".format(id))
+        self.log.debug("Removing protocol, ID: {}".format(proto_id))
         for container in [self._proto, self._queue]:
             try:
-                del container[id]
+                del container[proto_id]
             except KeyError:
-                self.log.error("Unable to remove protol with ID {} from {}".format(id, container.__class__.__name__))
+                self.log.error("Unable to remove protol with ID {} from {}".format(
+                    proto_id, container.__class__.__name__))
 
     def get_queue(self, channel="_") -> queue.Queue:
         """
@@ -256,7 +288,7 @@ class ClientSystemEvents(object):
         self.log.info("Waiting for RSA key acceptance...")
         reply = self.core.get_queue().get()
         self.log.info("RSA key was {}".format(reply.internal))
-        self.core.hs.rsa_accept_wait = False
+        self.core.hds.rsa_accept_wait = False
         proto.restart_handshake()
 
     def handshake(self, proto):
@@ -266,7 +298,6 @@ class ClientSystemEvents(object):
         :return:
         """
         key_status = None
-        self.log.debug("Master/client handshake begin")
         self.log.info("Verifying master public key")
 
         # Phase 1: Get Master's RSA public key on board
@@ -293,7 +324,6 @@ class ClientSystemEvents(object):
         self.log.debug("Got server response: {}".format(hex(reply.kind)))
 
         if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP:
-            self.log.debug("KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP")
             self.log.info("Key needs to be sent for the registration")
             registration_request = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
             registration_request.internal["payload"] = sugar.lib.pki.utils.get_public_key(self.pki_path)
@@ -302,22 +332,20 @@ class ClientSystemEvents(object):
             proto.sendMessage(ClientMsgFactory.pack(registration_request), is_binary=True)
             self.log.debug("RSA key bound to the metadata and sent")
         elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP:
-            self.log.debug("KIND_HANDSHAKE_PKEY_STATUS_RESP")
             if reply.internal.get("payload") == KeyStore.STATUS_CANDIDATE:
                 self.log.debug("Handshake: Waiting for key to be accepted...")
-                self.core.hs.rsa_accept_wait = True
+                self.core.hds.rsa_accept_wait = True
             elif reply.internal.get("payload") != KeyStore.STATUS_ACCEPTED:
-                self.core.hs.set_failed()
+                self.core.hds.set_failed()
                 key_status = reply.internal["payload"]
                 self.log.info("RSA key {}".format(key_status))
         elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP:
-            self.log.debug("KIND_HANDSHAKE_PKEY_TKEN_RESP")
             self.log.debug("Master token response: {}".format(reply.internal["payload"]))
             key_status = reply.internal["payload"]
             if key_status == KeyStore.STATUS_ACCEPTED:
-                self.core.hs.set_successfull()
+                self.core.hds.set_successfull()
             else:
-                self.core.hs.set_failed()
+                self.core.hds.set_failed()
             self.log.info("RSA key {}".format(key_status))
 
         if key_status is not None and key_status != KeyStore.STATUS_ACCEPTED:

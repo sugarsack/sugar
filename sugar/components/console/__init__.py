@@ -18,16 +18,6 @@ from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.lib import six
 
-log = get_logger(__name__)
-
-__author__ = "Bo Maryniuk"
-__copyright__ = "Copyright 2018, Sugar Project"
-__credits__ = []
-__license__ = "Apache 2.0"
-__version__ = "0.0.1"
-__email__ = "bo@maryniuk.net"
-__status__ = "Damn Bloody Alpha"
-
 
 class SugarConsoleCore(object):
     """
@@ -86,8 +76,8 @@ class SugarConsoleCore(object):
             if "=" not in arg:
                 args.append(self._get_type(arg))
             else:
-                k, v = arg.split('=', 1)
-                kwargs[k] = self._get_type(v)
+                key, val = arg.split('=', 1)
+                kwargs[key] = self._get_type(val)
         return args, kwargs
 
     def get_task(self):
@@ -101,7 +91,7 @@ class SugarConsoleCore(object):
         query = self.args.query[::]
 
         cnt = ConsoleMsgFactory.create()
-        cnt.tgt = target and target[0] or ':'
+        cnt.tgt = target[0] if target else ':'
         cnt.fun = query.pop(0)
         cnt.arg = self._get_args(query)
 
@@ -125,7 +115,7 @@ class SugarConsole(object):
 
         url = 'wss://{h}:{p}'.format(h='localhost', p=5507)
 
-        log.debug('Socket ')
+        self.log.debug('Socket ')
         self.factory = SugarClientFactory(url)
         self.factory.console = SugarConsoleCore(args)
         if not self.factory.isSecure:

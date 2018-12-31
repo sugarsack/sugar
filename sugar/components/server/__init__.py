@@ -16,15 +16,6 @@ from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 
 
-__author__ = "Bo Maryniuk"
-__copyright__ = "Copyright 2018, Sugar Project"
-__credits__ = []
-__license__ = "Apache 2.0"
-__version__ = "0.0.1"
-__email__ = "bo@maryniuk.net"
-__status__ = "Damn Bloody Alpha"
-
-
 class SugarServer(object):
     """
     Sugar Server.
@@ -56,13 +47,13 @@ class SugarServer(object):
         :return:
         """
         self.factory.core.system.on_startup()
-        contextFactory = ssl.DefaultOpenSSLContextFactory(
+        context_factory = ssl.DefaultOpenSSLContextFactory(
             os.path.join(self.config.config_path, "ssl", "key.pem"),
             os.path.join(self.config.config_path, "ssl", "certificate.pem"),
         )
 
-        listenWS(self.factory, contextFactory)
-        listenWS(self.console_factory, contextFactory)
+        listenWS(self.factory, context_factory)
+        listenWS(self.console_factory, context_factory)
 
         reactor.addSystemEventTrigger("before", "shutdown", self.on_shutdown)
         reactor.run()

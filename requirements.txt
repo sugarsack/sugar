@@ -2,6 +2,7 @@ service_identity
 #pycryptodome
 observable
 autobahn
+rstcheck
 colored
 twisted
 pylint

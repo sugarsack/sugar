@@ -11,7 +11,7 @@ from sugar.lib.pki import Crypto
 from sugar.utils.cli import get_current_component
 import sugar.utils.stringutils
 
-log = get_logger(__name__)
+log = get_logger(__name__)  # pylint: disable=C0103
 
 
 PUBLIC_KEY_FILENAME = "public_{}.pem".format(get_current_component())
@@ -26,7 +26,7 @@ def refresh_keys(pki_path: str) -> None:
     """
     log.info("Refreshing keys")
 
-    for key, key_pem in zip([PRIVATE_KEY_FILENAME, PUBLIC_KEY_FILENAME], Crypto().create_rsa_keypair()):
+    for key, key_pem in zip([PRIVATE_KEY_FILENAME, PUBLIC_KEY_FILENAME], Crypto.create_rsa_keypair()):
         key_path = os.path.join(pki_path, key)
         log.debug("Refreshing {} key as {}".format(key, key_path))
         try:

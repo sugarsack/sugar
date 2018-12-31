@@ -9,14 +9,15 @@ from io import BytesIO
 import hashlib
 import zlib
 import pickle
-from sugar.lib import six
-from sugar.lib import exceptions
 
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES
 from Crypto import Random
+
+from sugar.lib import six
+from sugar.lib import exceptions
 
 try:
     import bcrypt
@@ -38,7 +39,8 @@ class Crypto(object):
         else:
             self.key = self.create_aes_key()
 
-    def create_rsa_keypair(self, bits=2048):
+    @staticmethod
+    def create_rsa_keypair(bits=2048):
         """
         Generate an RSA keypair with an exponent of 65537 in PEM format
         param: bits The key length in bits
@@ -52,7 +54,8 @@ class Crypto(object):
         new_key = RSA.generate(bits, e=65537)
         return new_key.exportKey("PEM"), new_key.publickey().exportKey("PEM")
 
-    def create_aes_key(self):
+    @staticmethod
+    def create_aes_key():
         """
         Make temporary share-able bi-directional key for AES session.
 
@@ -74,7 +77,8 @@ class Crypto(object):
 
         return data + padding
 
-    def _unpad(self, data):
+    @staticmethod
+    def _unpad(data):
         """
         Un-pad the data.
 
@@ -89,9 +93,9 @@ class Crypto(object):
 
         :return: Binary data
         """
-        iv = Random.new().read(AES.block_size)
+        iv_pad = Random.new().read(AES.block_size)
         out = BytesIO()
-        for chunk in (iv, AES.new(self.key, AES.MODE_CBC, iv).encrypt(self._pad(data))):
+        for chunk in (iv_pad, AES.new(self.key, AES.MODE_CBC, iv_pad).encrypt(self._pad(data))):
             out.write(chunk)
         out.seek(0)
 
@@ -107,10 +111,11 @@ class Crypto(object):
             raise exceptions.SugarDependencyException("AES algorithm is not available.")
 
         handle = BytesIO(data)
-        vi, data = [handle.read(x) for x in (16, -1)]
-        return self._unpad(AES.new(self.key, AES.MODE_CBC, vi).decrypt(data))
+        iv_pad, data = [handle.read(x) for x in (16, -1)]
+        return self._unpad(AES.new(self.key, AES.MODE_CBC, iv_pad).decrypt(data))
 
-    def encrypt_rsa(self, pubkey_pem, data):
+    @staticmethod
+    def encrypt_rsa(pubkey_pem, data):
         """
         Encrypt data with RSA public key in PEM format.
 
@@ -121,9 +126,10 @@ class Crypto(object):
             data = data.encode("utf-8")
         encrypted = RSA.importKey(pubkey_pem).encrypt(data, 32)
 
-        return isinstance(encrypted, (list, tuple)) and encrypted[0] or encrypted
+        return encrypted[0] if isinstance(encrypted, (list, tuple)) else encrypted
 
-    def decrypt_rsa(self, privkey_pem, data):
+    @staticmethod
+    def decrypt_rsa(privkey_pem, data):
         """
         Decrypt data with RSA.
 
@@ -134,7 +140,8 @@ class Crypto(object):
 
         return RSA.importKey(privkey_pem).decrypt(data)
 
-    def sign(self, priv_key, data):
+    @staticmethod
+    def sign(priv_key, data):
         """
         Sign data.
 
@@ -148,11 +155,12 @@ class Crypto(object):
 
         return PKCS1_v1_5.new(RSA.importKey(priv_key)).sign(digest)
 
-    def verify_signature(self, pubkey_pem: str, data: str, signature: str) -> bool:
+    @staticmethod
+    def verify_signature(pubkey_pem: str, data: str, signature: str) -> bool:
         """
         Verify signature.
 
-        :param pubkey:
+        :param pubkey_pem:
         :param data:
         :param signature:
         :return:
@@ -165,7 +173,8 @@ class Crypto(object):
 
         return PKCS1_v1_5.new(RSA.importKey(pubkey_pem)).verify(digest, signature)
 
-    def get_object_checksum(self, obj):
+    @staticmethod
+    def get_object_checksum(obj):
         """
         Get object checksum.
 

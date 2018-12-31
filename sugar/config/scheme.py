@@ -1,11 +1,14 @@
 # coding: utf-8
+"""
+Configuration scheme for validation.
+"""
 
 from __future__ import absolute_import, print_function, unicode_literals
 
 import copy
 
 from sugar.utils.structs import merge_dicts
-from sugar.lib.schemelib import Schema, And, Use, Optional, SchemaError
+from sugar.lib.schemelib import Schema, And, Optional
 
 
 class SchemeBuilder(object):
@@ -80,9 +83,10 @@ class SchemeBuilder(object):
 
         return Schema(target)
 
-
+#pylint: disable=C0103
 # Client configuration scheme
 client_scheme = SchemeBuilder().get_client_scheme()
 
 # Master configuration scheme
 master_scheme = SchemeBuilder().get_master_scheme()
+#pylint: enable=C0103

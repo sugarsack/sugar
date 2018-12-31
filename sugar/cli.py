@@ -57,10 +57,13 @@ Available components:
         :param command:
         :return:
         """
-        for c in ['*', '.', ':']:
-            if c in command:
-                return True
-        return command not in SugarCLI.COMPONENTS
+        ret = False
+        for char in ['*', '.', ':']:
+            if char in command:
+                ret = True
+                break
+
+        return ret if ret else command not in SugarCLI.COMPONENTS
 
     @staticmethod
     def add_common_params(parser):
@@ -101,7 +104,7 @@ Available components:
         :return:
         """
         try:
-            if inspect.isclass(type(reactor)) and not type(reactor) == type:
+            if inspect.isclass(type(reactor)) and not type(reactor) == type:  # pylint: disable=C0123
                 reactor.run()
             else:
                 reactor(self.component_args).run()

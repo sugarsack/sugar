@@ -61,13 +61,13 @@ class SugarClientProtocol(WebSocketClientProtocol):
         Restarts handshake
         :return:
         """
-        self.factory.core.hs.start()
+        self.factory.core.hds.start()
 
-        if not self.factory.core.hs.ended and not self.factory.core.hs.rsa_accept_wait:
+        if not self.factory.core.hds.ended and not self.factory.core.hds.rsa_accept_wait:
             threads.deferToThread(self.factory.core.system.handshake, self)
-        elif not self.factory.core.hs.ended and self.factory.core.hs.rsa_accept_wait:
+        elif not self.factory.core.hds.ended and self.factory.core.hds.rsa_accept_wait:
             threads.deferToThread(self.factory.core.system.wait_rsa_acceptance, self)
-        elif self.factory.core.hs.ended and not self.factory.core.hs.rsa_accept_wait:
+        elif self.factory.core.hds.ended and not self.factory.core.hds.rsa_accept_wait:
             self.log.debug("Handshake is finished")
         else:
             self.dropConnection()  # Something entirely went wrong
@@ -99,7 +99,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
         self.log.info("WebSocket connection closed: {0}".format(reason))
         self.factory.core.remove_protocol(self._id)
         self.factory.core.get_queue().queue.clear()
-        self.factory.core.hs.reset()
+        self.factory.core.hds.reset()
 
 
 class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
@@ -111,7 +111,7 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
     def __init__(self, *args, **kwargs):
         WebSocketClientFactory.__init__(self, *args, **kwargs)
         ReconnectingClientFactory.__init__(self)
-        self.maxDelay = 10
+        self.maxDelay = 10  # pylint: disable=C0103
         self.core = ClientCore()
 
     def clientConnectionFailed(self, connector, reason):
@@ -132,5 +132,6 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         :param reason:
         :return:
         """
+        self.log.debug("Connection lost: {}".format(reason))
         self.resetDelay()
         self.retry(connector)

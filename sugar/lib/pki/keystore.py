@@ -7,6 +7,8 @@ from __future__ import absolute_import, unicode_literals, print_function
 import os
 import time
 
+from pony import orm
+
 from sugar.lib.pki import Crypto
 from sugar.lib import six
 from sugar.utils.cli import get_current_component
@@ -14,8 +16,6 @@ import sugar.utils.files
 import sugar.utils.stringutils
 import sugar.lib.exceptions
 from sugar.transport.serialisable import Serialisable
-
-from pony import orm
 
 
 class KeyDB(object):
@@ -42,9 +42,11 @@ class KeyDB(object):
         :param path:
         :return:
         """
+        # pylint: disable=W0212
         instance = KeyDB._instance
         if instance is None:
             instance = KeyDB(path)._instance
+        # pylint: enable=W0212
 
         return instance
 
@@ -159,7 +161,8 @@ class KeyStore(object):
 
         return not self.__is_locked
 
-    def __clone_rs(self, dbr):
+    @staticmethod
+    def __clone_rs(dbr):
         """
         Detach db session.
 
@@ -179,8 +182,9 @@ class KeyStore(object):
         finally:
             self._unlock_transaction(force=force)
 
+    @staticmethod
     @orm.db_session
-    def __get_keys_by_status(self, status):
+    def __get_keys_by_status(status):
         """
         Get keys by status.
 
@@ -204,7 +208,7 @@ class KeyStore(object):
         try:
             with open(key.filename, "r") as key_fh:
                 pem = key_fh.read()
-        except Exception as err:
+        except Exception:
             pem = ""
         self._unlock_transaction()
 
@@ -371,15 +375,3 @@ class KeyStore(object):
         """
         return self.__clone_rs(orm.select(k for k in StoredKey
                                           if k.hostname == sugar.utils.stringutils.to_str(hostname)))
-
-
-if __name__ == '__main__':
-    ks = KeyStore("/tmp/ks")
-    #c = Crypto()
-    #pri, pub = c.create_rsa_keypair()
-    #ks.add(pub, "bla", "blabla")
-    from sugar.transport.serialisable import ObjectGate
-    for x in ks.get_rejected():
-        print(ObjectGate(x).pack())
-
-    ks.reject(fingerprint='5a:fb:17:c8:a0:a5:7c:19:bd:14:9f:3c:52:de:b4:15:b2:d4:d7:0d:1b:50:cd:ca:8c:3b:21:cc:2e:d9:17:39')

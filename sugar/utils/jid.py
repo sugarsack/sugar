@@ -11,6 +11,7 @@ import os
 from sugar.lib import six
 from sugar.utils.objects import Singleton
 
+# pylint: disable=C0103
 
 @Singleton
 class __JobID(object):
@@ -33,7 +34,8 @@ class __JobID(object):
 
         return '{0:%Y%m%d%H%M%S%f}_{1}'.format(jid_dt, os.getpid())
 
-    def is_jid(self, jid):
+    @staticmethod
+    def is_jid(jid):
         """
         Returns True if the passed in value is a job id.
 
@@ -65,7 +67,8 @@ class __JobID(object):
 
         return pid
 
-    def to_time(self, jid):
+    @staticmethod
+    def to_time(jid):
         """
         Convert a Sugar Job ID into the time when the job was invoked.
 
