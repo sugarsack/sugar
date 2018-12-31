@@ -14,9 +14,9 @@ def join_path(*elements):
     :param elements:
     :return:
     """
-    c = re.compile(r'[^A-Za-z0-9]')
+    char = re.compile(r'[^A-Za-z0-9]')
     out = ['']
-    for el in elements:
-        out.append(c.sub('', el))
+    for elm in elements:
+        out.append(char.sub('', elm))
 
     return '/'.join(out)
