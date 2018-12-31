@@ -1,9 +1,9 @@
 # coding: utf-8
-'''
+"""
 Classification of Sugar exit codes.  These are intended to augment
 universal exit codes (found in Python's `os` module with the `EX_`
 prefix or in `sysexits.h`).
-'''
+"""
 
 # The os.EX_* exit codes are Unix only so in the interest of cross-platform
 # compatiblility define them explicitly here.
@@ -20,4 +20,3 @@ EX_SOFTWARE = 70          # internal software error
 EX_CANTCREAT = 73         # can't create (user) output file
 EX_TEMPFAIL = 75          # temp failure; user is invited to retry
 EX_NOPERM = 77            # permission denied
-
