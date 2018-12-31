@@ -31,10 +31,10 @@ DEFAULT_TARGET_DELIMETER = ":"
 
 
 def compare_dicts(old=None, new=None):
-    '''
+    """
     Compare before and after results from various salt functions, returning a
     dict describing the changes that were made.
-    '''
+    """
     ret = {}
     for key in set((new or {})).union((old or {})):
         if key not in old:
@@ -53,10 +53,10 @@ def compare_dicts(old=None, new=None):
 
 
 def compare_lists(old=None, new=None):
-    '''
+    """
     Compare before and after results from various salt functions, returning a
     dict describing the changes that were made
-    '''
+    """
     ret = dict()
     for item in new:
         if item not in old:
@@ -70,7 +70,7 @@ def compare_lists(old=None, new=None):
 def decode(data, encoding=None, errors='strict', keep=False,
            normalize=False, preserve_dict_class=False, preserve_tuples=False,
            to_str=False):
-    '''
+    """
     Generic function which will decode whichever type is passed, if necessary.
     Optionally use to_str=True to ensure strings are str types and not unicode
     on Python 2.
@@ -96,7 +96,7 @@ def decode(data, encoding=None, errors='strict', keep=False,
     two strings above, in which "й" is represented as two code points (i.e. one
     for the base character, and one for the breve mark). Normalizing allows for
     a more reliable test case.
-    '''
+    """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     if isinstance(data, Mapping):
         return decode_dict(data, encoding, errors, keep, normalize,
@@ -127,10 +127,10 @@ def decode(data, encoding=None, errors='strict', keep=False,
 def decode_dict(data, encoding=None, errors='strict', keep=False,
                 normalize=False, preserve_dict_class=False,
                 preserve_tuples=False, to_str=False):
-    '''
+    """
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
-    '''
+    """
     _decode_func = stringutils.to_unicode \
         if not to_str \
         else stringutils.to_str
@@ -186,10 +186,10 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
 def decode_list(data, encoding=None, errors='strict', keep=False,
                 normalize=False, preserve_dict_class=False,
                 preserve_tuples=False, to_str=False):
-    '''
+    """
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
-    '''
+    """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     rv = []
     for item in data:
@@ -223,10 +223,10 @@ def decode_list(data, encoding=None, errors='strict', keep=False,
 
 def decode_tuple(data, encoding=None, errors='strict', keep=False,
                  normalize=False, preserve_dict_class=False, to_str=False):
-    '''
+    """
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
-    '''
+    """
     return tuple(
         decode_list(data, encoding, errors, keep, normalize,
                     preserve_dict_class, True, to_str)
@@ -235,7 +235,7 @@ def decode_tuple(data, encoding=None, errors='strict', keep=False,
 
 def encode(data, encoding=None, errors='strict', keep=False,
            preserve_dict_class=False, preserve_tuples=False):
-    '''
+    """
     Generic function which will encode whichever type is passed, if necessary
 
     If `strict` is True, and `keep` is False, and we fail to encode, a
@@ -243,7 +243,7 @@ def encode(data, encoding=None, errors='strict', keep=False,
     original value to silently be returned in cases where encoding fails. This
     can be useful for cases where the data passed to this function is likely to
     contain binary blobs.
-    '''
+    """
     if isinstance(data, Mapping):
         return encode_dict(data, encoding, errors, keep,
                            preserve_dict_class, preserve_tuples)
@@ -251,10 +251,8 @@ def encode(data, encoding=None, errors='strict', keep=False,
         return encode_list(data, encoding, errors, keep,
                            preserve_dict_class, preserve_tuples)
     elif isinstance(data, tuple):
-        return encode_tuple(data, encoding, errors, keep, preserve_dict_class) \
-            if preserve_tuples \
-            else encode_list(data, encoding, errors, keep,
-                             preserve_dict_class, preserve_tuples)
+        return (encode_tuple(data, encoding, errors, keep, preserve_dict_class)
+                if preserve_tuples else encode_list(data, encoding, errors, keep, preserve_dict_class, preserve_tuples))
     else:
         try:
             return stringutils.to_bytes(data, encoding, errors)
@@ -271,9 +269,9 @@ def encode(data, encoding=None, errors='strict', keep=False,
 
 def encode_dict(data, encoding=None, errors='strict', keep=False,
                 preserve_dict_class=False, preserve_tuples=False):
-    '''
+    """
     Encode all string values to bytes
-    '''
+    """
     rv = data.__class__() if preserve_dict_class else {}
     for key, value in six.iteritems(data):
         if isinstance(key, tuple):
@@ -322,9 +320,9 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
 
 def encode_list(data, encoding=None, errors='strict', keep=False,
                 preserve_dict_class=False, preserve_tuples=False):
-    '''
+    """
     Encode all string values to bytes
-    '''
+    """
     rv = []
     for item in data:
         if isinstance(item, list):
@@ -356,26 +354,26 @@ def encode_list(data, encoding=None, errors='strict', keep=False,
 
 def encode_tuple(data, encoding=None, errors='strict', keep=False,
                  preserve_dict_class=False):
-    '''
+    """
     Encode all string values to Unicode
-    '''
+    """
     return tuple(
         encode_list(data, encoding, errors, keep, preserve_dict_class, True))
 
 
 def exactly_n(l, n=1):
-    '''
+    """
     Tests that exactly N items in an iterable are "truthy" (neither None,
     False, nor 0).
-    '''
+    """
     i = iter(l)
     return all(any(i) for j in range(n)) and not any(i)
 
 
 def exactly_one(l):
-    '''
+    """
     Check if only one item is not None, False, or 0 in an iterable.
-    '''
+    """
     return exactly_n(l)
 
 
@@ -385,9 +383,9 @@ def exactly_one(l):
 #               merge=None,
 #               default='default',
 #               base=None):
-#     '''
+#     """
 #     Common code to filter data structures like grains and pillar
-#     '''
+#     """
 #     ret = None
 #     # Default value would be an empty list if lookup not found
 #     val = traverse_dict_and_list(traverse, lookup, [])
@@ -435,12 +433,12 @@ def exactly_one(l):
 
 
 def traverse_dict(data, key, default=None, delimiter=DEFAULT_TARGET_DELIMETER):
-    '''
+    """
     Traverse a dict using a colon-delimited (or otherwise delimited, using the
     'delimiter' param) target string. The target 'foo:bar:baz' will return
     data['foo']['bar']['baz'] if this value exists, and will otherwise return
     the dict in the default argument.
-    '''
+    """
     ptr = data
     try:
         for each in key.split(delimiter):
@@ -452,7 +450,7 @@ def traverse_dict(data, key, default=None, delimiter=DEFAULT_TARGET_DELIMETER):
 
 
 def traverse_dict_and_list(data, key, default=None, delimiter=DEFAULT_TARGET_DELIMETER):
-    '''
+    """
     Traverse a dict or list using a colon-delimited (or otherwise delimited,
     using the 'delimiter' param) target string. The target 'foo:bar:0' will
     return data['foo']['bar'][0] if this value exists, and will otherwise
@@ -461,7 +459,7 @@ def traverse_dict_and_list(data, key, default=None, delimiter=DEFAULT_TARGET_DEL
     The target 'foo:bar:0' will return data['foo']['bar'][0] if data like
     {'foo':{'bar':['baz']}} , if data like {'foo':{'bar':{'0':'baz'}}}
     then return data['foo']['bar']['0']
-    '''
+    """
     ptr = data
     for each in key.split(delimiter):
         if isinstance(ptr, list):
@@ -495,13 +493,13 @@ def traverse_dict_and_list(data, key, default=None, delimiter=DEFAULT_TARGET_DEL
 
 def subdict_match(data, expr, delimiter=DEFAULT_TARGET_DELIMETER,
                   regex_match=False, exact_match=False):
-    '''
+    """
     Check for a match in a dictionary using a delimiter character to denote
     levels of subdicts, and also allowing the delimiter character to be
     matched. Thus, 'foo:bar:baz' will match data['foo'] == 'bar:baz' and
     data['foo']['bar'] == 'baz'. The latter would take priority over the
     former, as more deeply-nested matches are tried first.
-    '''
+    """
     def _match(target, pattern, regex_match=False, exact_match=False):
         # The reason for using six.text_type first and _then_ using
         # to_unicode as a fallback is because we want to eventually have
@@ -628,18 +626,18 @@ def subdict_match(data, expr, delimiter=DEFAULT_TARGET_DELIMETER,
 
 
 def substr_in_list(string_to_search_for, list_to_search):
-    '''
+    """
     Return a boolean value that indicates whether or not a given
     string is present in any of the strings which comprise a list
-    '''
+    """
     return any(string_to_search_for in s for s in list_to_search)
 
 
 def is_dictlist(data):
-    '''
+    """
     Returns True if data is a list of one-element dicts (as found in many SLS
     schemas), otherwise returns False
-    '''
+    """
     if isinstance(data, list):
         for element in data:
             if isinstance(element, dict):
@@ -656,10 +654,10 @@ def is_dictlist(data):
 #                     recurse=False,
 #                     key_cb=None,
 #                     val_cb=None):
-#     '''
+#     """
 #     Takes a list of one-element dicts (as found in many SLS schemas) and
 #     repacks into a single dictionary.
-#     '''
+#     """
 #     if isinstance(data, six.string_types):
 #         try:
 #             data = salt.utils.yaml.safe_load(data)
@@ -722,14 +720,14 @@ def is_dictlist(data):
 
 
 def is_list(value):
-    '''
+    """
     Check if a variable is a list.
-    '''
+    """
     return isinstance(value, list)
 
 
 def is_iter(y, ignore=six.string_types):
-    '''
+    """
     Test if an object is iterable, but not a string type.
 
     Test if an object is an iterator or is iterable itself. By default this
@@ -740,7 +738,7 @@ def is_iter(y, ignore=six.string_types):
     dictionaries or named tuples.
 
     Based on https://bitbucket.org/petershinners/yter
-    '''
+    """
 
     if ignore and isinstance(y, ignore):
         return False
@@ -752,7 +750,7 @@ def is_iter(y, ignore=six.string_types):
 
 
 def sorted_ignorecase(to_sort):
-    '''
+    """
     Sort a list of strings ignoring case.
 
     >>> L = ['foo', 'Foo', 'bar', 'Bar']
@@ -761,19 +759,19 @@ def sorted_ignorecase(to_sort):
     >>> sorted(L, key=lambda x: x.lower())
     ['bar', 'Bar', 'foo', 'Foo']
     >>>
-    '''
+    """
     return sorted(to_sort, key=lambda x: x.lower())
 
 
 def is_true(value=None):
-    '''
+    """
     Returns a boolean value representing the "truth" of the value passed. The
     rules for what is a "True" value are:
 
         1. Integer/float values greater than 0
         2. The string values "True" and "true"
         3. Any object for which bool(obj) returns True
-    '''
+    """
     # First, try int/float conversion
     try:
         value = int(value)
@@ -794,10 +792,10 @@ def is_true(value=None):
 
 
 def simple_types_filter(data):
-    '''
+    """
     Convert the data list, dictionary into simple types, i.e., int, float, string,
     bool, etc.
-    '''
+    """
     if data is None:
         return data
 
@@ -831,10 +829,10 @@ def simple_types_filter(data):
 
 
 def stringify(data):
-    '''
+    """
     Given an iterable, returns its items as a list, with any non-string items
     converted to unicode strings.
-    '''
+    """
     ret = []
     for item in data:
         if six.PY2 and isinstance(item, str):
@@ -846,9 +844,9 @@ def stringify(data):
 
 
 def json_query(data, expr):
-    '''
+    """
     Query data using JMESPath language (http://jmespath.org).
-    '''
+    """
     if jmespath is None:
         err = 'json_query requires jmespath module installed'
         log.error(err)
