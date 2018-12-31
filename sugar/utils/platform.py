@@ -42,54 +42,37 @@ def is_smartos():
     """
     Simple function to return if host is SmartOS (Illumos) or not
     """
-    if not is_sunos():
-        return False
-    else:
-        return os.uname()[3].startswith('joyent_')
+    return os.uname()[3].startswith('joyent_') if is_smartos() else False
 
 
 def is_smartos_globalzone():
     """
     Function to return if host is SmartOS (Illumos) global zone or not
     """
-    if not is_smartos():
-        return False
-    else:
-        cmd = ['zonename']
+    glo_zone = False
+    if is_smartos():
         try:
-            zonename = subprocess.Popen(
-                cmd, shell=False,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            zonename = subprocess.Popen(['zonename'], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            glo_zone = not zonename.returncode and zonename.stdout.read().strip() == 'global'
         except OSError:
-            return False
-        if zonename.returncode:
-            return False
-        if zonename.stdout.read().strip() == 'global':
-            return True
+            pass
 
-        return False
+    return glo_zone
 
 
 def is_smartos_zone():
     """
     Function to return if host is SmartOS (Illumos) and not the gz
     """
-    if not is_smartos():
-        return False
-    else:
-        cmd = ['zonename']
+    zone = False
+    if is_smartos():
         try:
-            zonename = subprocess.Popen(
-                cmd, shell=False,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            zonename = subprocess.Popen(['zonename'], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            zone = not zonename.returncode and zonename.stdout.read().strip() != 'global'
         except OSError:
-            return False
-        if zonename.returncode:
-            return False
-        if zonename.stdout.read().strip() == 'global':
-            return False
+            pass
 
-        return True
+    return zone
 
 
 def is_freebsd():
