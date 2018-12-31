@@ -17,7 +17,7 @@ from sugar.lib.logger.manager import get_logger
 
 log = get_logger(__name__)  # pylint: disable=C0103
 
-# pylint: disable=import-error
+# pylint: disable=W0212,W0613,import-error
 HAS_PSUTIL = False
 try:
     import psutil
@@ -65,6 +65,7 @@ class MultiprocessingProcess(multiprocessing.Process):
         # class'es run method is overridden.
         instance._original_run = instance.run
         instance.run = instance._run
+
         return instance
 
     # __setstate__ and __getstate__ are only used on Windows.
@@ -82,10 +83,10 @@ class MultiprocessingProcess(multiprocessing.Process):
             return self._original_run()
         except SystemExit:
             # These are handled by multiprocessing.Process._bootstrap()
+            log.error("System exit")
             raise
-        except Exception as exc:
-            log.error("An un-handled exception from the multiprocessing "
-                      "process '{}' was caught:\n".format(self.name,))
+        except Exception:
+            log.error("An un-handled exception from the multiprocessing process '{}' was caught:\n".format(self.name,))
             raise
 
 
