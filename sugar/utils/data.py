@@ -127,7 +127,7 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
     """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     # Make sure we preserve OrderedDicts
-    rv = data.__class__() if preserve_dict_class else {}
+    rv_dt = data.__class__() if preserve_dict_class else {}
     for key, value in six.iteritems(data):
         if isinstance(key, tuple):
             key = (decode_tuple(key, encoding, errors, keep, normalize, preserve_dict_class, to_str)
@@ -166,9 +166,9 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
             except UnicodeDecodeError:
                 if not keep:
                     raise
+        rv_dt[key] = value
 
-        rv[key] = value
-    return rv
+    return rv_dt
 
 
 def decode_list(data, encoding=None, errors='strict', keep=False,
@@ -179,7 +179,7 @@ def decode_list(data, encoding=None, errors='strict', keep=False,
     strings are str types and not unicode on Python 2.
     """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
-    rv = []
+    ret = []
     for item in data:
         if isinstance(item, list):
             item = decode_list(item, encoding, errors, keep, normalize,
@@ -202,9 +202,9 @@ def decode_list(data, encoding=None, errors='strict', keep=False,
             except UnicodeDecodeError:
                 if not keep:
                     raise
+        ret.append(item)
 
-        rv.append(item)
-    return rv
+    return ret
 
 
 def decode_tuple(data, encoding=None, errors='strict', keep=False,
@@ -258,7 +258,7 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
     """
     Encode all string values to bytes
     """
-    rv = data.__class__() if preserve_dict_class else {}
+    ret = data.__class__() if preserve_dict_class else {}
     for key, value in six.iteritems(data):
         if isinstance(key, tuple):
             key = (encode_tuple(key, encoding, errors, keep, preserve_dict_class)
@@ -298,8 +298,8 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
                 if not keep:
                     raise
 
-        rv[key] = value
-    return rv
+        ret[key] = value
+    return ret
 
 
 def encode_list(data, encoding=None, errors='strict', keep=False,
@@ -307,7 +307,7 @@ def encode_list(data, encoding=None, errors='strict', keep=False,
     """
     Encode all string values to bytes
     """
-    rv = []
+    ret = []
     for item in data:
         if isinstance(item, list):
             item = encode_list(item, encoding, errors, keep, preserve_dict_class, preserve_tuples)
@@ -328,8 +328,8 @@ def encode_list(data, encoding=None, errors='strict', keep=False,
                 if not keep:
                     raise
 
-        rv.append(item)
-    return rv
+        ret.append(item)
+    return ret
 
 
 def encode_tuple(data, encoding=None, errors='strict', keep=False,
@@ -341,20 +341,20 @@ def encode_tuple(data, encoding=None, errors='strict', keep=False,
         encode_list(data, encoding, errors, keep, preserve_dict_class, True))
 
 
-def exactly_n(l, n=1):
+def exactly_n(lst, num=1):
     """
     Tests that exactly N items in an iterable are "truthy" (neither None,
     False, nor 0).
     """
-    i = iter(l)
-    return all(any(i) for j in range(n)) and not any(i)
+    idx = iter(lst)
+    return all(any(idx) for _ in range(num)) and not any(idx)
 
 
-def exactly_one(l):
+def exactly_one(lst):
     """
     Check if only one item is not None, False, or 0 in an iterable.
     """
-    return exactly_n(l)
+    return exactly_n(lst)
 
 
 # def filter_by(lookup_dict,
@@ -705,7 +705,7 @@ def is_list(value):
     return isinstance(value, list)
 
 
-def is_iter(y, ignore=six.string_types):
+def is_iter(data, ignore=six.string_types):
     """
     Test if an object is iterable, but not a string type.
 
@@ -719,10 +719,10 @@ def is_iter(y, ignore=six.string_types):
     Based on https://bitbucket.org/petershinners/yter
     """
 
-    if ignore and isinstance(y, ignore):
+    if ignore and isinstance(data, ignore):
         return False
     try:
-        iter(y)
+        iter(data)
         return True
     except TypeError:
         return False
