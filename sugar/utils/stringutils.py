@@ -230,8 +230,8 @@ def is_binary(data):
     # 'remove' option to get rid of the text characters.)
     if six.PY3:
         if isinstance(data, six.binary_type):
-            import salt.utils.data
-            nontext = data.translate(None, salt.utils.data.encode(text_characters))
+            import sugar.utils.data
+            nontext = data.translate(None, sugar.utils.data.encode(text_characters))
         else:
             trans = ''.maketrans('', '', text_characters)
             nontext = data.translate(trans)
