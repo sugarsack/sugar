@@ -28,12 +28,12 @@ limit-inference-results=100
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
-load-plugins=multireturns,
-             docstring_triplequotes,
+load-plugins=docstring_triplequotes,
              docstring_single_line,
              docstring_rstcheck,
              backslashy,
-             pep8_emptylines
+             pep8_emptylines,
+#             multireturns
 
 # Pickle collected data for later comparisons.
 persistent=yes
@@ -517,7 +517,7 @@ max-parents=15
 max-public-methods=20
 
 # Maximum number of return / yield for function / method body.
-max-returns=6
+max-returns=1
 
 # Maximum number of statements in function / method body.
 max-statements=50
