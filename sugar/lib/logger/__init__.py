@@ -33,6 +33,7 @@ class Logger(object):
     def __init__(self, name):
         self.name = name
         for method in self.LOG_LEVELS:
+
             def make_log_level_caller(level):
                 """
                 Wrap Twisted's log into levels
