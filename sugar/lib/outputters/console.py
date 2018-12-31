@@ -320,14 +320,14 @@ class Highlighter(object):
         :param highlights:
         :return:
         """
-        hl = {}
+        hlts = {}
         for element, attrs in highlights.items():
             text, mode = attrs
-            hl[element] = "{f}{t}{b}".format(f=colored.fg(self._get_style()[mode]), t=text,
-                                             b=colored.fg(self._get_style()["base"]))
+            hlts[element] = "{f}{t}{b}".format(f=colored.fg(self._get_style()[mode]), t=text,
+                                               b=colored.fg(self._get_style()["base"]))
 
         return "{b}{c}{r}".format(b=colored.fg(self._get_style()["base"]),
-                                  c=pattern.format(**hl),
+                                  c=pattern.format(**hlts),
                                   r=colored.attr("reset"))
 
 
@@ -375,13 +375,13 @@ class ConsoleMessages(object):
         """
         out = []
         bold = False
-        for c in text:
-            if c == "*":
+        for char in text:
+            if char == "*":
                 bold = not bold
                 out.append(colored.attr("bold") if bold else colored.attr("res_bold"))
                 out.append(colored.fg(self.__style()["bold"][section]) if bold else colored.fg(self.__style()[section]))
             else:
-                out.append(c)
+                out.append(char)
 
         return ''.join(out)
 
