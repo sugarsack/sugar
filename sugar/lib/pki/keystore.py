@@ -208,7 +208,7 @@ class KeyStore(object):
         try:
             with open(key.filename, "r") as key_fh:
                 pem = key_fh.read()
-        except Exception as err:
+        except Exception:
             pem = ""
         self._unlock_transaction()
 
