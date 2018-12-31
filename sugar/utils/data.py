@@ -105,11 +105,9 @@ def decode(data, encoding=None, errors='strict', keep=False,
         return decode_list(data, encoding, errors, keep, normalize,
                            preserve_dict_class, preserve_tuples, to_str)
     elif isinstance(data, tuple):
-        return decode_tuple(data, encoding, errors, keep, normalize,
-                            preserve_dict_class, to_str) \
-            if preserve_tuples \
-            else decode_list(data, encoding, errors, keep, normalize,
-                             preserve_dict_class, preserve_tuples, to_str)
+        return (decode_tuple(data, encoding, errors, keep, normalize, preserve_dict_class, to_str)
+                if preserve_tuples else decode_list(data, encoding, errors, keep, normalize,
+                                                    preserve_dict_class, preserve_tuples, to_str))
     else:
         try:
             data = _decode_func(data, encoding, errors, normalize)
@@ -131,18 +129,14 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
     """
-    _decode_func = stringutils.to_unicode \
-        if not to_str \
-        else stringutils.to_str
+    _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     # Make sure we preserve OrderedDicts
     rv = data.__class__() if preserve_dict_class else {}
     for key, value in six.iteritems(data):
         if isinstance(key, tuple):
-            key = decode_tuple(key, encoding, errors, keep, normalize,
-                               preserve_dict_class, to_str) \
-                if preserve_tuples \
-                else decode_list(key, encoding, errors, keep, normalize,
-                                 preserve_dict_class, preserve_tuples, to_str)
+            key = (decode_tuple(key, encoding, errors, keep, normalize, preserve_dict_class, to_str)
+                   if preserve_tuples else decode_list(key, encoding, errors, keep, normalize,
+                                                       preserve_dict_class, preserve_tuples, to_str))
         else:
             try:
                 key = _decode_func(key, encoding, errors, normalize)
@@ -159,11 +153,9 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
             value = decode_list(value, encoding, errors, keep, normalize,
                                 preserve_dict_class, preserve_tuples, to_str)
         elif isinstance(value, tuple):
-            value = decode_tuple(value, encoding, errors, keep, normalize,
-                                 preserve_dict_class, to_str) \
-                if preserve_tuples \
-                else decode_list(value, encoding, errors, keep, normalize,
-                                 preserve_dict_class, preserve_tuples, to_str)
+            value = (decode_tuple(value, encoding, errors, keep, normalize, preserve_dict_class, to_str)
+                     if preserve_tuples else decode_list(value, encoding, errors, keep, normalize,
+                                                         preserve_dict_class, preserve_tuples, to_str))
         elif isinstance(value, Mapping):
             value = decode_dict(value, encoding, errors, keep, normalize,
                                 preserve_dict_class, preserve_tuples, to_str)
@@ -197,11 +189,9 @@ def decode_list(data, encoding=None, errors='strict', keep=False,
             item = decode_list(item, encoding, errors, keep, normalize,
                                preserve_dict_class, preserve_tuples, to_str)
         elif isinstance(item, tuple):
-            item = decode_tuple(item, encoding, errors, keep, normalize,
-                                preserve_dict_class, to_str) \
-                if preserve_tuples \
-                else decode_list(item, encoding, errors, keep, normalize,
-                                 preserve_dict_class, preserve_tuples, to_str)
+            item = (decode_tuple(item, encoding, errors, keep, normalize, preserve_dict_class, to_str)
+                    if preserve_tuples else decode_list(item, encoding, errors, keep, normalize,
+                                                        preserve_dict_class, preserve_tuples, to_str))
         elif isinstance(item, Mapping):
             item = decode_dict(item, encoding, errors, keep, normalize,
                                preserve_dict_class, preserve_tuples, to_str)
@@ -275,10 +265,9 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
     rv = data.__class__() if preserve_dict_class else {}
     for key, value in six.iteritems(data):
         if isinstance(key, tuple):
-            key = encode_tuple(key, encoding, errors, keep, preserve_dict_class) \
-                if preserve_tuples \
-                else encode_list(key, encoding, errors, keep,
-                                 preserve_dict_class, preserve_tuples)
+            key = (encode_tuple(key, encoding, errors, keep, preserve_dict_class)
+                   if preserve_tuples else encode_list(key, encoding, errors, keep,
+                                                       preserve_dict_class, preserve_tuples))
         else:
             try:
                 key = stringutils.to_bytes(key, encoding, errors)
@@ -295,10 +284,9 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
             value = encode_list(value, encoding, errors, keep,
                                 preserve_dict_class, preserve_tuples)
         elif isinstance(value, tuple):
-            value = encode_tuple(value, encoding, errors, keep, preserve_dict_class) \
-                if preserve_tuples \
-                else encode_list(value, encoding, errors, keep,
-                                 preserve_dict_class, preserve_tuples)
+            value = (encode_tuple(value, encoding, errors, keep, preserve_dict_class)
+                     if preserve_tuples else encode_list(value, encoding, errors, keep,
+                                                         preserve_dict_class, preserve_tuples))
         elif isinstance(value, Mapping):
             value = encode_dict(value, encoding, errors, keep,
                                 preserve_dict_class, preserve_tuples)
@@ -326,16 +314,12 @@ def encode_list(data, encoding=None, errors='strict', keep=False,
     rv = []
     for item in data:
         if isinstance(item, list):
-            item = encode_list(item, encoding, errors, keep,
-                               preserve_dict_class, preserve_tuples)
+            item = encode_list(item, encoding, errors, keep, preserve_dict_class, preserve_tuples)
         elif isinstance(item, tuple):
-            item = encode_tuple(item, encoding, errors, keep, preserve_dict_class) \
-                if preserve_tuples \
-                else encode_list(item, encoding, errors, keep,
-                                 preserve_dict_class, preserve_tuples)
+            item = (encode_tuple(item, encoding, errors, keep, preserve_dict_class) if preserve_tuples
+                    else encode_list(item, encoding, errors, keep, preserve_dict_class, preserve_tuples))
         elif isinstance(item, Mapping):
-            item = encode_dict(item, encoding, errors, keep,
-                               preserve_dict_class, preserve_tuples)
+            item = encode_dict(item, encoding, errors, keep, preserve_dict_class, preserve_tuples)
         else:
             try:
                 item = stringutils.to_bytes(item, encoding, errors)
@@ -526,8 +510,7 @@ def subdict_match(data, expr, delimiter=DEFAULT_TARGET_DELIMETER,
                 log.error('Invalid regex \'%s\' in match', pattern)
                 return False
         else:
-            return target == pattern if exact_match \
-                else fnmatch.fnmatch(target, pattern)
+            return target == pattern if exact_match else fnmatch.fnmatch(target, pattern)
 
     def _dict_match(target, pattern, regex_match=False, exact_match=False):
         wildcard = pattern.startswith('*:')
