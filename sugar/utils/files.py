@@ -388,11 +388,8 @@ def fopen(*args, **kwargs):
     return f_handle
 
 
-#
-# UNUSED @@@
-#
 @contextlib.contextmanager
-def flopen(*args, **kwargs):
+def f_lock_open(*args, **kwargs):
     """
     Shortcut for fopen with lock and context manager.
     """
