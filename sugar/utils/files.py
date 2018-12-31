@@ -440,8 +440,7 @@ def fpopen(*args, **kwargs):
         if hasattr(os, 'chown'):
             # if uid and gid are both -1 then go ahead with
             # no changes at all
-            if (d_stat.st_uid != uid or d_stat.st_gid != gid) and \
-                    [i for i in (uid, gid) if i != -1]:
+            if (d_stat.st_uid != uid or d_stat.st_gid != gid) and [i for i in (uid, gid) if i != -1]:
                 os.chown(path, uid, gid)
 
         if mode is not None:
