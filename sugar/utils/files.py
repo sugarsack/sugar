@@ -458,6 +458,7 @@ def safe_walk(top, topdown=True, onerror=None, followlinks=True, _seen=None):
     A clone of the python os.walk function with some checks for recursive
     symlinks. Unlike os.walk this follows symlinks by default.
     """
+    # pylint: disable=R0911
     if _seen is None:
         _seen = set()
 
@@ -501,11 +502,9 @@ def safe_walk(top, topdown=True, onerror=None, followlinks=True, _seen=None):
                 yield elm
     if not topdown:
         yield top, dirs, nondirs
+    # pylint: enable=R0911
 
 
-#
-# UNUSED @@@
-#
 def safe_rm(tgt):
     """
     Safely remove a file
@@ -557,10 +556,12 @@ def is_empty(filename):
     Is a file empty?
     """
     try:
-        return os.stat(filename).st_size == 0
+        ret = os.stat(filename).st_size == 0
     except OSError:
         # Non-existent file or permission denied to the parent dir
-        return False
+        ret = False
+
+    return ret
 
 
 def is_fcntl_available(check_sunos=False):
@@ -570,14 +571,13 @@ def is_fcntl_available(check_sunos=False):
     If ``check_sunos`` is passed as ``True`` an additional check to see if host is
     SunOS is also made. For additional information see: http://goo.gl/159FF8
     """
-    if check_sunos and sugar.utils.platform.is_sunos():
-        return False
-    return HAS_FCNTL
+    return False if check_sunos and sugar.utils.platform.is_sunos() else HAS_FCNTL
 
 
 #
 # UNUSED @@@
 #
+# pylint: disable=R0911,R1705
 def is_text(fp_, blocksize=512):
     """
     Uses heuristics to guess whether the given file is text or binary,
@@ -614,6 +614,7 @@ def is_text(fp_, blocksize=512):
 
     nontext = block.translate(None, text_characters)
     return float(len(nontext)) / len(block) <= 0.30
+# pylint: enable=R0911,R1705
 
 
 #
@@ -624,19 +625,21 @@ def is_binary(path):
     Detects if the file is a binary, returns bool. Returns True if the file is
     a bin, False if the file is not and None if the file is not available.
     """
-    if not os.path.isfile(path):
-        return False
-    try:
-        with fopen(path, 'rb') as fp_:
-            try:
-                data = fp_.read(2048)
-                if six.PY3:
-                    data = data.decode('utf-8')
-                return sugar.utils.stringutils.is_binary(data)
-            except UnicodeDecodeError:
-                return True
-    except os.error:
-        return False
+    ret = False
+    if os.path.isfile(path):
+        try:
+            with fopen(path, 'rb') as fp_:
+                try:
+                    data = fp_.read(2048)
+                    if six.PY3:
+                        data = data.decode('utf-8')
+                    ret = sugar.utils.stringutils.is_binary(data)
+                except UnicodeDecodeError:
+                    ret = True
+        except os.error:
+            ret = False
+
+    return ret
 
 
 #
@@ -680,36 +683,35 @@ def st_mode_to_octal(mode):
     to an octal mode.
     """
     try:
-        return oct(mode)[-4:]
+        value = oct(mode)[-4:]
     except (TypeError, IndexError):
-        return ''
+        value = ''
+
+    return value
 
 
-#
-# UNUSED @@@
-#
-def normalize_mode(mode):
+def normalise_mode(mode):
     """
-    Return a mode value, normalized to a string and containing a leading zero
+    Return a mode value, normalised to a string and containing a leading zero
     if it does not have one.
 
     Allow "keep" as a valid mode (used by file state/module to preserve mode
-    from the Salt fileserver in file states).
+    from the file server in file states).
     """
-    if mode is None:
-        return None
-    if not isinstance(mode, six.string_types):
-        mode = six.text_type(mode)
-    if six.PY3:
-        mode = mode.replace('0o', '0')
-    # Strip any quotes any initial zeroes, then though zero-pad it up to 4.
-    # This ensures that somethign like '00644' is normalized to '0644'
-    return mode.strip('"').strip('\'').lstrip('0').zfill(4)
+    if mode is not None:
+        if not isinstance(mode, six.string_types):
+            mode = six.text_type(mode)
+
+        if six.PY3:
+            mode = mode.replace('0o', '0')
+
+        # Strip any quotes any initial zeroes, then though zero-pad it up to 4.
+        # This ensures that something like '00644' is normalised to '0644'
+        mode = mode.strip('"').strip('\'').lstrip('0').zfill(4)
+
+    return mode
 
 
-#
-# UNUSED @@@
-#
 def human_size_to_bytes(human_size):
     """
     Convert human-readable units to bytes
@@ -718,12 +720,10 @@ def human_size_to_bytes(human_size):
     human_size_str = six.text_type(human_size)
     match = re.match(r'^(\d+)([KMGTP])?$', human_size_str)
     if not match:
-        raise ValueError(
-            'Size must be all digits, with an optional unit type '
-            '(K, M, G, T, or P)'
-        )
+        raise ValueError('Size must be all digits, with an optional unit type (K, M, G, T, or P)')
     size_num = int(match.group(1))
     unit_multiplier = 1024 ** size_exp_map.get(match.group(2), 0)
+
     return size_num * unit_multiplier
 
 
@@ -755,9 +755,8 @@ def backup_client(path, bkroot):
         os.chown(bkpath, fstat.st_uid, fstat.st_gid)
         os.chmod(bkpath, fstat.st_mode)
 
-#
-# UNUSED @@@
-#
+
+# pylint: disable=R0911
 def get_encoding(path):
     """
     Detect a file's encoding using the following:
@@ -855,6 +854,7 @@ def get_encoding(path):
         return 'ASCII'
 
     raise sugar.lib.exceptions.SugarRuntimeException('Could not detect file encoding')
+# pylint: enable=R0911
 
 
 def mk_dirs(path):
