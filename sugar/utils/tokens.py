@@ -11,8 +11,6 @@ import sugar.utils.stringutils
 from sugar.lib.logger.manager import get_logger
 from sugar.utils.objects import Singleton
 
-log = get_logger(__name__)
-
 SUFFIX = ".token"
 PREFIX = ".sugar."
 
@@ -29,10 +27,11 @@ class MasterLocalToken(object):
 
         :param path:
         """
+        self.log = get_logger(__name__)
         self._filename = filename or tempfile.mktemp(SUFFIX, PREFIX)
         if not filename:  # New token needs to be created
-            with os.fdopen(os.open(self._filename, os.O_WRONLY | os.O_CREAT, 0o600), "wb") as fh:
-                fh.write(sugar.utils.stringutils.to_bytes(hashlib.sha256(os.urandom(0xfff)).hexdigest()))
+            with os.fdopen(os.open(self._filename, os.O_WRONLY | os.O_CREAT, 0o600), "wb") as tmp_fh:
+                tmp_fh.write(sugar.utils.stringutils.to_bytes(hashlib.sha256(os.urandom(0xfff)).hexdigest()))
         elif not os.path.exists(self._filename):
             raise OSError("Token file '{}' does not exists.".format(self._filename))
 
@@ -45,8 +44,8 @@ class MasterLocalToken(object):
         :return:
         """
         if self.__token is None:
-            with open(self._filename) as fh:
-                self.__token = fh.read().strip()
+            with open(self._filename) as tkn_fh:
+                self.__token = tkn_fh.read().strip()
         return self.__token
 
     def cleanup(self):
@@ -57,8 +56,8 @@ class MasterLocalToken(object):
         """
         try:
             os.remove(self._filename)
-        except Exception as ex:
-            log.error("General error while removing token file: {}".format(ex))
+        except Exception as exc:
+            self.log.error("General error while removing token file: {}".format(exc))
 
 
 def get_probable_token_filename(directory="/tmp"):
@@ -68,9 +67,9 @@ def get_probable_token_filename(directory="/tmp"):
     :return:
     """
     files = {}
-    for fn in os.listdir(directory):
-        if fn.startswith(PREFIX) and fn.endswith(SUFFIX):
-            path = os.path.join(directory, fn)
+    for filename in os.listdir(directory):
+        if filename.startswith(PREFIX) and filename.endswith(SUFFIX):
+            path = os.path.join(directory, filename)
             files[os.path.getctime(path)] = path
     try:
         path = files[max(files)]
