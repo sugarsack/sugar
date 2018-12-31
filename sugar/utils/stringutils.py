@@ -463,15 +463,9 @@ def check_include_exclude(path_str, include_pat=None, exclude_pat=None):
     """
     def _pat_check(path_str, check_pat):
         if re.match('E@', check_pat):
-            return True if re.search(
-                check_pat[2:],
-                path_str
-            ) else False
+            return bool(re.search(check_pat[2:], path_str))
         else:
-            return True if fnmatch.fnmatch(
-                path_str,
-                check_pat
-            ) else False
+            return bool(fnmatch.fnmatch(path_str, check_pat))
 
     ret = True  # -- default true
     # Before pattern match, check if it is regexp (E@'') or glob(default)
