@@ -9,14 +9,15 @@ from io import BytesIO
 import hashlib
 import zlib
 import pickle
-from sugar.lib import six
-from sugar.lib import exceptions
 
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES
 from Crypto import Random
+
+from sugar.lib import six
+from sugar.lib import exceptions
 
 try:
     import bcrypt
