@@ -7,6 +7,8 @@ from __future__ import absolute_import, unicode_literals, print_function
 import os
 import time
 
+from pony import orm
+
 from sugar.lib.pki import Crypto
 from sugar.lib import six
 from sugar.utils.cli import get_current_component
@@ -14,8 +16,6 @@ import sugar.utils.files
 import sugar.utils.stringutils
 import sugar.lib.exceptions
 from sugar.transport.serialisable import Serialisable
-
-from pony import orm
 
 
 class KeyDB(object):
