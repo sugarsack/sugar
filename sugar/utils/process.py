@@ -72,7 +72,7 @@ class MultiprocessingProcess(multiprocessing.Process):
     # We do this so that __init__ will be invoked on Windows in the child
     # process so that a register_after_fork() equivalent will work on Windows.
     def __setstate__(self, state):
-        self._is_child = True
+        self._is_child = True  # pylint: disable=W0201
         args = state['args']
         kwargs = state['kwargs']
         # This will invoke __init__ of the most derived class.
