@@ -6,8 +6,9 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import os
 import sys
-import colored
 import collections
+
+import colored
 
 
 class _BaseOutput(object):
