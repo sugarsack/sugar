@@ -443,5 +443,4 @@ class ConsoleMessages(object):
         :return:
         """
         sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["error"]),
-                                           message.format(*args, **kwargs), colored.attr("reset")),
-                                    "error"))
+                                                      message.format(*args, **kwargs), colored.attr("reset")), "error"))
