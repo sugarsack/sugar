@@ -559,7 +559,7 @@ def get_context(template, line, num_lines=5, marker=None):
     return template
 
 
-def get_diff(a, b, *args, **kwargs):
+def get_diff(first, second, *args, **kwargs):
     """
     Perform diff on two iterables containing lines from two files, and return
     the diff as as string. Lines are normalized to str types to avoid issues
@@ -572,8 +572,8 @@ def get_diff(a, b, *args, **kwargs):
 
     return ''.join(
         difflib.unified_diff(
-            sugar.utils.data.decode_list(a, encoding=encoding),
-            sugar.utils.data.decode_list(b, encoding=encoding),
+            sugar.utils.data.decode_list(first, encoding=encoding),
+            sugar.utils.data.decode_list(second, encoding=encoding),
             *args, **kwargs
         )
     )
