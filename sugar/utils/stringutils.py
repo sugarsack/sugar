@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Functions for manipulating or otherwise processing strings
-'''
+"""
 
 # Import Python libs
 from __future__ import absolute_import, print_function, unicode_literals
@@ -23,10 +23,10 @@ log = logging.getLogger(__name__)
 
 
 def to_bytes(s, encoding=None, errors='strict'):
-    '''
+    """
     Given bytes, bytearray, str, or unicode (python 2), return bytes (str for
     python 2)
-    '''
+    """
     if encoding is None:
         # Try utf-8 first, and fall back to detected encoding
         encoding = ('utf-8', 'ascii')
@@ -59,9 +59,9 @@ def to_bytes(s, encoding=None, errors='strict'):
 
 
 def to_str(s, encoding=None, errors='strict', normalize=False):
-    '''
+    """
     Given str, bytes, bytearray, or unicode (py2), return str
-    '''
+    """
     def _normalize(s):
         try:
             return unicodedata.normalize('NFC', s) if normalize else s
@@ -105,9 +105,9 @@ def to_str(s, encoding=None, errors='strict', normalize=False):
 
 
 def to_unicode(s, encoding=None, errors='strict', normalize=False):
-    '''
+    """
     Given str or unicode, return unicode (str for python 3)
-    '''
+    """
     def _normalize(s):
         return unicodedata.normalize('NFC', s) if normalize else s
 
@@ -142,12 +142,12 @@ def to_unicode(s, encoding=None, errors='strict', normalize=False):
 
 
 def to_num(text):
-    '''
+    """
     Convert a string to a number.
     Returns an integer if the string represents an integer, a floating
     point number if the string is a real number, or the string unchanged
     otherwise.
-    '''
+    """
     try:
         return int(text)
     except ValueError:
@@ -158,9 +158,9 @@ def to_num(text):
 
 
 def to_bool(text):
-    '''
+    """
     Convert the string name of a boolean to that boolean value.
-    '''
+    """
     downcased_text = six.text_type(text).strip().lower()
 
     if downcased_text == 'false':
@@ -171,17 +171,17 @@ def to_bool(text):
 
 
 def to_none(text):
-    '''
+    """
     Convert a string to None if the string is empty or contains only spaces.
-    '''
+    """
     return text if six.text_type(text).strip() else None
 
 
 def is_quoted(value):
-    '''
+    """
     Return a single or double quote, if a string is wrapped in extra quotes.
     Otherwise return an empty string.
-    '''
+    """
     ret = ''
     if (isinstance(value, six.string_types)
             and value[0] == value[-1]
@@ -192,16 +192,16 @@ def is_quoted(value):
 
 
 def dequote(value):
-    '''
+    """
     Remove extra quotes around a string.
-    '''
+    """
     return value[1:-1] if is_quoted(value) else value
 
 
 def is_hex(value):
-    '''
+    """
     Returns True if value is a hexidecimal string, otherwise returns False
-    '''
+    """
     try:
         int(value, 16)
         ret = True
@@ -212,9 +212,9 @@ def is_hex(value):
 
 
 def is_binary(data):
-    '''
+    """
     Detects if the passed string of data is binary or text
-    '''
+    """
     if not data or not isinstance(data, (six.string_types, six.binary_type)):
         return False
 
@@ -255,20 +255,20 @@ def random(size=32):
 
 
 def contains_whitespace(text):
-    '''
+    """
     Returns True if there are any whitespace characters in the string
-    '''
+    """
     return any(x.isspace() for x in text)
 
 
 def human_to_bytes(size):
-    '''
+    """
     Given a human-readable byte string (e.g. 2G, 30M),
     return the number of bytes.  Will return 0 if the argument has
     unexpected form.
 
     .. versionadded:: 2018.3.0
-    '''
+    """
     sbytes = size[:-1]
     unit = size[-1]
     if sbytes.isdigit():
@@ -289,7 +289,7 @@ def human_to_bytes(size):
 
 
 def build_whitespace_split_regex(text):
-    '''
+    """
     Create a regular expression at runtime which should match ignoring the
     addition or deletion of white space or line breaks, unless between commas
 
@@ -316,7 +316,7 @@ def build_whitespace_split_regex(text):
         <_sre.SRE_Match object at 0xb70639c0>
         >>>
 
-    '''
+    """
     def __build_parts(text):
         lexer = shlex.shlex(text)
         lexer.whitespace_split = True
@@ -335,7 +335,7 @@ def build_whitespace_split_regex(text):
 
 
 def expr_match(line, expr):
-    '''
+    """
     Checks whether or not the passed value matches the specified expression.
     Tries to match expr first as a glob using fnmatch.fnmatch(), and then tries
     to match expr as a regular expression. Originally designed to match minion
@@ -348,7 +348,7 @@ def expr_match(line, expr):
 
         >>> fnmatch.fnmatch('foo', 'foo')
         True
-    '''
+    """
     try:
         if fnmatch.fnmatch(line, expr):
             return True
@@ -363,7 +363,7 @@ def expr_match(line, expr):
 
 
 def check_whitelist_blacklist(value, whitelist=None, blacklist=None):
-    '''
+    """
     Check a whitelist and/or blacklist to see if the value matches it.
 
     value
@@ -383,7 +383,7 @@ def check_whitelist_blacklist(value, whitelist=None, blacklist=None):
     in the blacklist will be examined first. If the value is not found
     in the blacklist, then the whitelist is checked. If the value isn't
     found in the whitelist, the function returns ``False``.
-    '''
+    """
     # Normalize the input so that we have a list
     if blacklist:
         if isinstance(blacklist, six.string_types):
@@ -427,7 +427,7 @@ def check_whitelist_blacklist(value, whitelist=None, blacklist=None):
 
 
 def check_include_exclude(path_str, include_pat=None, exclude_pat=None):
-    '''
+    """
     Check for glob or regexp patterns for include_pat and exclude_pat in the
     'path_str' string and return True/False conditions as follows.
       - Default: return 'True' if no include_pat or exclude_pat patterns are
@@ -436,7 +436,7 @@ def check_include_exclude(path_str, include_pat=None, exclude_pat=None):
         passes the include_pat test or fails exclude_pat test respectively
       - If both include_pat and exclude_pat are supplied: return 'True' if
         include_pat matches AND exclude_pat does not match
-    '''
+    """
     def _pat_check(path_str, check_pat):
         if re.match('E@', check_pat):
             return True if re.search(
@@ -483,10 +483,10 @@ def check_include_exclude(path_str, include_pat=None, exclude_pat=None):
 
 
 def print_cli(msg, retries=10, step=0.01):
-    '''
+    """
     Wrapper around print() that suppresses tracebacks on broken pipes (i.e.
     when salt output is piped to less and less is stopped prematurely).
-    '''
+    """
     while retries:
         try:
             try:
@@ -510,11 +510,11 @@ def print_cli(msg, retries=10, step=0.01):
 
 
 def get_context(template, line, num_lines=5, marker=None):
-    '''
+    """
     Returns debugging context around a line in a given string
 
     Returns:: string
-    '''
+    """
     template_lines = template.splitlines()
     num_template_lines = len(template_lines)
 
@@ -545,11 +545,11 @@ def get_context(template, line, num_lines=5, marker=None):
 
 
 def get_diff(a, b, *args, **kwargs):
-    '''
+    """
     Perform diff on two iterables containing lines from two files, and return
     the diff as as string. Lines are normalized to str types to avoid issues
     with unicode on PY2.
-    '''
+    """
     encoding = ('utf-8', 'latin-1', 'ascii')
 
     # Late import to avoid circular import
