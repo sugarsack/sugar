@@ -26,7 +26,7 @@ def refresh_keys(pki_path: str) -> None:
     """
     log.info("Refreshing keys")
 
-    for key, key_pem in zip([PRIVATE_KEY_FILENAME, PUBLIC_KEY_FILENAME], Crypto().create_rsa_keypair()):
+    for key, key_pem in zip([PRIVATE_KEY_FILENAME, PUBLIC_KEY_FILENAME], Crypto.create_rsa_keypair()):
         key_path = os.path.join(pki_path, key)
         log.debug("Refreshing {} key as {}".format(key, key_path))
         try:
