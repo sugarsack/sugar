@@ -42,9 +42,11 @@ class KeyDB(object):
         :param path:
         :return:
         """
+        # pylint: disable=W0212
         instance = KeyDB._instance
         if instance is None:
             instance = KeyDB(path)._instance
+        # pylint: enable=W0212
 
         return instance
 
