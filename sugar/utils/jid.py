@@ -13,6 +13,7 @@ from sugar.utils.objects import Singleton
 
 # pylint: disable=C0103
 
+
 @Singleton
 class __JobID(object):
     """
@@ -76,7 +77,7 @@ class __JobID(object):
         :return:
         """
         jid = six.text_type(jid)
-        if len(jid) > 21  and jid[21] == '_':
+        if len(jid) > 21 and jid[21] == '_':
             ret = '{0}, {1} {2} {3}:{4}:{5}.{6}'.format(jid[:4], months[int(jid[4:6])], jid[6:8],
                                                         jid[8:10], jid[10:12], jid[12:14], jid[14:20])
         else:
