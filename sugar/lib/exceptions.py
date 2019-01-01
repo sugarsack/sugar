@@ -30,10 +30,8 @@ class SugarException(Exception):
 
         :return:
         """
-        return {
-            'message':  six.text_type(self) if six.PY3 else self.__unicode__(),
-            'args': self.args
-        }
+        return {'message': six.text_type(self) if six.PY3 else self.__unicode__(),
+                'args': self.args}
 
 
 # Runtime
