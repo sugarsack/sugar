@@ -1,4 +1,5 @@
 #!/bin/sh
 
 IGNORED="E501,F821,W503"
-flake8 --ignore=$IGNORED $@
+EXCLUDE="six*"
+flake8 --ignore=$IGNORED --exclude=$EXCLUDE $@
