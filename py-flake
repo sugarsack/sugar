@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+from __future__ import absolute_import, print_function, unicode_literals
+import sys
+import subprocess
+import colored
+
+IGNORED = [
+    "E501", "F821" , "W503"
+]
+
+EXCLUDE = [
+    "six*", "compat*", "schemelib*"
+]
+
+def run_flake():
+    """
+    Run Flake8 and colorify output.
+    """
+    cmd = ["flake8", '--ignore', ",".join(IGNORED), '--exclude', ",".join(EXCLUDE), "sugar/"]
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    st_out, st_err = process.communicate()
+    st_out = st_out.decode("utf-8").strip()
+
+    if not st_out:
+        print("{g}No {gg}PEP8 {g}errors has been found. G'job!{r}".format(g=colored.fg("light_green"),
+                                                                          gg=colored.fg("light_yellow"),
+                                                                          r=colored.attr("reset")))
+    else:
+        errors = st_out.split("\n")
+        print("{cc}Sorry, {n} PEP8 errors has been found:{r}".format(n=len(errors),
+                                                                     cc=colored.fg("light_cyan"),
+                                                                     r=colored.attr("reset")))
+        for line in errors:
+            filename, error = line.split(" ", 1)
+            print("  {o}{f}  {oo}{e}{r}".format(o=colored.fg("yellow"),
+                                                f=filename, oo=colored.fg("light_red"),
+                                                e=error, r=colored.attr("reset")))
+    sys.exit(process.returncode)
+
+if __name__ == "__main__":
+    run_flake()
+

@@ -138,7 +138,7 @@ def copyfile(source, dest, cachedir=''):
     if cachedir:
         bkroot = os.path.join(cachedir, 'file_backup')
 
-    if bkroot and  os.path.exists(dest):
+    if bkroot and os.path.exists(dest):
         backup_client(dest, bkroot)
 
     # Get current file stats to they can be replicated after the new file is
@@ -166,6 +166,7 @@ def copyfile(source, dest, cachedir=''):
         # The temp file failed to move
         __clean_tmp(tgt)
 
+
 #
 # UNUSED @@@
 #
@@ -187,6 +188,7 @@ def rename(src, dst):
                 raise sugar.lib.exceptions.SugarException('Error: Unable to remove {0}: {1}'.format(dst, exc.strerror))
 
         os.rename(src, dst)
+
 
 #
 # UNUSED @@@
@@ -339,8 +341,8 @@ def fopen(*args, **kwargs):
             pass
     binary = None
     # ensure 'binary' mode is always used on Windows in Python 2
-    if ((six.PY2 and sugar.utils.platform.is_windows() and 'binary' not in kwargs) or
-            kwargs.pop('binary', False)):
+    if ((six.PY2 and sugar.utils.platform.is_windows() and 'binary' not in kwargs)
+            or kwargs.pop('binary', False)):
         if len(args) > 1:
             args = list(args)
             if 'b' not in args[1]:
@@ -587,8 +589,7 @@ def is_text(fp_, blocksize=512):
     """
     int2byte = (lambda x: bytes((x,))) if six.PY3 else chr
     text_characters = (
-        b''.join(int2byte(i) for i in range(32, 127)) +
-        b'\n\r\t\f\b')
+        b''.join(int2byte(i) for i in range(32, 127)) + b'\n\r\t\f\b')
     try:
         block = fp_.read(blocksize)
     except AttributeError:
