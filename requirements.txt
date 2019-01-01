@@ -1,6 +1,7 @@
 service_identity
 #pycryptodome
 observable
+pytest-cov
 pycrypto
 autobahn
 rstcheck

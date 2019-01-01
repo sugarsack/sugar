@@ -39,6 +39,12 @@ jobs:
             . venv/bin/activate
             pytest tests/unit/
 
+      - run:
+          name: Test Coverage Report (info only)
+          command: |
+            . venv/bin/activate
+            py.test --cov=sugar tests/
+
       #- store_artifacts:
       #    path: test-reports
       #    destination: test-reports
