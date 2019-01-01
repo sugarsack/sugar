@@ -83,10 +83,11 @@ class SchemeBuilder(object):
 
         return Schema(target)
 
-#pylint: disable=C0103
+
+# pylint: disable=C0103
 # Client configuration scheme
 client_scheme = SchemeBuilder().get_client_scheme()
 
 # Master configuration scheme
 master_scheme = SchemeBuilder().get_master_scheme()
-#pylint: enable=C0103
+# pylint: enable=C0103
