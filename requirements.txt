@@ -9,6 +9,7 @@ colored
 twisted
 pyyaml
 pylint
+flake8
 pytest
 partd
 mock
