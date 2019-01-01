@@ -138,7 +138,7 @@ def copyfile(source, dest, cachedir=''):
     if cachedir:
         bkroot = os.path.join(cachedir, 'file_backup')
 
-    if bkroot and  os.path.exists(dest):
+    if bkroot and os.path.exists(dest):
         backup_client(dest, bkroot)
 
     # Get current file stats to they can be replicated after the new file is
