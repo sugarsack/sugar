@@ -18,5 +18,5 @@ def gen_id():
 
     :return:
     """
-    bin_data = b'%s %s' %(stringutils.to_bytes(six.text_type(time.time())), os.urandom(0xff))
+    bin_data = b'%s %s' % (stringutils.to_bytes(six.text_type(time.time())), os.urandom(0xff))
     return hashlib.sha256(bin_data).hexdigest()
