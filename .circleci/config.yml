@@ -37,7 +37,7 @@ jobs:
           name: PEP8 code style checks
           command: |
             . venv/bin/activate
-            ./py-flake sugar/
+            ./py-flake
 
       - run:
           name: Unit Tests
