@@ -166,6 +166,7 @@ def copyfile(source, dest, cachedir=''):
         # The temp file failed to move
         __clean_tmp(tgt)
 
+
 #
 # UNUSED @@@
 #
@@ -187,6 +188,7 @@ def rename(src, dst):
                 raise sugar.lib.exceptions.SugarException('Error: Unable to remove {0}: {1}'.format(dst, exc.strerror))
 
         os.rename(src, dst)
+
 
 #
 # UNUSED @@@
@@ -339,8 +341,8 @@ def fopen(*args, **kwargs):
             pass
     binary = None
     # ensure 'binary' mode is always used on Windows in Python 2
-    if ((six.PY2 and sugar.utils.platform.is_windows() and 'binary' not in kwargs) or
-            kwargs.pop('binary', False)):
+    if ((six.PY2 and sugar.utils.platform.is_windows() and 'binary' not in kwargs)
+            or kwargs.pop('binary', False)):
         if len(args) > 1:
             args = list(args)
             if 'b' not in args[1]:
