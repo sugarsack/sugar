@@ -587,8 +587,7 @@ def is_text(fp_, blocksize=512):
     """
     int2byte = (lambda x: bytes((x,))) if six.PY3 else chr
     text_characters = (
-        b''.join(int2byte(i) for i in range(32, 127)) +
-        b'\n\r\t\f\b')
+        b''.join(int2byte(i) for i in range(32, 127)) + b'\n\r\t\f\b')
     try:
         block = fp_.read(blocksize)
     except AttributeError:
