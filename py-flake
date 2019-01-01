@@ -1,0 +1,4 @@
+#!/bin/sh
+
+IGNORED="E501,F821,W503"
+flake8 --ignore=$IGNORED $@

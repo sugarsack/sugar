@@ -34,6 +34,12 @@ jobs:
             ./py-lint --disable=R0401 sugar/
 
       - run:
+          name: PEP8 code style checks
+          command: |
+            . venv/bin/activate
+            ./py-flake sugar/
+
+      - run:
           name: Unit Tests
           command: |
             . venv/bin/activate
