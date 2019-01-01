@@ -12,7 +12,7 @@ import sys
 from twisted.internet import reactor, ssl
 from autobahn.twisted.websocket import connectWS
 
-from sugar.components.console.protocols import SugarConsoleProtocol, SugarClientFactory
+from sugar.components.console.protocols import SugarClientFactory
 from sugar.transport import ConsoleMsgFactory
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
@@ -115,6 +115,7 @@ class SugarConsole(object):
 
         url = 'wss://{h}:{p}'.format(h='localhost', p=5507)
 
+        self.log = get_logger(self)
         self.log.debug('Socket ')
         self.factory = SugarClientFactory(url)
         self.factory.console = SugarConsoleCore(args)
