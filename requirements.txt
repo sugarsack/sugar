@@ -1,10 +1,12 @@
 service_identity
 #pycryptodome
 observable
+pycrypto
 autobahn
 rstcheck
 colored
 twisted
+pyyaml
 pylint
 pytest
 partd
