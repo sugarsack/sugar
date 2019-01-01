@@ -1,5 +1,5 @@
 #!/bin/sh
 
 IGNORED="E501,F821,W503"
-EXCLUDE="six*"
+EXCLUDE="six*,compat*"
 flake8 --ignore=$IGNORED --exclude=$EXCLUDE $@
