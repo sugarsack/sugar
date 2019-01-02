@@ -60,14 +60,16 @@ class SchemeBuilder(object):
     def get_master_scheme(self):
         """
         Get master configuration scheme.
-        :return:
+
+        :return: Schema object
         """
         return self.__merge_scheme(self.__master_scheme)
 
     def get_client_scheme(self):
         """
         Get client configuration scheme
-        :return:
+
+        :return: Schema object
         """
         return self.__merge_scheme(self.__client_scheme)
 
@@ -76,7 +78,7 @@ class SchemeBuilder(object):
         Merge target scheme.
 
         :param target:
-        :return:
+        :return: Schema object
         """
         target = copy.deepcopy(target)
         merge_dicts(target, self.__common_scheme)
