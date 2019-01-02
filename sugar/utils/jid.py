@@ -26,6 +26,8 @@ class __JobID(object):
     def create(self):
         """
         Generate a Job ID (jid)
+
+        :return: String of JID
         """
 
         jid_dt = datetime.datetime.now()
@@ -40,8 +42,8 @@ class __JobID(object):
         """
         Returns True if the passed in value is a job id.
 
-        :param jid:
-        :return:
+        :param jid: string of a JID
+        :return: bool
         """
         ret = False
         jid = six.text_type(jid)
@@ -58,8 +60,8 @@ class __JobID(object):
         """
         Get PID from Jid.
 
-        :param jid:
-        :return:
+        :param jid: string of a JID
+        :return: PID
         """
         if self.is_jid(jid):
             pid = int(jid.split('_', 1)[-1])
@@ -73,8 +75,8 @@ class __JobID(object):
         """
         Convert a Sugar Job ID into the time when the job was invoked.
 
-        :param jid:
-        :return:
+        :param jid: JID
+        :return: parsed time or an empty string
         """
         jid = six.text_type(jid)
         if len(jid) > 21 and jid[21] == '_':
