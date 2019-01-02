@@ -19,7 +19,6 @@ class SugarClient(object):
     def __init__(self):
         """
         Init
-        :param url:
         """
         self.config = get_config()
         self.log = get_logger(__name__)
@@ -41,7 +40,8 @@ class SugarClient(object):
     def run(self):
         """
         Run client.
-        :return:
+
+        :return: None
         """
         self.factory.core.set_reactor_connection(connectWS(self.factory, ssl.ClientContextFactory()))
         reactor.run()  # pylint: disable=E1101
