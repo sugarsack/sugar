@@ -74,7 +74,7 @@ class PEP287Checker(checkers.BaseChecker):
         :param line:
         :return:
         """
-        return self._cleanup_spaces(line).split(":return:")[-1]
+        return self._cleanup_spaces(line).split(":return")[-1]
 
     def _get_doc_params(self, doc):
         """
@@ -91,7 +91,7 @@ class PEP287Checker(checkers.BaseChecker):
             if line.startswith(":param "):
                 arg, doc = self._parse_param(line)
                 params[arg] = doc
-            if line.startswith(":return:"):
+            if line.startswith(":return"):
                 params["return"] = self._parse_return(line)
 
         return params
@@ -109,7 +109,7 @@ class PEP287Checker(checkers.BaseChecker):
         if n_args.vararg:
             signature_names.append(n_args.vararg)
 
-        if n_args.vararg and not n_args.vararg not in d_pars:
+        if n_args.vararg and n_args.vararg not in d_pars:
             self.add_message("PEP287-no-varargs", node=node, args=(node.name,))
 
         # kwarg
