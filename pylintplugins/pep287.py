@@ -122,7 +122,7 @@ class PEP287Checker(checkers.BaseChecker):
         # other arguments
         for idx, arg in enumerate(n_args.args):
             signature_names.append(arg.name)
-            if idx == 0 and arg.name in ["cls", "self"]:
+            if idx == 0 and arg.name in ["cls", "self"] or arg.name.startswith("_"):
                 continue
             if arg.name not in d_pars:
                 self.add_message("PEP287-doc-missing-param", node=node, args=(arg.name, node.name))
@@ -146,8 +146,8 @@ class PEP287Checker(checkers.BaseChecker):
         Check if docstring always starts and ends from/by triple double-quotes
         and they are on the new line.
         """
-        if not node.name.startswith("_"):
-            self._compare_signature(node, self._get_doc_params(node.doc or ''), node.args)
+        if not node.name.startswith("_") and node.doc:
+            self._compare_signature(node, self._get_doc_params(node.doc), node.args)
 
 
 def register(linter):
