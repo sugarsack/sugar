@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Daemons
+Daemons.
 """
 
 # Import python libs
@@ -35,6 +35,9 @@ except ImportError:
 def appendproctitle(name):
     """
     Append 'name' to the current process title
+
+    :param name: name of the title
+    :return: None
     """
     if HAS_SETPROCTITLE:
         setproctitle.setproctitle(setproctitle.getproctitle() + ' ' + name)
@@ -44,8 +47,8 @@ def systemd_notify_call(action):
     """
     Notify call to the systemd.
 
-    :param action:
-    :return:
+    :param action: string
+    :return: bool
     """
     process = subprocess.Popen(['systemd-notify', action], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     process.communicate()
@@ -121,6 +124,11 @@ class SignalHandlingMultiprocessingProcess(MultiprocessingProcess):
         sys.exit(sugar.utils.exitcodes.EX_OK)
 
     def start(self):
+        """
+        Start process.
+
+        :return: None
+        """
         with default_signals(signal.SIGINT, signal.SIGTERM):
             super(SignalHandlingMultiprocessingProcess, self).start()
 
@@ -131,7 +139,7 @@ def default_signals(*signals):
     Set default signals.
 
     :param signals:
-    :return:
+    :return: signal
     """
     old_signals = {}
     for signum in signals:
