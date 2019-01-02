@@ -104,16 +104,22 @@ class PEP287Checker(checkers.BaseChecker):
         :param n_args: Node arguments.
         :return:
         """
+        signature_names = []
         # Varargs
+        if n_args.vararg:
+            signature_names.append(n_args.vararg)
+
         if n_args.vararg and not n_args.vararg not in d_pars:
             self.add_message("PEP287-no-varargs", node=node, args=(node.name,))
 
         # kwarg
+        if n_args.kwarg:
+            signature_names.append(n_args.kwarg)
+
         if n_args.kwarg and n_args.kwarg not in d_pars:
             self.add_message("PEP287-no-kwargs", node=node, args=(node.name,))
 
         # other arguments
-        signature_names = []
         for idx, arg in enumerate(n_args.args):
             signature_names.append(arg.name)
             if idx == 0 and arg.name in ["cls", "self"]:
