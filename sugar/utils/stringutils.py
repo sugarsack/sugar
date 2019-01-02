@@ -27,6 +27,11 @@ def to_bytes(data, encoding=None, errors='strict'):
     """
     Given bytes, bytearray, str, or unicode (python 2),
     return bytes (str for python 2)
+
+    :param data: data to be converted
+    :param encoding: pass default encoding
+    :param errors: type of the errors, default "strict"
+    :return: bytes
     """
     if encoding is None:
         # Try utf-8 first, and fall back to detected encoding
@@ -64,6 +69,12 @@ def to_bytes(data, encoding=None, errors='strict'):
 def to_str(str_data, encoding=None, errors='strict', normalize=False):
     """
     Given str, bytes, bytearray, or unicode (py2), return str
+
+    :param str_data: data to be converted
+    :param encoding: specify encoding
+    :param errors: specify errors to be processed. Default "strict".
+    :param normalize: bool
+    :return: String data
     """
     def _normalize(val):
         try:
@@ -112,6 +123,12 @@ def to_str(str_data, encoding=None, errors='strict', normalize=False):
 def to_unicode(str_data, encoding=None, errors='strict', normalize=False):
     """
     Given str or unicode, return unicode (str for python 3)
+
+    :param str_data: data to be converted.
+    :param encoding: specify encoding to decode from.
+    :param errors: errors to be processed while encoding to the unicode. Default "strict"
+    :param normalize: bool
+    :return: Unicode string
     """
     def _normalize(val):
         return unicodedata.normalize('NFC', val) if normalize else val
@@ -154,6 +171,9 @@ def to_num(text):
     Returns an integer if the string represents an integer, a floating
     point number if the string is a real number, or the string unchanged
     otherwise.
+
+    :param text: data to be converted
+    :return: an integer
     """
     try:
         return int(text)
@@ -165,24 +185,26 @@ def to_num(text):
 # pylint: enable=R0911,R1705
 
 
-# pylint: disable=R0911,R1705
 def to_bool(text):
     """
     Convert the string name of a boolean to that boolean value.
-    """
-    downcased_text = six.text_type(text).strip().lower()
 
-    if downcased_text == 'false':
-        return False
-    elif downcased_text == 'true':
-        return True
-    return text
-# pylint: enable=R0911,R1705
+    :param text: text to be converted
+    :return: bool
+    """
+    val = six.text_type(text).strip().lower()
+    if val not in ["true", "false"]:
+        raise TypeError("{} does not looks like a boolean")
+
+    return val == "true"
 
 
 def to_none(text):
     """
     Convert a string to None if the string is empty or contains only spaces.
+
+    :param text: text to be converted
+    :return: string or None
     """
     return text if six.text_type(text).strip() else None
 
@@ -191,6 +213,9 @@ def is_quoted(value):
     """
     Return a single or double quote, if a string is wrapped in extra quotes.
     Otherwise return an empty string.
+
+    :param value: data
+    :return: string
     """
     ret = ''
     if (isinstance(value, six.string_types)
@@ -204,6 +229,9 @@ def is_quoted(value):
 def dequote(value):
     """
     Remove extra quotes around a string.
+
+    :param value: data
+    :return: string
     """
     return value[1:-1] if is_quoted(value) else value
 
@@ -211,6 +239,9 @@ def dequote(value):
 def is_hex(value):
     """
     Returns True if value is a hexidecimal string, otherwise returns False
+
+    :param value: data
+    :return: bool
     """
     try:
         int(value, 16)
@@ -225,6 +256,9 @@ def is_hex(value):
 def is_binary(data):
     """
     Detects if the passed string of data is binary or text
+
+    :param data: data
+    :return: bool
     """
     if not data or not isinstance(data, (six.string_types, six.binary_type)):
         return False
@@ -265,8 +299,8 @@ def random(size=32):
     """
     Get random unicode data.
 
-    :param size:
-    :return:
+    :param size: int, default 32
+    :return: string
     """
     key = os.urandom(size)
     return to_unicode(base64.b64encode(key).replace(b'\n', b'')[:size])
@@ -275,6 +309,9 @@ def random(size=32):
 def contains_whitespace(text):
     """
     Returns True if there are any whitespace characters in the string
+
+    :param text: data to work with
+    :return: bool
     """
     return any(x.isspace() for x in text)
 
@@ -285,7 +322,8 @@ def human_to_bytes(size):
     return the number of bytes.  Will return 0 if the argument has
     unexpected form.
 
-    .. versionadded:: 2018.3.0
+    :param size: human-readable byte string
+    :return: 0 or number of bytes
     """
     sbytes = size[:-1]
     unit = size[-1]
@@ -335,6 +373,8 @@ def build_whitespace_split_regex(text):
         <_sre.SRE_Match object at 0xb70639c0>
         >>>
 
+    :param text: text to work with
+    :return: string regex
     """
     def __build_parts(text):
         lexer = shlex.shlex(text)
@@ -365,10 +405,14 @@ def expr_match(line, expr):
     Note that this also does exact matches, as fnmatch.fnmatch() will return
     ``True`` when no glob characters are used and the string is an exact match:
 
-    .. code-block:: python
+.. code-block:: python
 
-        >>> fnmatch.fnmatch('foo', 'foo')
-        True
+    >>> fnmatch.fnmatch('foo', 'foo')
+    True
+
+    :param line: line of text
+    :param expr: expression
+    :return bool
     """
     try:
         if fnmatch.fnmatch(line, expr):
@@ -389,23 +433,19 @@ def check_whitelist_blacklist(value, whitelist=None, blacklist=None):
     """
     Check a whitelist and/or blacklist to see if the value matches it.
 
-    value
-        The item to check the whitelist and/or blacklist against.
-
-    whitelist
-        The list of items that are white-listed. If ``value`` is found
-        in the whitelist, then the function returns ``True``. Otherwise,
-        it returns ``False``.
-
-    blacklist
-        The list of items that are black-listed. If ``value`` is found
-        in the blacklist, then the function returns ``False``. Otherwise,
-        it returns ``True``.
-
     If both a whitelist and a blacklist are provided, value membership
     in the blacklist will be examined first. If the value is not found
     in the blacklist, then the whitelist is checked. If the value isn't
     found in the whitelist, the function returns ``False``.
+
+    :param value: The item to check the whitelist and/or blacklist against.
+    :param whitelist: The list of items that are white-listed. If ``value`` is found
+                      in the whitelist, then the function returns ``True``. Otherwise,
+                      it returns ``False``.
+    :param blacklist: The list of items that are black-listed. If ``value`` is found
+                      in the blacklist, then the function returns ``False``. Otherwise,
+                      it returns ``True``.
+    :return: bool
     """
     # Normalize the input so that we have a list
     if blacklist:
@@ -461,6 +501,11 @@ def check_include_exclude(path_str, include_pat=None, exclude_pat=None):
         passes the include_pat test or fails exclude_pat test respectively
       - If both include_pat and exclude_pat are supplied: return 'True' if
         include_pat matches AND exclude_pat does not match
+
+    :param path_str: path string
+    :param include_pat: include pattern
+    :param exclude_pat: exclude pattern
+    :return: bool
     """
     def _pat_check(path_str, check_pat):
         if re.match('E@', check_pat):
@@ -506,6 +551,11 @@ def print_cli(msg, retries=10, step=0.01):
     """
     Wrapper around print() that suppresses tracebacks on broken pipes (i.e.
     when salt output is piped to less and less is stopped prematurely).
+
+    :param msg: message to print
+    :param retries: number retries
+    :param step: step
+    :return: None
     """
     while retries:
         try:
@@ -529,7 +579,11 @@ def get_context(template, line, num_lines=5, marker=None):
     """
     Returns debugging context around a line in a given string
 
-    Returns:: string
+    :param template: template to get from
+    :param line: line of text
+    :param num_lines: number of context lines
+    :param marker: debug marker
+    :return: str
     """
     template_lines = template.splitlines()
     num_template_lines = len(template_lines)
@@ -565,6 +619,12 @@ def get_diff(first, second, *args, **kwargs):
     Perform diff on two iterables containing lines from two files, and return
     the diff as as string. Lines are normalized to str types to avoid issues
     with unicode on PY2.
+
+    :param first: string data of first version
+    :param second: string data of second version
+    :param args: arguments to unified diff library
+    :param kwargs: keyword arguments to unified diff library
+    :return: str
     """
     encoding = ('utf-8', 'latin-1', 'ascii')
 
