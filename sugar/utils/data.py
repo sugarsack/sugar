@@ -37,6 +37,10 @@ def compare_dicts(old=None, new=None):
     """
     Compare before and after results from various salt functions, returning a
     dict describing the changes that were made.
+
+    :param old: old dict
+    :param new: new dict
+    :return: dict
     """
     ret = {}
     for key in set((new or {})).union((old or {})):
@@ -59,6 +63,10 @@ def compare_lists(old=None, new=None):
     """
     Compare before and after results from various salt functions, returning a
     dict describing the changes that were made
+
+    :param old: list, default None
+    :param new: list, default None
+    :return: dictionary
     """
     ret = dict()
     for item in new:
@@ -99,6 +107,16 @@ def decode(data, encoding=None, errors='strict', keep=False,
     two strings above, in which "й" is represented as two code points (i.e. one
     for the base character, and one for the breve mark). Normalizing allows for
     a more reliable test case.
+
+    :param data: data to work with
+    :param encoding: default encoding
+    :param errors: errors to process with
+    :param keep: bool
+    :param normalize: bool
+    :param preserve_dict_class: bool
+    :param preserve_tuples: bool
+    :param to_str: bool
+    :return: decoded data
     """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     if isinstance(data, Mapping):
@@ -131,6 +149,16 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
     """
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
+
+    :param data: data to work with
+    :param encoding: default encoding
+    :param errors: errors to process with
+    :param keep: bool
+    :param normalize: bool
+    :param preserve_dict_class: bool
+    :param preserve_tuples: bool
+    :param to_str: bool
+    :return: decoded data
     """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     # Make sure we preserve OrderedDicts
@@ -185,6 +213,16 @@ def decode_list(data, encoding=None, errors='strict', keep=False,
     """
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
+
+    :param data: data to work with
+    :param encoding: default encoding
+    :param errors: errors to process with
+    :param keep: bool
+    :param normalize: bool
+    :param preserve_dict_class: bool
+    :param preserve_tuples: bool
+    :param to_str: bool
+    :return: decoded data
     """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
     ret = []
@@ -221,6 +259,15 @@ def decode_tuple(data, encoding=None, errors='strict', keep=False,
     """
     Decode all string values to Unicode. Optionally use to_str=True to ensure
     strings are str types and not unicode on Python 2.
+
+    :param data: data to work with
+    :param encoding: default encoding
+    :param errors: errors to process with
+    :param keep: bool
+    :param normalize: bool
+    :param preserve_dict_class: bool
+    :param to_str: bool
+    :return: decoded data
     """
     return tuple(
         decode_list(data, encoding, errors, keep, normalize,
@@ -239,6 +286,14 @@ def encode(data, encoding=None, errors='strict', keep=False,
     original value to silently be returned in cases where encoding fails. This
     can be useful for cases where the data passed to this function is likely to
     contain binary blobs.
+
+    :param data: data to work with
+    :param encoding: default encoding
+    :param errors: errors to process with
+    :param keep: bool
+    :param preserve_dict_class: bool
+    :param preserve_tuples: bool
+    :return: encoded data
     """
     if isinstance(data, Mapping):
         return encode_dict(data, encoding, errors, keep,
@@ -269,6 +324,14 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
                 preserve_dict_class=False, preserve_tuples=False):
     """
     Encode all string values to bytes
+
+    :param data: data to work with
+    :param encoding: default encoding
+    :param errors: errors to process with
+    :param keep: bool
+    :param preserve_dict_class: bool
+    :param preserve_tuples: bool
+    :return: encoded data
     """
     ret = data.__class__() if preserve_dict_class else {}
     for key, value in six.iteritems(data):
@@ -319,6 +382,14 @@ def encode_list(data, encoding=None, errors='strict', keep=False,
                 preserve_dict_class=False, preserve_tuples=False):
     """
     Encode all string values to bytes
+
+    :param data: data to work with
+    :param encoding: default encoding
+    :param errors: errors to process with
+    :param keep: bool
+    :param preserve_dict_class: bool
+    :param preserve_tuples: bool
+    :return: encoded list
     """
     ret = []
     for item in data:
@@ -349,6 +420,13 @@ def encode_tuple(data, encoding=None, errors='strict', keep=False,
                  preserve_dict_class=False):
     """
     Encode all string values to Unicode
+
+    :param data: data to work with
+    :param encoding: default encoding
+    :param errors: errors to process with
+    :param keep: bool
+    :param preserve_dict_class: bool
+    :return: encoded tuple
     """
     return tuple(
         encode_list(data, encoding, errors, keep, preserve_dict_class, True))
@@ -356,8 +434,12 @@ def encode_tuple(data, encoding=None, errors='strict', keep=False,
 
 def exactly_n(lst, num=1):
     """
-    Tests that exactly N items in an iterable are "truthy" (neither None,
-    False, nor 0).
+    Tests that exactly N items in an iterable are "truthy"
+    (neither None, False, nor 0).
+
+    :param lst: iterable (list)
+    :param num: truth number
+    :return: bool
     """
     idx = iter(lst)
     return all(any(idx) for _ in range(num)) and not any(idx)
@@ -366,6 +448,9 @@ def exactly_n(lst, num=1):
 def exactly_one(lst):
     """
     Check if only one item is not None, False, or 0 in an iterable.
+
+    :param lst: list
+    :returns: bool
     """
     return exactly_n(lst)
 
@@ -431,6 +516,12 @@ def traverse_dict(data, key, default=None, delimiter=DEFAULT_TARGET_DELIMETER):
     'delimiter' param) target string. The target 'foo:bar:baz' will return
     data['foo']['bar']['baz'] if this value exists, and will otherwise return
     the dict in the default argument.
+
+    :param data: dictionary data
+    :param key: key to traverse of
+    :param default: default is None
+    :param delimiter: path delimeter, detault is DEFAULT_TARGET_DELIMETER (":")
+    :return: pointer to the data
     """
     ptr = data
     try:
@@ -454,6 +545,12 @@ def traverse_dict_and_list(data, key, default=None, delimiter=DEFAULT_TARGET_DEL
     The target 'foo:bar:0' will return data['foo']['bar'][0] if data like
     {'foo':{'bar':['baz']}} , if data like {'foo':{'bar':{'0':'baz'}}}
     then return data['foo']['bar']['0']
+
+    :param data: dictionary or list data
+    :param key: key to traverse of
+    :param default: default is None
+    :param delimiter: path delimeter, detault is DEFAULT_TARGET_DELIMETER (":")
+    :return: pointer to the data
     """
     ptr = data
     for each in key.split(delimiter):
@@ -496,6 +593,13 @@ def subdict_match(data, expr, delimiter=DEFAULT_TARGET_DELIMETER,
     matched. Thus, 'foo:bar:baz' will match data['foo'] == 'bar:baz' and
     data['foo']['bar'] == 'baz'. The latter would take priority over the
     former, as more deeply-nested matches are tried first.
+
+    :param data: data to work with
+    :param expr: expression to match
+    :param delimiter: path delimeter
+    :param regex_match: bool
+    :param exact_match: bool
+    :return: bool
     """
     def _match(target, pattern, regex_match=False, exact_match=False):
         # The reason for using six.text_type first and _then_ using
@@ -626,6 +730,10 @@ def substr_in_list(string_to_search_for, list_to_search):
     """
     Return a boolean value that indicates whether or not a given
     string is present in any of the strings which comprise a list
+
+    :param string_to_search_for: string to search
+    :param list_to_search: list to search
+    :return: str
     """
     return any(string_to_search_for in s for s in list_to_search)
 
@@ -634,6 +742,9 @@ def is_dictlist(data):
     """
     Returns True if data is a list of one-element dicts (as found in many SLS
     schemas), otherwise returns False
+
+    :param data: data to check
+    :return: bool
     """
 
     is_one_element = False
@@ -722,6 +833,9 @@ def is_dictlist(data):
 def is_list(value):
     """
     Check if a variable is a list.
+
+    :param value: object
+    :returns: bool
     """
     return isinstance(value, list)
 
@@ -738,8 +852,11 @@ def is_iter(data, ignore=six.string_types):
     dictionaries or named tuples.
 
     Based on https://bitbucket.org/petershinners/yter
-    """
 
+    :param data: iterable
+    :param ignore: types to ignore
+    :return: bool
+    """
     if ignore and isinstance(data, ignore):
         ret = False
     else:
@@ -762,6 +879,9 @@ def sorted_ignorecase(to_sort):
     >>> sorted(L, key=lambda x: x.lower())
     ['bar', 'Bar', 'foo', 'Foo']
     >>>
+
+    :param to_sort: iterable
+    :returns: sorted data
     """
     return sorted(to_sort, key=lambda x: x.lower())
 
@@ -774,6 +894,9 @@ def is_true(value=None):
         1. Integer/float values greater than 0
         2. The string values "True" and "true"
         3. Any object for which bool(obj) returns True
+
+    :param value: some value
+    :returns: bool
     """
     # First, try int/float conversion
     try:
@@ -799,6 +922,9 @@ def simple_types_filter(data):
     """
     Convert the data list, dictionary into simple types, i.e., int, float, string,
     bool, etc.
+
+    :param data: list or dict
+    :returns: simple types: int, float, string
     """
     simpletypes_keys = (six.string_types, six.text_type, six.integer_types, float, bool)
     simpletypes_values = tuple(list(simpletypes_keys) + [list, tuple])
@@ -833,6 +959,9 @@ def stringify(data):
     """
     Given an iterable, returns its items as a list, with any non-string items
     converted to unicode strings.
+
+    :param data: iterable data
+    :returns: list of stringified data
     """
     ret = []
     for item in data:
@@ -847,9 +976,15 @@ def stringify(data):
 def json_query(data, expr):
     """
     Query data using JMESPath language (http://jmespath.org).
+
+    :param data: JSON query
+    :param expr: expression
+    :raises: RuntimeError
+    :returns: search result
     """
     if jmespath is None:
         err = 'json_query requires jmespath module installed'
         log.error(err)
         raise RuntimeError(err)
+
     return jmespath.search(expr, data)
