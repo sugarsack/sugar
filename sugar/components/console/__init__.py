@@ -125,6 +125,7 @@ class SugarConsole(object):
     def run(self):
         """
         Run client.
+
         :return:
         """
         connectWS(self.factory, ssl.ClientContextFactory())

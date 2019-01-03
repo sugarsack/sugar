@@ -56,10 +56,11 @@ class SugarClientFactory(WebSocketClientFactory, ClientFactory):
 
     def clientConnectionFailed(self, connector, reason):
         """
+        Client connection failed trigger.
 
-        :param connector:
-        :param reason:
-        :return:
+        :param connector: Connection peer
+        :param reason: failure reason
+        :return: None
         """
         self.log.error('Cannot connect console. Is Master running?')
         self.reactor.stop()
