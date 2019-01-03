@@ -44,6 +44,13 @@ class PEP287Checker(checkers.BaseChecker):
         "E8017": (
             "Parameter '%s' is mentioned in the docstring, but is not in the function signature ('%s')",
             "PEP287-excessive-param", "Please document this parameter"),
+        "E8018": (
+            "Docstring of '%s' does not contain main explanation.",
+            "PEP287-main-explanation-missing", "Please document this function what it does"),
+        "E8019": (
+            "One line expected between main explanation and parameters block in '%s'",
+            "PEP287-line-after-main-explanation",
+            "Before :param or :return one line is needed after the main explanation"),
     }
 
     def _cleanup_spaces(self, data):
@@ -96,6 +103,28 @@ class PEP287Checker(checkers.BaseChecker):
 
         return params
 
+    def _check_explanation_block(self, node):
+        """
+        Docstring should contain explanation block.
+
+        :param node:
+        :return:
+        """
+        docmap = []
+        for line in node.doc.strip().split(os.linesep):
+            line = line.strip()
+            if not line:
+                docmap.append("-")
+            elif line.startswith(":") and line.split(" ", 1)[0].strip(":") in ["return", "param", "raises"]:  # add all?
+                docmap.append(":")
+            else:
+                docmap.append("#")
+        docmap = ''.join(docmap)
+        if "#:" in docmap or "--#" in docmap:
+            self.add_message("PEP287-line-after-main-explanation", node=node, args=(node.name,))
+        elif "#" not in docmap:
+            self.add_message("PEP287-main-explanation-missing", node=node, args=(node.name,))
+
     def _compare_signature(self, node, d_pars, n_args):
         """
         Find out what is missing.
@@ -147,6 +176,7 @@ class PEP287Checker(checkers.BaseChecker):
         and they are on the new line.
         """
         if not node.name.startswith("_") and node.doc:
+            self._check_explanation_block(node)
             self._compare_signature(node, self._get_doc_params(node.doc), node.args)
 
 
