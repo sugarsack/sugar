@@ -12,7 +12,7 @@ def get_trait_func(name):
     """
     Get function trait by platform name.
 
-    :param name:
-    :return:
+    :param name: Name of the function
+    :return: instance of the function (needs to be still executed)
     """
     return getattr(importlib.import_module("sugar.lib.traits.platforms.{}".format(platform.system().lower())), name)

@@ -22,7 +22,8 @@ def refresh_keys(pki_path: str) -> None:
     """
     Refresh keys on the disk. If key do not exist, create new.
 
-    :return:
+    :param pki_path: path to the pki database
+    :return: None
     """
     log.info("Refreshing keys")
 
@@ -45,7 +46,9 @@ def refresh_keys(pki_path: str) -> None:
 def check_keys(pki_path: str) -> bool:
     """
     Check if keypair is there and master is registered.
-    :return:
+
+    :param pki_path: path to the pki
+    :return: bool
     """
     log.info("Checking keys in PKI: {}".format(pki_path))
     incomplete_keys = 0
@@ -64,7 +67,8 @@ def get_public_key(pki_path: str) -> str:
     """
     Get current public key.
 
-    :return:
+    :param pki_path: path to the pki
+    :return: PEM body of the public key
     """
     with open(os.path.join(pki_path, PUBLIC_KEY_FILENAME), "r") as pki_fh:
         public_pem = sugar.utils.stringutils.to_str(pki_fh.read())

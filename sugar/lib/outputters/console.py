@@ -67,14 +67,14 @@ class _BaseOutput(object):
     def _get_color_scheme(self):
         """
         Get color scheme
-        :return:
+        :return: Colors dictionary for the specific scheme
         """
         return getattr(self, "colors_{}".format(self._colors))
 
     def _get_symbol_scheme(self):
         """
         Get symbols scheme
-        :return:
+        :return: Symbols dictionary for the specific scheme
         """
         return getattr(self, "symbols_{}".format(self._encoding))
 
@@ -82,8 +82,8 @@ class _BaseOutput(object):
         """
         Color type.
 
-        :param value:
-        :return:
+        :param value: Value of the color
+        :return: colored string
         """
         return self._get_color_scheme()["types"].get(type(value).__name__, colored.attr("reset"))
 
@@ -91,7 +91,8 @@ class _BaseOutput(object):
         """
         Insert leaf.
 
-        :return:
+        :param offset: leaf offset on the printing output
+        :return: colored string
         """
         return "{}{}".format(offset + self._ident, self._get_symbol_scheme()["leaf"])
 
@@ -99,7 +100,8 @@ class _BaseOutput(object):
         """
         Insert value or N/A.
 
-        :return:
+        :param offset: leaf offset on the printing output
+        :return: colored string
         """
         return "{}{}{}{}".format(offset + self._ident, self._get_color_scheme()["elements"]["n/a"],
                                  self._get_symbol_scheme()["n/a"], colored.attr("reset"))
@@ -108,7 +110,9 @@ class _BaseOutput(object):
         """
         Paint an object on the screen.
 
-        :return:
+        :param obj: object to process
+        :param offset: leaf offset on the printing output
+        :return: colored string
         """
         raise NotImplementedError("Not implemented")
 
@@ -120,7 +124,8 @@ class MappingOutput(_BaseOutput):
     def c_key(self):
         """
         Color key.
-        :return:
+
+        :return: colored string
         """
         return self._get_color_scheme()["elements"]["key"]
 
@@ -128,7 +133,9 @@ class MappingOutput(_BaseOutput):
         """
         Paint mapping output.
 
-        :return:
+        :param obj: object to output (a map)
+        :param offset: leaf offset on the printing output
+        :return: colored string
         """
         out = []
         for key, value in obj.items():
@@ -152,7 +159,10 @@ class IterableOutput(_BaseOutput):
     def paint(self, obj, offset=""):
         """
         Paint iterable output.
-        :return:
+
+        :param obj: object to putput (list)
+        :param offset: leaf offset on the printing output
+        :return: colored string
         """
         out = []
         if not obj:
@@ -243,7 +253,7 @@ class TitleOutput(object):
         """
         Get style.
 
-        :return:
+        :return: color style
         """
         return self.__class__.__dict__.get("_styles_{}".format(self._colors), self._styles_16)
 
@@ -251,7 +261,7 @@ class TitleOutput(object):
         """
         Get suffix.
 
-        :return:
+        :return: color suffix
         """
         return self.__class__.__dict__.get("_suffix_{}".format(self._encoding), self._suffix_ascii)
 
@@ -259,9 +269,9 @@ class TitleOutput(object):
         """
         Add title.
 
-        :param title:
-        :param color:
-        :return:
+        :param title: Text
+        :param style: style name
+        :return: None
         """
         self._titles[title] = style
 
@@ -269,8 +279,8 @@ class TitleOutput(object):
         """
         Paint a title.
 
-        :param title:
-        :return:
+        :param text: Text
+        :return: colored title
         """
         style = self._titles.get(text)
         if style:
@@ -316,9 +326,9 @@ class Highlighter(object):
            paint("something dimmed {foo} and highlighted {bar}",
                  foo=("here", "lo"), bar=("here", "hi"))
 
-        :param pattern:
-        :param highlights:
-        :return:
+        :param pattern: Pattern to interpolate with
+        :param highlights: Highlights that are be emphasised in the pattern
+        :return: colored string
         """
         hlts = {}
         for element, attrs in highlights.items():
@@ -370,8 +380,9 @@ class ConsoleMessages(object):
         """
         Emphasis.
 
-        :param text:
-        :return:
+        :param text: text to emphasise
+        :param section: section of the emphasis
+        :return: Colored string
         """
         out = []
         bold = False
@@ -389,22 +400,22 @@ class ConsoleMessages(object):
         """
         Standard output for info and input.
 
-        :param message:
-        :param args:
-        :param kwargs:
-        :return:
+        :param message: text message
+        :param args: values to format the message
+        :param kwargs: keyword arguments to format the message
+        :return: colored string
         """
         return self._emph("{}{}{}".format(colored.fg(self.__style()["info"]),
                                           message.format(*args, **kwargs), colored.attr("reset")), "info")
 
     def input(self, message, *args, **kwargs):
         """
-        Display input (like info, just no new line
+        Display input (like info, just no new line).
 
-        :param message:
-        :param args:
-        :param kwargs:
-        :return:
+        :param message: text message
+        :param args: values to format the message
+        :param kwargs: keyword arguments to format the message
+        :return: colored string
         """
         sys.stdout.write(self._standard(message, *args, **kwargs))
 
@@ -412,10 +423,10 @@ class ConsoleMessages(object):
         """
         Display info.
 
-        :param message:
-        :param args:
-        :param kwargs:
-        :return:
+        :param message: text message
+        :param args: values to format the message
+        :param kwargs: keyword arguments to format the message
+        :return: colored string
         """
         sys.stdout.write(self._standard(message, *args, **kwargs))
         sys.stdout.write(os.linesep)
@@ -424,10 +435,10 @@ class ConsoleMessages(object):
         """
         Display warning message.
 
-        :param message:
-        :param args:
-        :param kwargs:
-        :return:
+        :param message: text message
+        :param args: values to format the message
+        :param kwargs: keyword arguments to format the message
+        :return: colored string
         """
         sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["warning"]),
                                                       message.format(*args, **kwargs), colored.attr("reset")),
@@ -437,10 +448,10 @@ class ConsoleMessages(object):
         """
         Display error message.
 
-        :param message:
-        :param args:
-        :param kwargs:
-        :return:
+        :param message: text message
+        :param args: values to format the message
+        :param kwargs: keyword arguments to format the message
+        :return: colored string
         """
         sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["error"]),
                                                       message.format(*args, **kwargs), colored.attr("reset")), "error"))

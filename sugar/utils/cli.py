@@ -10,7 +10,7 @@ def get_current_component():
     """
     Get currently running component.
 
-    :return:
+    :return: Name of the component (str)
     """
     # Console connects only to the "master" currently.
     return (sys.argv[1] if len(sys.argv) > 1 and sys.argv[1]

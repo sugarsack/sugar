@@ -53,10 +53,11 @@ class SugarKeymanagerFactory(WebSocketClientFactory, ClientFactory):
 
     def clientConnectionFailed(self, connector, reason):
         """
+        Event on connection failure.
 
-        :param connector:
-        :param reason:
-        :return:
+        :param connector: Peer connector
+        :param reason: Failure reason
+        :return: None
         """
         self.log.error('Cannot connect keymanager. Is Master running?')
         self.reactor.stop()

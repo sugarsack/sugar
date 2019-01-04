@@ -27,8 +27,8 @@ class KeyManagerCore(object):
         """
         Add key for the master.
 
-        :param command:
-        :return:
+        :param key: a key from the KeyStore
+        :return: None
         """
         self._queue.put_nowait(key)
 
@@ -36,7 +36,7 @@ class KeyManagerCore(object):
         """
         Get changed keys and send to the master.
 
-        :return:
+        :return: next element from the queue
         """
         while True:
             try:

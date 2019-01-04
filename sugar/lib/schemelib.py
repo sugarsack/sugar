@@ -32,6 +32,9 @@ class SchemaError(Exception):
     def uniq(seq):
         """
         Utility function that removes duplicate.
+
+        :param seq: sequence to examine
+        :return: deduplicated sequence
         """
         seen = set()
         return [element for element in seq if element not in seen and not seen.add(element)]
@@ -41,6 +44,8 @@ class SchemaError(Exception):
         """
         Removes duplicates values in auto and error list.
         parameters.
+
+        :return: string for error display
         """
         data_set = self.uniq(i for i in self.autos if i is not None)
         error_list = self.uniq(i for i in self.errors if i is not None)
@@ -96,6 +101,7 @@ class And(object):
         """
         Validate data using defined sub schema/expressions ensuring all
         values are valid.
+
         :param data: to be validated with sub defined schemas.
         :return: returns validated data
         """
@@ -156,6 +162,7 @@ class Regex(object):
     def validate(self, data):
         """
         Validated data using defined regex.
+
         :param data: data to be validated
         :return: return validated data.
         """
@@ -188,8 +195,8 @@ class Use(object):
         """
         Validate object.
 
-        :param data:
-        :return:
+        :param data: data to validate
+        :return: Validation result
         """
         try:
             result = self._callable(data)
@@ -208,8 +215,8 @@ def get_object_priority(obj):
     """
     Return priority for a given object
 
-    :param obj:
-    :return:
+    :param obj: Object to prioritise
+    :return: type of the priority
     """
     if isinstance(obj, (list, tuple, set, frozenset)):
         ret = ITERABLE
@@ -242,7 +249,7 @@ class Schema(object):
         """
         Get scheme object.
 
-        :return:
+        :return: Schema object instance
         """
         return self._schema
 
@@ -254,8 +261,8 @@ class Schema(object):
         """
         Return priority for a given key object.
 
-        :param d_key:
-        :return:
+        :param d_key: dictionary
+        :return: prioritised dictionary
         """
         if isinstance(d_key, Forbidden):
             ret = get_object_priority(d_key.scheme) - 0.5
@@ -270,6 +277,9 @@ class Schema(object):
         """
         Return whether the given data has passed all the validations
         that were specified in the given schema.
+
+        :param data: examined object
+        :return: bool
         """
         try:
             self.validate(data)
@@ -284,8 +294,8 @@ class Schema(object):
         """
         Validate schema.
 
-        :param data:
-        :return:
+        :param data: examined object
+        :return: validation result
         """
         # pylint: disable=R0914,R1702,R1705,R0912,R0915,R0911
         schema_class = self.__class__
@@ -440,7 +450,7 @@ def _callable_str(callable_object):
     """
     Get a name of the callable object.
 
-    :param callable_object:
-    :return:
+    :param callable_object: object to be called
+    :return: name of the callable object
     """
     return callable_object.__name__ if hasattr(callable_object, '__name__') else str(callable_object)

@@ -28,7 +28,7 @@ class SugarException(Exception):
         """
         Serialise exception for transfer.
 
-        :return:
+        :return: dictionary in format {"message": payload, "args": arguments}
         """
         return {'message': six.text_type(self) if six.PY3 else self.__unicode__(),
                 'args': self.args}

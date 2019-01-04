@@ -16,7 +16,7 @@ def gen_id():
     """
     Generate and ID for the protocol.
 
-    :return:
+    :return: string
     """
     bin_data = b'%s %s' % (stringutils.to_bytes(six.text_type(time.time())), os.urandom(0xff))
     return hashlib.sha256(bin_data).hexdigest()

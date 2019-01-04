@@ -268,6 +268,7 @@ class ServerMsgFactory(_MessageFactory):
     def create_console_msg(cls):
         """
         Create console message for client
+
         :return: Serialisable
         """
         obj = cls().create()

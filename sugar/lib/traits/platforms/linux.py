@@ -9,7 +9,8 @@ import sugar.utils.files
 def get_machine_id():
     """
     Get machine ID
-    :return:
+
+    :return: string of the machine ID
     """
     ret = None
     for loc in [loc for loc in ['/etc/machine-id', '/var/lib/dbus/machine-id'] if os.path.exists(loc)]:

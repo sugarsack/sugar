@@ -37,8 +37,9 @@ class Logger(object):
             def make_log_level_caller(level):
                 """
                 Wrap Twisted's log into levels
-                :param level:
-                :return:
+
+                :param level: Log level
+                :return: Whatever log.msg returns
                 """
                 def _msg(message):
                     log.msg(message, level=level, system=self.name)

@@ -37,14 +37,15 @@ class SugarServer(object):
         """
         Perform actions on shutdown.
 
-        :return:
+        :return: None
         """
         self.factory.core.master_local_token.cleanup()
 
     def run(self):
         """
         Run Sugar Server.
-        :return:
+
+        :return: None
         """
         self.factory.core.system.on_startup()
         context_factory = ssl.DefaultOpenSSLContextFactory(

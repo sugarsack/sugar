@@ -39,8 +39,8 @@ class KeyDB(object):
         """
         Get KeyDB instance.
 
-        :param path:
-        :return:
+        :param path: path to the KeyDB location
+        :return: instance of the KeyDB object
         """
         # pylint: disable=W0212
         instance = KeyDB._instance
@@ -67,7 +67,7 @@ class StoredKey(KeyDB.db.Entity):
         """
         Clone itself into the serialisable object.
 
-        :return:
+        :return: Serialisable
         """
         export_obj = Serialisable()
         for attr in self.__class__.__dict__:
@@ -110,7 +110,8 @@ class KeyStore(object):
         Timeout 30 seconds by default.
         Should be more than enough even on [N]ot [F]ile [S]ystem.
 
-        :return:
+        :param timeout: default 30
+        :return: bool
         """
         while timeout > 0:
             if os.path.exists(self.__lock_file_path):
@@ -132,7 +133,9 @@ class KeyStore(object):
         Unlock the FS.
         Timeout 30 seconds by default.
 
-        :return:
+        :param timeout: default 30.
+        :param force: bool, default False
+        :return: bool
         """
         try:
             with sugar.utils.files.fopen(self.__lock_file_path, 'r') as fh_lck:
@@ -166,8 +169,8 @@ class KeyStore(object):
         """
         Detach db session.
 
-        :param dbr:
-        :return:
+        :param dbr: Database result
+        :return: list of cloned objects
         """
         return [obj.clone() for obj in dbr]
 
@@ -188,8 +191,8 @@ class KeyStore(object):
         """
         Get keys by status.
 
-        :param status:
-        :return:
+        :param status: Key status
+        :return: the list of the keys by status match
         """
         ret = []
         for obj in orm.select(k for k in StoredKey if k.status == status):
@@ -201,8 +204,8 @@ class KeyStore(object):
         """
         Retrieve PEM key from the FS.
 
-        :param key:
-        :return:
+        :param key: StoredKey object
+        :return: PEM body of the key
         """
         self._lock_transation()
         try:
@@ -221,7 +224,7 @@ class KeyStore(object):
         """
         List candidate keys in the store by name.
 
-        :return:
+        :return: list of new keys
         """
         return self.__get_keys_by_status(self.STATUS_CANDIDATE)
 
@@ -229,7 +232,7 @@ class KeyStore(object):
         """
         List accepted keys in the store by name.
 
-        :return:
+        :return: list of accepted keys
         """
         return self.__get_keys_by_status(self.STATUS_ACCEPTED)
 
@@ -237,7 +240,7 @@ class KeyStore(object):
         """
         List rejected keys in the store by name.
 
-        :return:
+        :return: list of rejected keys
         """
         return self.__get_keys_by_status(self.STATUS_REJECTED)
 
@@ -245,7 +248,7 @@ class KeyStore(object):
         """
         List denied keys in the store by name.
 
-        :return:
+        :return: list of denied keys
         """
         return self.__get_keys_by_status(self.STATUS_DENIED)
 
@@ -254,10 +257,10 @@ class KeyStore(object):
         """
         Add PEM key to the store.
 
-        :param pubkey_pem:
-        :param hostname:
-        :param machine_id:
-        :return:
+        :param pubkey_pem: PEM body of the public key
+        :param hostname: hostname
+        :param machine_id: String form of the machine ID
+        :return: None
         """
         self._lock_transation()
         filename = "{}.pem".format(os.path.join(self.__keys_path, machine_id))
@@ -273,8 +276,8 @@ class KeyStore(object):
         """
         Delete PEM key from the store.
 
-        :param pubkey_pem:
-        :return:
+        :param fingerprint: fingerprint of the key
+        :return: None
         """
         self._lock_transation()
         key = StoredKey.get(fingerprint=fingerprint)
@@ -292,9 +295,9 @@ class KeyStore(object):
         Reject key by either hostname or fingerprint.
         If both are None, an exception is raised.
 
-        :param hostname:
-        :param fingerprint:
-        :return:
+        :param hostname: hostname string
+        :param fingerprint: fingerprint string
+        :return: rejected status
         """
         self._lock_transation()
         params = {}
@@ -313,8 +316,8 @@ class KeyStore(object):
         """
         Deny key by fingerprint.
 
-        :param fingerprint:
-        :return:
+        :param fingerprint: fingerprint string
+        :return: denied status
         """
         self._lock_transation()
         key = StoredKey.get(fingerprint=fingerprint)
@@ -329,8 +332,8 @@ class KeyStore(object):
         """
         Accept key by fingerprint.
 
-        :param fingerprint:
-        :return:
+        :param fingerprint: fingerprint string
+        :return: accepted status
         """
         self._lock_transation()
         try:
@@ -348,8 +351,8 @@ class KeyStore(object):
         """
         Get key by fingerprint.
 
-        :param fingerprint:
-        :return:
+        :param fingerprint: full or partial fingerprint string
+        :return: key, matching the fingerprint
         """
         return self.__clone_rs(orm.select(k for k in StoredKey
                                           if k.fingerprint.startswith(sugar.utils.stringutils.to_str(fingerprint))))
@@ -359,8 +362,8 @@ class KeyStore(object):
         """
         Get key by name.
 
-        :param name:
-        :return: Usability status (boolean), key
+        :param machine_id: machine ID
+        :return: key, matching the machine ID
         """
         return self.__clone_rs(orm.select(k for k in StoredKey
                                           if k.machine_id == sugar.utils.stringutils.to_str(machine_id)))
@@ -370,8 +373,8 @@ class KeyStore(object):
         """
         Get key by hostname.
 
-        :param hostname:
-        :return:
+        :param hostname: hostname
+        :return: key, matching the hostname
         """
         return self.__clone_rs(orm.select(k for k in StoredKey
                                           if k.hostname == sugar.utils.stringutils.to_str(hostname)))

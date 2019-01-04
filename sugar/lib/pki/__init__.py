@@ -47,7 +47,7 @@ class Crypto(object):
 
         Return private key and public key as bytes.
 
-        :param bits:
+        :param bits: Default 2048
         :return: tuple (private_key, public_key)
         """
 
@@ -59,7 +59,7 @@ class Crypto(object):
         """
         Make temporary share-able bi-directional key for AES session.
 
-        :return:
+        :return: random bytes sequence
         """
         return Random.get_random_bytes(0x10)
 
@@ -67,8 +67,8 @@ class Crypto(object):
         """
         Pad the data.
 
-        :param data:
-        :return:
+        :param data: data to pad
+        :return: padded data
         """
         padding = (self.BLOCK_SIZE - len(data) % self.BLOCK_SIZE) * chr(self.BLOCK_SIZE - len(data) % self.BLOCK_SIZE)
 
@@ -82,8 +82,8 @@ class Crypto(object):
         """
         Un-pad the data.
 
-        :param data:
-        :return:
+        :param data: data to unpad
+        :return: unpadded data
         """
         return data[:-ord(data[len(data) - 1:])]
 
@@ -91,6 +91,7 @@ class Crypto(object):
         """
         Encrypt data with AES with EAX mode (verification for tampering).
 
+        :param data: decrypted data
         :return: Binary data
         """
         iv_pad = Random.new().read(AES.block_size)
@@ -105,7 +106,8 @@ class Crypto(object):
         """
         Decrypt data with AES with EAX mode (verification for tampering).
 
-        :return:
+        :param data: encrypted cipher
+        :return: decrypted data
         """
         if AES is None:
             raise exceptions.SugarDependencyException("AES algorithm is not available.")
@@ -119,7 +121,9 @@ class Crypto(object):
         """
         Encrypt data with RSA public key in PEM format.
 
-        :return:
+        :param pubkey_pem: body of the public key
+        :param data: data to be encrypted
+        :return: cipher of encrypted data
         """
 
         if isinstance(data, six.text_type):
@@ -133,7 +137,9 @@ class Crypto(object):
         """
         Decrypt data with RSA.
 
-        :return:
+        :param privkey_pem: body of the private key
+        :param data: data to be decrypted
+        :return: decrypted data
         """
         if isinstance(data, six.text_type):
             data = data.encode("utf-8")
@@ -145,7 +151,9 @@ class Crypto(object):
         """
         Sign data.
 
-        :return: signature
+        :param priv_key: body of the private key
+        :param data: data to be decrypted
+        :return: signed data
         """
         if isinstance(data, six.text_type):
             data = data.encode("utf-8")
@@ -160,10 +168,10 @@ class Crypto(object):
         """
         Verify signature.
 
-        :param pubkey_pem:
-        :param data:
-        :param signature:
-        :return:
+        :param pubkey_pem: body of the public key
+        :param data: signed data
+        :param signature: signature to be verified
+        :return: bool
         """
         if isinstance(data, six.text_type):
             data = data.encode("utf-8")
@@ -178,8 +186,8 @@ class Crypto(object):
         """
         Get object checksum.
 
-        :param obj:
-        :return:
+        :param obj: object for checksum calculation
+        :return: CRC32 checksum
         """
         return zlib.crc32(pickle.dumps(obj))
 
@@ -189,9 +197,9 @@ class Crypto(object):
         Pass in a raw pem string, and the type of cryptographic hash to use. The default is SHA256.
         The fingerprint of the pem will be returned.
 
-        :param pubkey_pem:
+        :param pubkey_pem: public key
         :param cs_alg: algorithm
-        :return:
+        :return: fingerprint string
         """
         digest = getattr(hashlib, cs_alg)(pubkey_pem).hexdigest()
         return ':'.join(pre + pos for pre, pos in zip(digest[::2], digest[1::2]))
@@ -200,6 +208,9 @@ class Crypto(object):
     def hash_password(password):
         """
         String to the salted crypted hash or just SHA256 hex digest, if no bcrypt around.
+
+        :param password: password to hash
+        :return: hashed password
         """
         if bcrypt is not None:
             pwd = bcrypt.hashpw(password, bcrypt.gensalt())
@@ -212,6 +223,10 @@ class Crypto(object):
     def check_password(cls, password, hashed):
         """
         Check if an attempt password is the same as hashed.
+
+        :param password: password to be checked
+        :param hashed: hash of the password
+        :return: bool
         """
         if bcrypt is not None:
             res = bcrypt.hashpw(password, hashed) == hashed
@@ -230,5 +245,6 @@ class Crypto(object):
             you must call Random.atfork() in both the parent and
             child processes after using os.fork()
 
+        :return None
         """
         Random.atfork()

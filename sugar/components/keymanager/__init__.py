@@ -55,8 +55,7 @@ class SugarKeyManager(object):
         List keys by status.
         Possible statuses:
 
-
-        :return:
+        :return: None
         """
         title_output = TitleOutput(colors=self.config.terminal.colors, encoding=self.config.terminal.encoding)
         all_sections = [("accepted", "success"), ("rejected", "alert"), ("denied", "warning"), ("new", "info")]
@@ -83,7 +82,8 @@ class SugarKeyManager(object):
     def _set_keys_status(self, status: str, doing: str, func: callable) -> list:
         """
         Match keys by criteria.
-        :return:
+
+        :return: list of matched keys
         """
         by_type = ""
         keys = []
@@ -121,7 +121,7 @@ class SugarKeyManager(object):
         Protocol will shutdown reactor on its own from the Factory, once
         everything is sent and tasks are finished.
 
-        :return:
+        :return: None
         """
         if self.factory.core.local_token is not None:
             connectWS(self.factory, ssl.ClientContextFactory())
@@ -131,7 +131,7 @@ class SugarKeyManager(object):
         """
         Accept keys
 
-        :return:
+        :return: list of accepted keys
         """
         return self._set_keys_status(KeyStore.STATUS_ACCEPTED, "accepting", self._keystore.accept)
 
@@ -139,14 +139,15 @@ class SugarKeyManager(object):
         """
         Deny specified keys.
 
-        :return:
+        :return: list of denied keys
         """
         return self._set_keys_status(KeyStore.STATUS_DENIED, "denying", self._keystore.deny)
 
     def reject(self):
         """
         Reject specified keys.
-        :return:
+
+        :return: list of rejected keys
         """
         return self._set_keys_status(KeyStore.STATUS_REJECTED, "rejecting", self._keystore.reject)
 
@@ -155,7 +156,7 @@ class SugarKeyManager(object):
         Delete specified keys (fingerprint only).
         Accepted keys cannot be deleted. They should be first denied or rejected.
 
-        :return:
+        :return: list of deleted keys
         """
         return self._set_keys_status(KeyStore.STATUS_ACCEPTED, "deleting", self._keystore.delete)
 
@@ -163,7 +164,7 @@ class SugarKeyManager(object):
         """
         Run key manager
 
-        :return:
+        :return: None
         """
         self.log.debug("Running Key Manager")
         if (self.args.command not in ["list", "delete"]

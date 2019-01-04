@@ -59,6 +59,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
     def restart_handshake(self):
         """
         Restarts handshake
+
         :return: None
         """
         self.factory.core.hds.start()

@@ -48,8 +48,9 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
     def connectionLost(self, reason):
         """
         Client connection dies.
-        :param reason:
-        :return:
+
+        :param reason: connection failure reason
+        :return: None
         """
         WebSocketServerProtocol.connectionLost(self, reason)
         self.factory.unregister(self)
@@ -68,8 +69,8 @@ class SugarConsoleServerFactory(WebSocketServerFactory):
         """
         Register control console.
 
-        :param client:
-        :return:
+        :param client: client peer
+        :return: None
         """
         if client not in self.consoles:
             self.log.info("Registering console: {}".format(client))
@@ -79,8 +80,8 @@ class SugarConsoleServerFactory(WebSocketServerFactory):
         """
         Remove control console from the registry.
 
-        :param client:
-        :return:
+        :param client: client peer
+        :return: None
         """
         if client in self.consoles:
             self.log.info("Unregistering console: {}".format(client))
@@ -120,8 +121,9 @@ class SugarServerProtocol(WebSocketServerProtocol):
     def connectionLost(self, reason):
         """
         Client connection dies.
-        :param reason:
-        :return:
+
+        :param reason: connection failure reason
+        :return: None
         """
         WebSocketServerProtocol.connectionLost(self, reason)
         self.factory.unregister(self)
@@ -131,7 +133,7 @@ class SugarServerProtocol(WebSocketServerProtocol):
         """
         Get machine ID, if any.
 
-        :return:
+        :return: string of the machine ID or None, if not found.
         """
         return getattr(self, "machine_id", None)
 
@@ -139,8 +141,8 @@ class SugarServerProtocol(WebSocketServerProtocol):
         """
         Set machine ID to the connection.
 
-        :param machine_id:
-        :return:
+        :param machine_id: Machine ID (string)
+        :return: None
         """
         if self.get_machine_id() != machine_id:
             setattr(self, "machine_id", machine_id)
@@ -160,8 +162,8 @@ class SugarServerFactory(WebSocketServerFactory):
         """
         Register client.
 
-        :param client:
-        :return:
+        :param client: client peer
+        :return: None
         """
         if client not in self.clients:
             self.log.info("Registering client: {}".format(client))
@@ -171,8 +173,8 @@ class SugarServerFactory(WebSocketServerFactory):
         """
         Remove client from the registry.
 
-        :param client:
-        :return:
+        :param client: client peer
+        :return: None
         """
         if client in self.clients:
             self.log.info("Unregistering client: {}".format(client))
