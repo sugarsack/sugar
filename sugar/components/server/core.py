@@ -135,11 +135,6 @@ class KeyManagerEvents(object):
         :return: None
         """
         self.core.log.info("Key Manager key update")
-        print(">>>", key.hostname)
-        print(">>>", key.fingerprint)
-        print(">>>", key.machine_id)
-        print(">>>", key.status)
-        print("---")
         client_proto = self.core.get_client_protocol(key.machine_id)
         if client_proto is not None:
             reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
