@@ -65,7 +65,7 @@ class SugarKeyManager(object):
         all_sections = [("accepted", "success"), ("rejected", "alert"), ("denied", "warning"), ("new", "info")]
         ret = OrderedDict()
 
-        if not sugar.utils.data.exactly_one([self.args.fingerprint, self.args.hostname, self.args.machineid]):
+        if sugar.utils.data.how_many([self.args.fingerprint, self.args.hostname, self.args.machineid]) > 1:
             self.cli.error("You should specify either *fingerprint* or *hostname* or *machine ID*.")
             sys.exit(sugar.utils.exitcodes.EX_USAGE)
         elif sugar.utils.data.exactly_one([self.args.fingerprint, self.args.hostname, self.args.machineid]):
