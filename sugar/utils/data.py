@@ -455,6 +455,15 @@ def exactly_one(lst):
     return exactly_n(lst)
 
 
+def how_many(lst):
+    """
+    Return number of items that are not None, False or 0 or "" in an iterable.
+
+    :param lst: list
+    :return: int
+    """
+    return len([True for elm in lst if elm])
+
 # def filter_by(lookup_dict,
 #               lookup,
 #               traverse,
