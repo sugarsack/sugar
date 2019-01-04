@@ -5,6 +5,7 @@ This keeps configuration schema, validation and singleton to pick
 it up from every point of project code at any time without re-reading
 the whole thing from the disk.
 """
+
 from __future__ import absolute_import, print_function, unicode_literals
 
 import os
@@ -70,8 +71,8 @@ class _DefaultConfigurations(object):
     def master():
         """
         Get master default configuration
-        :param self:
-        :return:
+
+        :return: dict
         """
         return _DefaultConfigurations._get_config(_DefaultConfigurations._master)
 
@@ -79,8 +80,8 @@ class _DefaultConfigurations(object):
     def client():
         """
         Get master default configuration
-        :param self:
-        :return:
+
+        :return: dict
         """
         return _DefaultConfigurations._get_config(_DefaultConfigurations._client)
 
@@ -89,7 +90,7 @@ class _DefaultConfigurations(object):
         """
         Mix dictionaries.
 
-        :return:
+        :return: dict
         """
         config = copy.deepcopy(config)
         merge_dicts(config, _DefaultConfigurations._common)
@@ -101,7 +102,9 @@ class _DefaultConfigurations(object):
         """
         Go over each aggregate and ensure record has defaults updated.
 
-        :return:
+        :param config: configuration dictionary
+        :param opts: overlay for the configuration
+        :return: None
         """
         for method in _DefaultConfigurations.__dict__:
             if method.startswith('{}__default_{}_'.format(_DefaultConfigurations.__name__, get_current_component())):
@@ -120,7 +123,9 @@ class _DefaultConfigurations(object):
         """
         Update ctrl/data ports on the client.
 
-        :return:
+        :param config: configuration
+        :param opts: config overlay
+        :return: None
         """
         for target in config['master']:
             merge_missing(target, _DefaultConfigurations.client()['master'][0])
@@ -130,9 +135,9 @@ class _DefaultConfigurations(object):
         """
         Roll over the config and update logging levels.
 
-        :param config:
-        :param opts:
-        :return:
+        :param config: configuration
+        :param opts: config overlay
+        :return: None
         """
         for target in config['log']:
             merge_missing(target, _DefaultConfigurations.client()['log'][0])
@@ -178,8 +183,8 @@ class CurrentConfiguration(object):
         """
         Load configuration of the specific path.
 
-        :param target:
-        :return:
+        :param config_path: configuration path
+        :return: None
         """
         if config_path and os.path.isfile(config_path):
             with open(config_path) as cfg_fh:
@@ -200,8 +205,8 @@ class CurrentConfiguration(object):
         """
         Bulk-update the entire configuration.
 
-        :param data:
-        :return:
+        :param data: Configuration
+        :return: None
         """
         # TODO: this might flush config on dynamic update. Bug or feature? (TBD)
         # Scenario when this might happen:
@@ -217,7 +222,8 @@ class CurrentConfiguration(object):
     def root(self):
         """
         Get root of the configuration
-        :return:
+
+        :return: Object
         """
         return dict_to_object(ImmutableDict(self.__config))
 
@@ -227,7 +233,6 @@ def get_config():
     Get current config.
     Parameter altpath is only considered at first init time.
 
-    :param altpath: Alternative path
-    :return:
+    :return: Configuration object
     """
     return CurrentConfiguration(None, None).root

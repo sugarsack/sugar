@@ -60,6 +60,9 @@ def __clean_tmp(tmp):
 def guess_archive_type(name):
     """
     Guess an archive type (tar, zip, or rar) by its file extension
+
+    :param name: name
+    :return: archive type or None
     """
     name = name.lower()
     arch_type = None
@@ -82,6 +85,10 @@ def mkstemp(*args, **kwargs):
     Helper function which does exactly what ``tempfile.mkstemp()`` does but
     accepts another argument, ``close_fd``, which, by default, is true and closes
     the fd before returning the file path.
+
+    :param args: args
+    :param kwargs: kwargs
+    :return: path
     """
     if 'prefix' not in kwargs:
         kwargs['prefix'] = '__salt.tmp.'
@@ -123,6 +130,11 @@ def copyfile(source, dest, cachedir=''):
     """
     Copy files from a source to a destination in an atomic way, and if
     specified cache the file.
+
+    :param source: source
+    :param dest: destination
+    :param cachedir: default ""
+    :return: None
     """
     if not os.path.isfile(source):
         raise IOError('[Errno 2] No such file or directory: {0}'.format(source))
@@ -175,6 +187,10 @@ def rename(src, dst):
     On Windows, os.rename() will fail with a WindowsError exception if a file
     exists at the destination path. This function checks for this error and if
     found, it deletes the destination path first.
+
+    :param src: source
+    :param dst: destination
+    :return: None
     """
     try:
         os.rename(src, dst)
@@ -196,6 +212,10 @@ def rename(src, dst):
 def process_read_exception(exc, path):
     """
     Common code for raising exceptions when reading a file fails
+
+    :param exc: exception
+    :param path: path of the object
+    :return: none
     """
     if exc.errno == errno.ENOENT:
         raise sugar.lib.exceptions.SugarConsoleException(
@@ -215,6 +235,13 @@ def process_read_exception(exc, path):
 def wait_lock(path, lock_fn=None, timeout=5, sleep=0.1, time_start=None):
     """
     Obtain a write lock. If one exists, wait for it to release first
+
+    :param path: path to place lock at
+    :param lock_fn: lock filename
+    :param timeout: lock timeout
+    :param sleep: sleeping time
+    :param time_start: starting point time
+    :return: None
     """
     if not isinstance(path, six.string_types):
         raise sugar.lib.exceptions.SugarFileLockException('path must be a string')
@@ -287,6 +314,8 @@ def wait_lock(path, lock_fn=None, timeout=5, sleep=0.1, time_start=None):
 def get_umask():
     """
     Returns the current umask
+
+    :return: umask
     """
     ret = os.umask(0)
     os.umask(ret)
@@ -301,6 +330,9 @@ def get_umask():
 def set_umask(mask):
     """
     Temporarily set the umask and restore once the contextmanager exits
+
+    :param mask: mask
+    :return: none
     """
     orig_mask = None
     if mask is None or sugar.utils.platform.is_windows():
@@ -314,6 +346,7 @@ def set_umask(mask):
                 os.umask(orig_mask)
 
 
+# pylint: disable=R0912
 def fopen(*args, **kwargs):
     """
     Wrapper around open() built-in to set CLOEXEC on the fd.
@@ -326,8 +359,11 @@ def fopen(*args, **kwargs):
     survive into the new program after exec.
 
     NB! We still have small race condition between open and fcntl.
+
+    :param args: -
+    :param kwargs: -
+    :return: file descriptor
     """
-    # pylint: disable=R0912
     if six.PY3:
         try:
             # Don't permit stdin/stdout/stderr to be opened. The boolean False
@@ -386,14 +422,18 @@ def fopen(*args, **kwargs):
         old_flags = fcntl.fcntl(f_handle.fileno(), fcntl.F_GETFD)
         fcntl.fcntl(f_handle.fileno(), fcntl.F_SETFD, old_flags | FD_CLOEXEC)
 
-    # pylint: enable=R0912
     return f_handle
+# pylint: enable=R0912
 
 
 @contextlib.contextmanager
 def f_lock_open(*args, **kwargs):
     """
     Shortcut for fopen with lock and context manager.
+
+    :param args: -
+    :param kwargs: -
+    :return: file descriptor
     """
     with fopen(*args, **kwargs) as f_handle:
         try:
@@ -432,6 +472,9 @@ def fpopen(*args, **kwargs):
         made. Same applies if the path is already owned by this gid.
         Must be int. Works only on unix/unix-like systems.
 
+    :param args: -
+    :param kwargs: See the description
+    :return: file descriptor
     """
     # Remove uid, gid and mode from kwargs if present
     uid = kwargs.pop('uid', -1)  # -1 means no change to current uid
@@ -459,6 +502,12 @@ def safe_walk(top, topdown=True, onerror=None, followlinks=True, _seen=None):
     """
     A clone of the python os.walk function with some checks for recursive
     symlinks. Unlike os.walk this follows symlinks by default.
+
+    :param top: top directory
+    :param topdown: bool
+    :param onerror: callback on error
+    :param followlinks: bool
+    :return: tuple: top/dirs/nondirs or None
     """
     # pylint: disable=R0911
     if _seen is None:
@@ -509,7 +558,10 @@ def safe_walk(top, topdown=True, onerror=None, followlinks=True, _seen=None):
 
 def safe_rm(tgt):
     """
-    Safely remove a file
+    Safely remove a file.
+
+    :param tgt: path
+    :return: None
     """
     try:
         os.remove(tgt)
@@ -521,6 +573,9 @@ def rm_rf(path):
     """
     Platform-independent recursive delete. Includes code from
     http://stackoverflow.com/a/2656405
+
+    :param path: path
+    :return: None
     """
     def _onerror(func, path, exc_info):
         """
@@ -556,6 +611,9 @@ def rm_rf(path):
 def is_empty(filename):
     """
     Is a file empty?
+
+    :param filename: -
+    :return: bool
     """
     try:
         ret = os.stat(filename).st_size == 0
@@ -572,6 +630,9 @@ def is_fcntl_available(check_sunos=False):
 
     If ``check_sunos`` is passed as ``True`` an additional check to see if host is
     SunOS is also made. For additional information see: http://goo.gl/159FF8
+
+    :param check_sunos: bool, default False
+    :return: bool
     """
     return False if check_sunos and sugar.utils.platform.is_sunos() else HAS_FCNTL
 
@@ -580,23 +641,27 @@ def is_fcntl_available(check_sunos=False):
 # UNUSED @@@
 #
 # pylint: disable=R0911,R1705
-def is_text(fp_, blocksize=512):
+def is_text(file_ptr, blocksize=512):
     """
     Uses heuristics to guess whether the given file is text or binary,
     by reading a single block of bytes from the file.
     If more than 30% of the chars in the block are non-text, or there
     are NUL ('\x00') bytes in the block, assume this is a binary file.
+
+    :param file_ptr: file pointer
+    :param blocksize: blocksize
+    :return: bool
     """
     int2byte = (lambda x: bytes((x,))) if six.PY3 else chr
     text_characters = (
         b''.join(int2byte(i) for i in range(32, 127)) + b'\n\r\t\f\b')
     try:
-        block = fp_.read(blocksize)
+        block = file_ptr.read(blocksize)
     except AttributeError:
         # This wasn't an open filehandle, so treat it as a file path and try to
         # open the file
         try:
-            with fopen(fp_, 'rb') as fp2_:
+            with fopen(file_ptr, 'rb') as fp2_:
                 block = fp2_.read(blocksize)
         except IOError:
             # Unable to open file, bail out and return false
@@ -625,6 +690,9 @@ def is_binary(path):
     """
     Detects if the file is a binary, returns bool. Returns True if the file is
     a bin, False if the file is not and None if the file is not available.
+
+    :param path: string
+    :return: bool
     """
     ret = False
     if os.path.isfile(path):
@@ -649,6 +717,9 @@ def is_binary(path):
 def remove(path):
     """
     Runs os.remove(path) and suppresses the OSError if the file doesn't exist
+
+    :param path: path to the file
+    :return: None
     """
     try:
         os.remove(path)
@@ -663,6 +734,9 @@ def remove(path):
 def list_files(directory):
     """
     Return a list of all files found under directory (and its subdirectories)
+
+    :param directory: directory to be examined
+    :return: list of files
     """
     ret = set()
     ret.add(directory)
@@ -682,6 +756,9 @@ def st_mode_to_octal(mode):
     """
     Convert the st_mode value from a stat(2) call (as returned from os.stat())
     to an octal mode.
+
+    :param mode: st_mode
+    :return: octal
     """
     try:
         value = oct(mode)[-4:]
@@ -698,6 +775,9 @@ def normalise_mode(mode):
 
     Allow "keep" as a valid mode (used by file state/module to preserve mode
     from the file server in file states).
+
+    :param mode: -
+    :return: mode
     """
     if mode is not None:
         if not isinstance(mode, six.string_types):
@@ -716,6 +796,9 @@ def normalise_mode(mode):
 def human_size_to_bytes(human_size):
     """
     Convert human-readable units to bytes
+
+    :param human_size: human readable size
+    :return: bytes
     """
     size_exp_map = {'K': 1, 'M': 2, 'G': 3, 'T': 4, 'P': 5}
     human_size_str = six.text_type(human_size)
@@ -731,6 +814,10 @@ def human_size_to_bytes(human_size):
 def backup_client(path, bkroot):
     """
     Backup a file on the client
+
+    :param path: source
+    :param bkroot: backroot
+    :return: None
     """
     dname, bname = os.path.split(path)
     if sugar.utils.platform.is_windows():
@@ -766,15 +853,9 @@ def get_encoding(path):
     - Check System Encoding
     - Check for ascii
 
-    Args:
-
-        path (str): The path to the file to check
-
-    Returns:
-        str: The encoding of the file
-
-    Raises:
-        CommandExecutionError: If the encoding cannot be detected
+    :param path: The path to the file to check
+    :raises: CommandExecutionError: If the encoding cannot be detected
+    :return: str: the encoding of the file.
     """
     def check_ascii(_data):
         # If all characters can be decoded to ASCII, then it's ASCII
@@ -862,8 +943,9 @@ def mk_dirs(path):
     """
     Create directories.
 
-    :param path:
-    :return:
+    :param path: path of the directory to be created
+    :raises: SugarRuntimeException if unable to create path
+    :return: path of created directory
     """
     if not os.path.exists(path):
         try:
@@ -887,6 +969,7 @@ def atomic_write(filepath, binary=False, fsync=False):
     :param filepath: the file path to be opened
     :param binary: whether to open the file in a binary mode instead of textual
     :param fsync: whether to force write the file to disk
+    :return: None
     """
 
     tmppath = filepath + '~'

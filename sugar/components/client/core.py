@@ -40,7 +40,7 @@ class HandshakeStatus(object):
         """
         Reset the handshake status to the initial.
 
-        :return:
+        :return: None
         """
         self.__ended = False
         self.__successful = False
@@ -52,7 +52,7 @@ class HandshakeStatus(object):
         """
         Flag: Is handshake ended.
 
-        :return:
+        :return: bool
         """
         return self.__ended
 
@@ -61,7 +61,7 @@ class HandshakeStatus(object):
         """
         Flag: is handshake succeeded.
 
-        :return:
+        :return: bool
         """
         return self.__successful
 
@@ -69,7 +69,7 @@ class HandshakeStatus(object):
         """
         Set handshake succeeded.
 
-        :return:
+        :return: None
         """
         self.__successful = True
         self.__ended = True
@@ -78,7 +78,7 @@ class HandshakeStatus(object):
         """
         Set handshake failed.
 
-        :return:
+        :return: None
         """
         self.__successful = False
         self.__ended = True
@@ -88,7 +88,7 @@ class HandshakeStatus(object):
         Kick handshake status, every time it is restarting its cycle.
         This prevents infinite loop on failure.
 
-        :return:
+        :return: None
         """
         self.__tries += 1
         if self.__tries > 5:
@@ -119,8 +119,8 @@ class ClientCore(object):
         """
         Set pointer to the reactor connection.
 
-        :param connection:
-        :return:
+        :param connection: Reactor connection
+        :return: None
         """
         self.reactor_connection = connection
 
@@ -128,8 +128,9 @@ class ClientCore(object):
         """
         Set protocol.
 
-        :param proto:
-        :return:
+        :param proto_id: protocol ID
+        :param proto: WebsocketProtocol instance
+        :return: None
         """
         self._proto.setdefault(proto_id, proto)
         self._queue.setdefault(proto_id, queue.Queue())
@@ -139,8 +140,8 @@ class ClientCore(object):
         """
         Remove protocol.
 
-        :param proto_id:
-        :return:
+        :param proto_id: Protocol ID reference
+        :return: None
         """
         self.log.debug("Removing protocol, ID: {}".format(proto_id))
         for container in [self._proto, self._queue]:
@@ -154,7 +155,8 @@ class ClientCore(object):
         """
         Returns message to the master.
 
-        :return:
+        :param channel: queue channel. Global is "_" (default).
+        :return: Queue object
         """
         return self._queue[channel]
 
@@ -162,7 +164,9 @@ class ClientCore(object):
         """
         Places message from the master.
 
-        :return:
+        :param message: message to put into the queue.
+        :param channel: queue channel. Global is "_" (default).
+        :return: None
         """
         self._queue[channel].put_nowait(message)
 
@@ -187,7 +191,8 @@ class ClientSystemEvents(object):
     def on_startup(self):
         """
         This starts on Client boot.
-        :return:
+
+        :return: None
         """
         sugar.lib.pki.utils.check_keys(self.pki_path)
 
@@ -195,7 +200,7 @@ class ClientSystemEvents(object):
         """
         Check if Master's public key is in place.
 
-        :return:
+        :return: bool
         """
         mpk_path = os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)
         ret = os.path.exists(mpk_path)
@@ -208,8 +213,9 @@ class ClientSystemEvents(object):
         """
         Save Master's pubkey.
 
-        :param pubkey_pem:
-        :return:
+        :param pubkey_pem: public key cipher
+        :param force: bool
+        :return: None
         """
         mpk_path = os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)
         if not os.path.exists(mpk_path) or force:
@@ -224,7 +230,7 @@ class ClientSystemEvents(object):
         Master token is encrypted by Master's public key this client's machine_id.
         This assumes that the master's pubkey is in place.
 
-        :return:
+        :return: bool
         """
         self.log.info("Verifying master token")
         tkn_path = os.path.join(self.pki_path, self.TOKEN_CIPHER_FILE)
@@ -240,7 +246,7 @@ class ClientSystemEvents(object):
         Create token for the master: encrypted machine_id cipher with the Master's RSA public key.
         It assumes RSA public key is on its place available.
 
-        :return:
+        :return: bytes
         """
         client_id = self.core.traits.data["machine-id"]
         try:
@@ -257,7 +263,7 @@ class ClientSystemEvents(object):
         Signature of encrypted by master's pubkey should be there.
         This assumes that the master's pubkey is in place.
 
-        :return:
+        :return: bool
         """
         self.log.info("Verifying signature of the token to the master")
         sig_path = os.path.join(self.pki_path, self.SIGNATURE_FILE)
@@ -271,7 +277,8 @@ class ClientSystemEvents(object):
         """
         Sign token for the master with the client's key.
 
-        :return:
+        :param cipher: data to sign
+        :return: bytes
         """
         with open(os.path.join(self.pki_path, sugar.lib.pki.utils.PRIVATE_KEY_FILENAME), "r") as pkey_h:
             pkey_pem = pkey_h.read()
@@ -282,8 +289,8 @@ class ClientSystemEvents(object):
         """
         Puts client to wait for the RSA acceptance.
 
-        :param proto:
-        :return:
+        :param proto: Protocol instance
+        :return: None
         """
         self.log.info("Waiting for RSA key acceptance...")
         reply = self.core.get_queue().get()
@@ -295,7 +302,8 @@ class ClientSystemEvents(object):
         """
         Handshake at each client protocol init.
 
-        :return:
+        :param proto: SugarClientProtocol
+        :return: None
         """
         key_status = None
         self.log.info("Verifying master public key")

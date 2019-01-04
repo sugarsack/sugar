@@ -44,8 +44,8 @@ class ServerCore(object):
         """
         Verify local token if local client is authorised to connect.
 
-        :param token:
-        :return:
+        :param token: string token
+        :return: bool
         """
         return token == self.master_local_token.get_token()
 
@@ -53,8 +53,8 @@ class ServerCore(object):
         """
         Send task to clients.
 
-        :param evt:
-        :return:
+        :param evt: an event
+        :return: None
         """
         self.log.info(">>> SEND TASK TO CLIENTS: {}".format(evt))
 
@@ -62,9 +62,9 @@ class ServerCore(object):
         """
         Register machine connection.
 
-        :param machine_id:
-        :param proto:
-        :return:
+        :param machine_id: string form of the machine ID
+        :param proto: current protocol instance
+        :return: None
         """
         if getattr(proto, "machine_id", None):
             self.__client_connection_protocols.setdefault(machine_id, proto)
@@ -74,8 +74,8 @@ class ServerCore(object):
         """
         Unregister machine connection.
 
-        :param proto:
-        :return:
+        :param proto: current protocol instance
+        :return: None
         """
         machine_id = proto.get_machine_id()
         if machine_id in self.__client_connection_protocols:
@@ -86,8 +86,8 @@ class ServerCore(object):
         """
         Get registered client protocol to send a message to the client.
 
-        :param machine_id:
-        :return:
+        :param machine_id: string form of the machine ID
+        :return: registered client protocol instance
         """
         return self.__client_connection_protocols.get(machine_id)
 
@@ -95,6 +95,7 @@ class ServerCore(object):
         """
         Accepts request from the console.
 
+        :param evt: an event
         :return: immediate response
         """
         if evt.kind == sugar.transport.ServerMsgFactory.TASK_RESPONSE:
@@ -108,7 +109,8 @@ class ServerCore(object):
         """
         Accepts request from the client.
 
-        :return:
+        :param evt: an event
+        :return: Put an event to the queue
         """
         threads.deferToThread(self.cli_db.accept, evt)
 
@@ -120,15 +122,17 @@ class KeyManagerEvents(object):
     def __init__(self, core: ServerCore):
         """
         Constructor
-        :param core:
+
+        :param core: ServerCore instance
         """
         self.core = core
 
     def on_key_status(self, key):
         """
         Action on key status.
-        :param key:
-        :return:
+
+        :param key: Serialisable (key)
+        :return: None
         """
         self.core.log.info("Key Manager key update")
         print(">>>", key.hostname)
@@ -165,7 +169,7 @@ class ServerSystemEvents(object):
         """
         This starts on Master startup to reset its initial state.
 
-        :return:
+        :return: None
         """
         if not sugar.lib.pki.utils.check_keys(self.pki_path):
             # TODO: Clients also should update this.
@@ -177,7 +181,7 @@ class ServerSystemEvents(object):
         """
         Return public RSA key.
 
-        :return:
+        :return: Serialisable
         """
         msg = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP)
         with open(os.path.join(self.pki_path, self.KEY_PUBLIC)) as rsa_h:
@@ -194,8 +198,8 @@ class ServerSystemEvents(object):
           - Denied
           - Accepted
 
-        :param msg:
-        :return:
+        :param msg: Serialisable
+        :return: Serialisable
         """
         with open(os.path.join(self.pki_path, self.KEY_PRIVATE)) as priv_mst_kh:
             priv_master_key = priv_mst_kh.read()
@@ -237,8 +241,8 @@ class ServerSystemEvents(object):
         """
         Add RSA key to the keystore.
 
-        :param msg:
-        :return:
+        :param msg: Serialisable
+        :return: Serialisable
         """
         reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
 
@@ -274,16 +278,18 @@ class RegisteredClients(object):
 
     def accept(self, evt):
         """
+        Put an event message to the queue
 
-        :param evt:
-        :return:
+        :param evt: an event for the queue
+        :return: None
         """
         self._queue.put_nowait(evt)
 
 
-def get_server_core():
+def get_server_core() -> ServerCore:
     """
     Get server core instance.
-    :return:
+
+    :return: ServerCore instance
     """
     return ServerCore()

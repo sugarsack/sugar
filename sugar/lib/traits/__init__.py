@@ -20,9 +20,9 @@ class Traits(object):
 
     def reload(self):
         """
-        [re]load traits.
+        [re-] load traits.
 
-        :return:
+        :return: None
         """
         self._data = {}
         for t_obj_n in dir(sugar.lib.traits.features):
@@ -35,6 +35,7 @@ class Traits(object):
     def data(self):
         """
         Returns copy of traits data.
-        :return:
+
+        :return: Copy of the traits data
         """
         return copy.deepcopy(self._data)

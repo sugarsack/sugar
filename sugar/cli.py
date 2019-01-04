@@ -50,12 +50,12 @@ Available components:
         getattr(self, args.component)()
 
     @staticmethod
-    def is_target(command):
+    def is_target(command: str) -> bool:
         """
         Checks if the command is a target.
 
-        :param command:
-        :return:
+        :param command: a command from the CLI
+        :return: boolean
         """
         ret = False
         for char in ['*', '.', ':']:
@@ -66,12 +66,12 @@ Available components:
         return ret if ret else command not in SugarCLI.COMPONENTS
 
     @staticmethod
-    def add_common_params(parser):
+    def add_common_params(parser: argparse.ArgumentParser):
         """
         Add common CLI params.
 
-        :param parser:
-        :return:
+        :param parser: argparse.ArgumentParser
+        :return: None
         """
         parser.add_argument('-l', '--log-level', help='Set output log level. Default: info',
                             choices=list(sorted(Logger.LOG_LEVELS.keys())), default=None)
@@ -80,7 +80,8 @@ Available components:
     def setup(self):
         """
         Setup component.
-        :return:
+
+        :return: None
         """
         self.component_args = self.component_cli_parser.parse_args(sys.argv[2:])
         try:
@@ -100,8 +101,8 @@ Available components:
         """
         Run reactor.
 
-        :param reactor:
-        :return:
+        :param reactor: Twisted reactor
+        :return: None
         """
         try:
             if inspect.isclass(type(reactor)) and not type(reactor) == type:  # pylint: disable=C0123
@@ -116,7 +117,8 @@ Available components:
     def master(self):
         """
         Sugar Master starter.
-        :return:
+
+        :return: None
         """
         self.component_cli_parser = argparse.ArgumentParser(
             description='Sugar Master, used to control Sugar Clients')
@@ -135,7 +137,8 @@ Available components:
     def client(self):
         """
         Sugar Client starter.
-        :return:
+
+        :return: None
         """
 
         self.component_cli_parser = argparse.ArgumentParser(
@@ -157,7 +160,7 @@ Available components:
         Sugar console.
         Connects to the locally running master.
 
-        :return:
+        :return: None
         """
         self.component_cli_parser = argparse.ArgumentParser(
             description='Sugar Console, sends commants to a remote Sugar Master')
@@ -175,7 +178,7 @@ Available components:
         Sugar key manager.
         Used to manage keys of the clients.
 
-        :return:
+        :return: None
         """
         self.component_cli_parser = argparse.ArgumentParser(
             description='Sugar Keys Manager, manages authentication keys')
@@ -207,5 +210,6 @@ Available components:
     def local(self):
         """
         Sugar local caller (orchestration)
-        :return:
+
+        :return: None
         """

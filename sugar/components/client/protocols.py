@@ -25,8 +25,8 @@ class SugarClientProtocol(WebSocketClientProtocol):
         """
         Connection has been made.
 
-        :param response:
-        :return:
+        :param response: Peer response
+        :return: None
         """
         self.log.info("Server connected: {0}".format(response.peer))
         self.factory.core.set_protocol(self._id, self)
@@ -35,13 +35,13 @@ class SugarClientProtocol(WebSocketClientProtocol):
         """
         Send message to the peer.
 
-        :param payload:
-        :param is_binary:
-        :param fragment_size:
-        :param sync:
-        :param do_not_compress:
+        :param payload: Message data
+        :param is_binary: bool
+        :param fragment_size: Size of the fragment
+        :param sync: bool
+        :param do_not_compress: bool
 
-        :return:
+        :return: None
         """
         if not is_binary:
             payload = sugar.utils.stringutils.to_bytes(payload)
@@ -52,14 +52,15 @@ class SugarClientProtocol(WebSocketClientProtocol):
         """
         Connection opened to the peer.
 
-        :return:
+        :return: None
         """
         self.restart_handshake()
 
     def restart_handshake(self):
         """
         Restarts handshake
-        :return:
+
+        :return: None
         """
         self.factory.core.hds.start()
 
@@ -76,9 +77,9 @@ class SugarClientProtocol(WebSocketClientProtocol):
         """
         Message received from peer.
 
-        :param payload:
-        :param is_binary:
-        :return:
+        :param payload: Incoming payload.
+        :param binary: bool
+        :return: None
         """
         if binary:
             msg = ObjectGate().load(payload, binary)
@@ -91,10 +92,10 @@ class SugarClientProtocol(WebSocketClientProtocol):
         """
         Connection closed.
 
-        :param wasClean:
-        :param code:
-        :param reason:
-        :return:
+        :param wasClean: bool
+        :param code: error code
+        :param reason: reason closing protocol
+        :return: None
         """
         self.log.info("WebSocket connection closed: {0}".format(reason))
         self.factory.core.remove_protocol(self._id)
@@ -118,9 +119,9 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         """
         On clonnection failed.
 
-        :param connector:
-        :param reason:
-        :return:
+        :param connector: Peer connector
+        :param reason: Reason connection failure
+        :return: None
         """
         self.retry(connector)
 
@@ -128,9 +129,9 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         """
         On connection lost
 
-        :param connector:
-        :param reason:
-        :return:
+        :param connector: Peer connector
+        :param reason: Reason connection failure
+        :return: None
         """
         self.log.debug("Connection lost: {}".format(reason))
         self.resetDelay()

@@ -21,7 +21,8 @@ class ObjectGate(object):
         """
         Load data.
 
-        :param ref:
+        :param ref: JSON
+        :param obj: Object reference. Default: None.
         :return:
         """
         if obj is None:
@@ -40,8 +41,9 @@ class ObjectGate(object):
         """
         Load serialisable object.
 
-        :param obj:
-        :return:
+        :param obj: Binary
+        :param binary: bool
+        :return: Serialisable
         """
         if binary:
             obj = pickle.loads(obj)
@@ -55,8 +57,9 @@ class ObjectGate(object):
         """
         Dump data recursively.
 
-        :param ref:
-        :return:
+        :param ref: reference object
+        :param data: data to dump. Default: None
+        :return: Serialisable
         """
         if data is None:
             data = {self.OBJ_CNT: None}
@@ -73,7 +76,8 @@ class ObjectGate(object):
         """
         Pack serialisable object.
 
-        :return:
+        :param binary: bool
+        :return: binary or JSON
         """
         data = self._dumper(self.__obj)
         return pickle.dumps(data) if binary else data

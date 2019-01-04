@@ -7,8 +7,8 @@ def get_yn_input(prompt):
     """
     Get Yes/No prompt answer.
 
-    :param prompt:
-    :return:
+    :param prompt: string prompt
+    :return: bool
     """
 
     answer = None

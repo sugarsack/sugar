@@ -12,7 +12,7 @@ def join_path(*elements):
     Join path, cleaning-up all the elements
 
     :param elements:
-    :return:
+    :return: path string
     """
     char = re.compile(r'[^A-Za-z0-9]')
     out = ['']

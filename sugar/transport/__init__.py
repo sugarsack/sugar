@@ -36,7 +36,7 @@ class _MessageFactory(object):
         """
         Create message.
 
-        :return:
+        :return: None
         """
         raise NotImplementedError()
 
@@ -45,8 +45,8 @@ class _MessageFactory(object):
         """
         Validate object.
 
-        :param obj:
-        :return:
+        :param obj: Serialisable
+        :return: None
         """
         cls.scheme.validate(cls.serialise(obj))
 
@@ -55,8 +55,8 @@ class _MessageFactory(object):
         """
         De-serialise binary object.
 
-        :param obj:
-        :return:
+        :param obj: Serialisable
+        :return: None
         """
         obj = ObjectGate().load(obj, binary=True)
         cls.validate(obj)
@@ -68,8 +68,8 @@ class _MessageFactory(object):
         """
         Serialise object into binary.
 
-        :param obj:
-        :return:
+        :param obj: Serialisable
+        :return: binary
         """
         return ObjectGate(obj).pack(binary=True)
 
@@ -78,8 +78,8 @@ class _MessageFactory(object):
         """
         Serialise object into Python dictionary
 
-        :param obj:
-        :return:
+        :param obj: Serialisable
+        :return: JSON
         """
         return ObjectGate(obj).pack()
 
@@ -106,7 +106,7 @@ class KeymanagerMsgFactory(_MessageFactory):
         """
         Create message.
 
-        :return:
+        :return: Serialisable
         """
         obj = Serialisable()
         obj.component = cls.COMPONENT
@@ -148,7 +148,7 @@ class ConsoleMsgFactory(_MessageFactory):
         """
         Create message.
 
-        :return:
+        :return: Serialisable
         """
         obj = Serialisable()
         obj.component = cls.COMPONENT
@@ -205,7 +205,8 @@ class ClientMsgFactory(_MessageFactory):
         """
         Create message.
 
-        :return:
+        :param kind: int
+        :return: Serialisable
         """
         obj = Serialisable()
         obj.component = cls.COMPONENT
@@ -267,7 +268,8 @@ class ServerMsgFactory(_MessageFactory):
     def create_console_msg(cls):
         """
         Create console message for client
-        :return:
+
+        :return: Serialisable
         """
         obj = cls().create()
         obj.kind = cls.CONSOLE_RESPONSE
@@ -277,7 +279,8 @@ class ServerMsgFactory(_MessageFactory):
     def create_client_msg(cls):
         """
         Create client message for client
-        :return:
+
+        :return: Serialisable
         """
         obj = cls().create()
         obj.kind = cls.TASK_RESPONSE
@@ -287,7 +290,8 @@ class ServerMsgFactory(_MessageFactory):
         """
         Create arbitrary message.
 
-        :return:
+        :param kind: int
+        :return: Serialisable
         """
         obj = Serialisable()
         obj.component = self.COMPONENT
@@ -310,8 +314,8 @@ def any_binary(data):
     Parse any known binary messages, detect where
     they belong to and validate them.
 
-    :param data:
-    :return:
+    :param data: binary data
+    :return: Serialisable
     """
     if not isinstance(data, six.text_type):
         data = pickle.loads(data)

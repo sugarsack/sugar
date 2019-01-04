@@ -15,7 +15,7 @@ def machine_id():
     Provide the machine-id for
     machine/virtualization combination
 
-    :return:
+    :return: Machine ID string
     """
     return sugar.lib.traits.utils.get_trait_func("get_machine_id")()
 
@@ -25,7 +25,7 @@ def host_name():
     """
     Provide hostname.
 
-    :return:
+    :return: hostname string
     """
     return sugar.utils.network.get_fqhostname().partition(".")[0]
 
@@ -34,7 +34,8 @@ def host_name():
 def domain_name():
     """
     Provide domain name
-    :return:
+
+    :return: domain name string
     """
     return sugar.utils.network.get_fqhostname().partition(".")[-1]
 
@@ -43,5 +44,7 @@ def domain_name():
 def host_name_fqdn():
     """
     Provide hostname FQDN
+
+    :return: hostname FQDN string
     """
     return sugar.utils.network.get_fqhostname()

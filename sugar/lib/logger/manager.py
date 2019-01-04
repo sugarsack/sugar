@@ -28,8 +28,9 @@ class SugarLogObserver(log.FileLogObserver):
     def _get_log_level(self, event_data):
         """
         Get proper logging level
-        :param level:
-        :return:
+
+        :param level: any log level
+        :return: supported log level with default to the current log level
         """
         level = logging.ERROR if bool(event_data.get('isError')) else event_data.get('level', logging.INFO)
         return self.log_level if level < self.log_level else level
@@ -37,6 +38,9 @@ class SugarLogObserver(log.FileLogObserver):
     def emit(self, event_data):
         """
         Log message emitter
+
+        :param event_data: event data to be emitted
+        :return: None
         """
 
         msg = log.textFromEventDict(event_data)
@@ -75,6 +79,9 @@ class LoggerManager(object):
     def get_logger(self, name):
         """
         Get logger with the specified name
+
+        :param name: name of the logger
+        :return: logger
         """
         if not isinstance(name, six.string_types):
             name = "{}.{}".format(name.__class__.__module__, name.__class__.__name__)

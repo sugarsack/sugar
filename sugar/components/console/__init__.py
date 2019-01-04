@@ -85,7 +85,7 @@ class SugarConsoleCore(object):
         Parse command line command.
         This finds target, function and parameters.
 
-        :return:
+        :return: Serialisable
         """
         target = sys.argv[1:2]
         query = self.args.query[::]
@@ -125,7 +125,8 @@ class SugarConsole(object):
     def run(self):
         """
         Run client.
-        :return:
+
+        :return: None
         """
         connectWS(self.factory, ssl.ClientContextFactory())
         reactor.run()

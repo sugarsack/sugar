@@ -17,8 +17,8 @@ def is_file_or_link(exe):
     """
     Check for os.X_OK doesn't suffice because directory may executable
 
-    :param exe:
-    :return:
+    :param exe: path
+    :return: bool
     """
     return os.access(exe, os.X_OK) and (os.path.isfile(exe) or os.path.islink(exe))
 
@@ -26,6 +26,9 @@ def is_file_or_link(exe):
 def which(exe=None):
     """
     Python clone of /usr/bin/which
+
+    :param exe: path to the binary
+    :return: string or None
     """
     _path = None
     if not exe:
@@ -84,6 +87,9 @@ def which(exe=None):
 def which_bin(exes):
     """
     Scan over some possible executables and return the first one that is found
+
+    :param exes: paths
+    :return: str if found, None otherwise
     """
     bin_path = None
     if isinstance(exes, collections.Iterable):

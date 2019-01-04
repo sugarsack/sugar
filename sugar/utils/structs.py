@@ -42,9 +42,9 @@ class ImmutableDict(dict):
         """
         Protect from updating content.
 
-        :param other:
-        :param kwargs:
-        :return:
+        :param other: -
+        :param kwargs: -
+        :return: -
         """
         raise ImmutableDict.AttributeAccessError('Attempt to update protected dictionary')
 
@@ -52,9 +52,9 @@ class ImmutableDict(dict):
         """
         Protect from setting the default value.
 
-        :param key:
-        :param value:
-        :return:
+        :param key: -
+        :param value: -
+        :return: -
         """
         raise ImmutableDict.AttributeAccessError('Attempt to set default value to a protected dictionary')
 
@@ -78,8 +78,8 @@ def dict_to_object(src):
     """
     Creates object out of dictionary.
 
-    :param src:
-    :return:
+    :param src: dictionary
+    :return: object
     """
     obj = ObjectMap()
     for key in src:
@@ -105,8 +105,9 @@ def merge_dicts(dst, src):
     updating only top-level keys, dict_merge recurses down into dicts nested
     to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
     ``dct``.
-    :param dct: dict onto which the merge is executed
-    :param merge_dct: dct merged into dct
+
+    :param dst: dict onto which the merge is executed
+    :param src: dct merged into
     :return: None
     """
 
@@ -122,9 +123,9 @@ def merge_missing(dst, src):
     """
     Merge missing keys from one dict to another.
 
-    :param dst:
-    :param src:
-    :return:
+    :param dst: dict onto which the merge is executed
+    :param src: dict merged into
+    :return: None
     """
     for key in src:
         if key not in dst:
@@ -148,6 +149,12 @@ def update(dest, upd, recursive_update=True, merge_lists=False):
 
     When merging lists, duplicate values are removed. Values already
     present in the ``dest`` list are not added from the ``upd`` list.
+
+    :param dest: destination dict
+    :param upd: source dict
+    :param recursive_update: bool
+    :param merge_lists: bool
+    :return: None
     """
     if (not isinstance(dest, collections.Mapping)) or (not isinstance(upd, collections.Mapping)):
         raise TypeError('Cannot update using non-dict types in dictupdate.update()')

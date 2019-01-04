@@ -13,6 +13,8 @@ log = get_logger(__name__)  # pylint: disable=C0103
 def get_fqhostname():
     """
     Returns the fully qualified hostname
+
+    :return: FQDN string or None
     """
     # try getaddrinfo()
     fqdn = None

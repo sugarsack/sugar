@@ -25,7 +25,7 @@ class MasterLocalToken(object):
         """
         Creates master local token.
 
-        :param path:
+        :param filename: filename, default to None
         """
         self.log = get_logger(__name__)
         self._filename = filename or tempfile.mktemp(SUFFIX, PREFIX)
@@ -41,7 +41,7 @@ class MasterLocalToken(object):
         """
         Get token from the disk.
 
-        :return:
+        :return: Token string
         """
         if self.__token is None:
             with open(self._filename) as tkn_fh:
@@ -52,7 +52,7 @@ class MasterLocalToken(object):
         """
         Remove token file.
 
-        :return:
+        :return: None
         """
         try:
             os.remove(self._filename)
@@ -64,7 +64,8 @@ def get_probable_token_filename(directory="/tmp"):
     """
     Try to get possible filename
 
-    :return:
+    :param directory: root path
+    :return: path string
     """
     files = {}
     for filename in os.listdir(directory):
