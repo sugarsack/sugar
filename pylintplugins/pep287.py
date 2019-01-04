@@ -18,6 +18,7 @@ class PEP287Checker(checkers.BaseChecker):
     """
     __implements__ = interfaces.IAstroidChecker
 
+    param_keywords = ["return", "returns", "param", "raises"]
     name = "PEP287"
     msgs = {
         "E8010": (
@@ -51,6 +52,14 @@ class PEP287Checker(checkers.BaseChecker):
             "One line expected between main explanation and parameters block in '%s'",
             "PEP287-line-after-main-explanation",
             "Before :param or :return one line is needed after the main explanation"),
+        "E8020": (
+            "Parameters block in '%s' is not the last one",
+            "PEP287-params-block-last",
+            "Parameters block should be the last one"),
+        "E8021": (
+            "Docstring in '%s' contains tabs instead of four spaces.",
+            "PEP287-tabs",
+            "Please do not use tabs, but four spaces instead."),
     }
 
     def _cleanup_spaces(self, data):
@@ -81,7 +90,8 @@ class PEP287Checker(checkers.BaseChecker):
         :param line:
         :return:
         """
-        return self._cleanup_spaces(line).split(":return")[-1]
+        ret = self._cleanup_spaces(line).split(" ", 1)
+        return (ret + ['' for _ in range(2 - len(ret))])[-1]
 
     def _get_doc_params(self, doc):
         """
@@ -103,27 +113,56 @@ class PEP287Checker(checkers.BaseChecker):
 
         return params
 
+    def _get_ident_len(self, line):
+        """
+        Get ident length of the line.
+
+        :param line:
+        :return: int
+        """
+        return len([True for elm in line.split(" ") if not bool(elm)])
+
+    def _check_tabs(self, node):
+        """
+        There shall be no tabs. Ever.
+
+        :param node: function node
+        :return: None
+        """
+        if len(node.doc.split("\t")) > 1:
+            self.add_message("PEP287-tabs", node=node, args=(node.name, ))
+
     def _check_explanation_block(self, node):
         """
         Docstring should contain explanation block.
 
-        :param node:
-        :return:
+        :param node: function node
+        :return: None
         """
         docmap = []
-        for line in node.doc.strip().split(os.linesep):
-            line = line.strip()
-            if not line:
+        kw_ident = -1
+        for idx, line in enumerate(node.doc.rstrip().split(os.linesep)):
+            if not idx:
+                continue  # Skip newline after triple-quotes
+            s_line = line.strip()
+            if not s_line:
                 docmap.append("-")
-            elif line.startswith(":") and line.split(" ", 1)[0].strip(":") in ["return", "param", "raises"]:  # add all?
+            elif s_line.startswith(":") and s_line.split(" ", 1)[0].strip(":") in self.param_keywords:
                 docmap.append(":")
+                kw_ident = max(self._get_ident_len(line), kw_ident)
             else:
-                docmap.append("#")
+                a = self._get_ident_len(line)
+                docmap.append(":" if kw_ident > -1 and self._get_ident_len(line) > kw_ident else "#")
         docmap = ''.join(docmap)
-        if "#:" in docmap or "--#" in docmap:
+
+        if "#:" in docmap or "--:" in docmap:
             self.add_message("PEP287-line-after-main-explanation", node=node, args=(node.name,))
-        elif "#" not in docmap:
+
+        if "#" not in docmap:
             self.add_message("PEP287-main-explanation-missing", node=node, args=(node.name,))
+
+        if not (docmap.strip(":") + ":").endswith("-:"):
+            self.add_message("PEP287-params-block-last", node=node, args=(node.name,))
 
     def _compare_signature(self, node, d_pars, n_args):
         """
@@ -176,6 +215,7 @@ class PEP287Checker(checkers.BaseChecker):
         and they are on the new line.
         """
         if not node.name.startswith("_") and node.doc:
+            self._check_tabs(node)
             self._check_explanation_block(node)
             self._compare_signature(node, self._get_doc_params(node.doc), node.args)
 
