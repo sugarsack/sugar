@@ -22,9 +22,8 @@ class SugarKeymanagerProtocol(WebSocketClientProtocol):
 
     def onOpen(self):
         for key in self.factory.core.get_changed_keys():
-            key_message = KeymanagerMsgFactory().create()
+            key_message = KeymanagerMsgFactory.create()
             key_message.internal = key
-            key_message.token = self.factory.core.local_token.get_token()
             self.sendMessage(KeymanagerMsgFactory.pack(key_message), isBinary=True)
 
     def onMessage(self, payload, binary):  # pylint: disable=W0613
