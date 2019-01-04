@@ -191,10 +191,13 @@ Available components:
                                                default="all", choices=sorted(["all", "new", "accepted",
                                                                               "rejected", "denied"]))
         self.component_cli_parser.add_argument("-t", "--fingerprint",
-                                               help="Specify key fingerprint for acceptance/rejection/deletion",
+                                               help="Specify key fingerprint of the key",
                                                default=None)
         self.component_cli_parser.add_argument("-n", "--hostname",
-                                               help="Specify hostname of the key for acceptance/rejection/deletion",
+                                               help="Specify hostname of the key",
+                                               default=None)
+        self.component_cli_parser.add_argument("-i", "--machineid",
+                                               help="Specify machine ID of the key",
                                                default=None)
         self.component_cli_parser.add_argument("--match-all-keys-at-once",
                                                help="Take all keys or acceptance/rejection/deletion",

@@ -101,23 +101,23 @@ class KeymanagerMsgFactory(_MessageFactory):
         And('internal'): str,
     })
 
-    @classmethod
-    def create(cls):
+    @staticmethod
+    def create():
         """
         Create message.
 
         :return: Serialisable
         """
         obj = Serialisable()
-        obj.component = cls.COMPONENT
-        obj.kind = cls.TASK_REQUEST
+        obj.component = KeymanagerMsgFactory.COMPONENT
+        obj.kind = KeymanagerMsgFactory.TASK_REQUEST
         obj.user = getpass.getuser()
         obj.uid = os.getuid()
 
         obj.token = MasterLocalToken().get_token()
         obj.internal = ''
 
-        cls.validate(obj)
+        KeymanagerMsgFactory.validate(obj)
 
         return obj
 

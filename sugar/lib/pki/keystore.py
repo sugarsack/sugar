@@ -366,7 +366,7 @@ class KeyStore(object):
         :return: key, matching the machine ID
         """
         return self.__clone_rs(orm.select(k for k in StoredKey
-                                          if k.machine_id == sugar.utils.stringutils.to_str(machine_id)))
+                                          if k.machine_id.startswith(sugar.utils.stringutils.to_str(machine_id))))
 
     @orm.db_session
     def get_key_by_hostname(self, hostname):
@@ -377,4 +377,4 @@ class KeyStore(object):
         :return: key, matching the hostname
         """
         return self.__clone_rs(orm.select(k for k in StoredKey
-                                          if k.hostname == sugar.utils.stringutils.to_str(hostname)))
+                                          if k.hostname.startswith(sugar.utils.stringutils.to_str(hostname))))
