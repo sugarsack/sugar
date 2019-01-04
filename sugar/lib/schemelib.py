@@ -341,7 +341,7 @@ class Schema(object):
                                 nvalue = schema_class(svalue, error=err_set,
                                                       ignore_extra_keys=ign_ex_keys).validate(value)
                             except SchemaError as exc:
-                                msg = "Configuration key '%s' error:" % nkey
+                                msg = "Schema key '%s' error:" % nkey
                                 raise SchemaError([msg] + exc.autos, [err_set] + exc.errors)
                             else:
                                 new[nkey] = nvalue
