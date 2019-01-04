@@ -18,6 +18,8 @@ from sugar.lib.pki.keystore import KeyStore
 from sugar.lib.outputters.console import IterableOutput, TitleOutput, ConsoleMessages
 from sugar.lib import exceptions
 import sugar.utils.console
+import sugar.utils.exitcodes
+import sugar.utils.data
 
 
 class SugarKeyManager(object):
@@ -29,7 +31,9 @@ class SugarKeyManager(object):
     def __init__(self, args):
         """
         Init
+
         :param url:
+        :raises: Exception if factory is not secure SSL
         """
         self.config = get_config()
         if not self.config.config_path:
@@ -61,23 +65,55 @@ class SugarKeyManager(object):
         all_sections = [("accepted", "success"), ("rejected", "alert"), ("denied", "warning"), ("new", "info")]
         ret = OrderedDict()
 
-        for section in all_sections:
-            text, style = section
-            if self.args.status == "all" or self.args.status == text:
-                out = []
-                for host_key in getattr(self._keystore, "get_{}".format(text))():
-                    out.append({host_key.hostname: host_key.fingerprint})
-                ret[text] = out
-                title_output.add(text.title(), style)
+        if not sugar.utils.data.exactly_one([self.args.fingerprint, self.args.hostname, self.args.machineid]):
+            self.cli.error("You should specify either *fingerprint* or *hostname* or *machine ID*.")
+            sys.exit(sugar.utils.exitcodes.EX_USAGE)
+        elif sugar.utils.data.exactly_one([self.args.fingerprint, self.args.hostname, self.args.machineid]):
+            out = []
+            if self.args.fingerprint:
+                text, keys = "fingerprint", self._keystore.get_key_by_fingerprint(self.args.fingerprint)
+            elif self.args.machineid:
+                text, keys = "machine id", self._keystore.get_key_by_machine_id(self.args.machineid)
+            else:
+                text, keys = "host name", self._keystore.get_key_by_hostname(self.args.hostname)
 
-        if self.args.format == "short":
-            for text in ret:
-                sys.stdout.write(title_output.paint(text.title()) + "\n")
-                sys.stdout.write(self._list_output.paint(ret[text]) + "\n\n")
-        elif self.args.format == "full":
-            self.cli.error("Not *just yet*! :-)")
+            for host_key in keys:
+                if self.args.format == "short":
+                    out.append({host_key.hostname: host_key.fingerprint})
+                else:
+                    out.append({
+                        host_key.hostname: OrderedDict([
+                            ("fingerprint", host_key.fingerprint),
+                            ("machine-id", host_key.machine_id),
+                            ("filename", host_key.filename),
+                            ("notes", host_key.notes or "N/A")
+                        ]),
+                    })
+            ret[text] = out
+            title_output.add(text.title(), "info")
         else:
-            raise exceptions.SugarConsoleException("Unknown format: {}".format(self.args.format))
+            for section in all_sections:
+                text, style = section
+                if self.args.status == "all" or self.args.status == text:
+                    out = []
+                    for host_key in getattr(self._keystore, "get_{}".format(text))():
+                        if self.args.format == "short":
+                            out.append({host_key.hostname: host_key.fingerprint})
+                        else:
+                            out.append({
+                                host_key.hostname: OrderedDict([
+                                    ("fingerprint", host_key.fingerprint),
+                                    ("machine-id", host_key.machine_id),
+                                    ("filename", host_key.filename),
+                                    ("notes", host_key.notes or "N/A")
+                                ]),
+                            })
+                    ret[text] = out
+                    title_output.add(text.title(), style)
+
+        for text in ret:
+            sys.stdout.write(title_output.paint(text.title()) + "\n")
+            sys.stdout.write(self._list_output.paint(ret[text]) + "\n\n")
 
     def _set_keys_status(self, status: str, doing: str, func: callable) -> list:
         """
