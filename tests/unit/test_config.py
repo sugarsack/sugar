@@ -8,6 +8,7 @@ import pytest
 from mock import MagicMock, patch, mock_open
 from sugar.config import CurrentConfiguration
 from tests.unit import data
+from sugar.lib.schemelib import SchemaWrongKeyError
 
 
 @pytest.fixture
@@ -18,6 +19,16 @@ def default_master_configuration():
     :return: YAML
     """
     return open(os.path.join(os.path.dirname(data.__file__), "default_master.conf")).read()
+
+
+@pytest.fixture
+def wrong_schema():
+    """
+    Return broken schema.
+
+    :return: YAML
+    """
+    return "mad: max"
 
 
 @pytest.fixture
@@ -54,7 +65,7 @@ class TestConfig(object):
     @patch("os.path.isfile", MagicMock(return_value=True))
     @patch("os.path.isdir", MagicMock(return_value=True))
     @patch("os.path.expanduser", MagicMock(return_value="/path/to/sugar"))
-    def test_config_loading(self, cfg_class, default_master_configuration):
+    def test_master_config_loading(self, cfg_class, default_master_configuration):
         """
         Test configuration loading.
 
@@ -63,3 +74,18 @@ class TestConfig(object):
         with patch("sugar.config.open", mock_open(read_data=default_master_configuration), create=True):
             inst = cfg_class("/path/to/config", {"foo": "bar"})
             assert inst.root.terminal.colors == 16
+
+    @patch("sugar.config.get_current_component", MagicMock(return_value="master"))
+    @patch("os.path.isfile", MagicMock(return_value=True))
+    @patch("os.path.isdir", MagicMock(return_value=True))
+    @patch("os.path.expanduser", MagicMock(return_value="/path/to/sugar"))
+    def test_master_config_schema_error(self, cfg_class, wrong_schema):
+        """
+        Test configuration loading.
+
+        :return: None
+        """
+        with patch("sugar.config.open", mock_open(read_data=wrong_schema), create=True):
+            with pytest.raises(SchemaWrongKeyError) as exc:
+                cfg_class("/path/to/config", {"foo": "bar"})
+            assert "Unexpected option 'mad'" in str(exc)
