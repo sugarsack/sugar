@@ -94,7 +94,6 @@ Available components:
 
         # This calls configuration! Should be called therefore after singleton init above.
         from sugar.lib.logger.manager import get_logger
-
         self.log = get_logger(__name__)
 
     def run(self, reactor):
