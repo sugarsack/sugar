@@ -131,7 +131,7 @@ class _DefaultConfigurations(object):
             merge_missing(target, _DefaultConfigurations.client()['master'][0])
 
     @staticmethod
-    def __default_client_reset_logging_level(config, opts):
+    def ___reset_logging_level(config, opts):
         """
         Roll over the config and update logging levels.
 
@@ -143,6 +143,8 @@ class _DefaultConfigurations(object):
             merge_missing(target, _DefaultConfigurations.client()['log'][0])
             if opts and opts.log_level is not None:
                 target['level'] = opts.log_level
+
+    __default_master_reset_logging_level = __default_client_reset_logging_level = ___reset_logging_level
 
 
 @Singleton
@@ -178,6 +180,7 @@ class CurrentConfiguration(object):
                 if os.path.isdir(path):
                     self._load_config(cfg_file)
                     self.__config['config_path'] = path
+                    break
 
     def _load_config(self, config_path):
         """
