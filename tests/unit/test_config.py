@@ -133,7 +133,7 @@ class TestConfig(object):
     @patch("os.path.isfile", MagicMock(return_value=True))
     @patch("os.path.isdir", MagicMock(return_value=True))
     @patch("os.path.expanduser", MagicMock(return_value="/path/to/sugar"))
-    def test__config_log_level(self, cfg_class, default_master_configuration):
+    def test__config_log_level(self, cfg_class, default_master_configuration, default_client_configuration):
         """
         Test log level configuration
 
@@ -143,5 +143,9 @@ class TestConfig(object):
             log_level = "no_idea"
 
         with patch("sugar.config.open", mock_open(read_data=default_master_configuration), create=True):
+            inst = cfg_class("/path/to/config", _Opts())
+            assert inst.root.log[0].level == _Opts.log_level
+
+        with patch("sugar.config.open", mock_open(read_data=default_client_configuration), create=True):
             inst = cfg_class("/path/to/config", _Opts())
             assert inst.root.log[0].level == _Opts.log_level
