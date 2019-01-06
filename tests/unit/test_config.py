@@ -128,3 +128,20 @@ class TestConfig(object):
             with pytest.raises(SchemaWrongKeyError) as exc:
                 cfg_class("/path/to/config", None)
             assert "Unexpected option 'mad'" in str(exc)
+
+    @patch("sugar.config.get_current_component", MagicMock(return_value="master"))
+    @patch("os.path.isfile", MagicMock(return_value=True))
+    @patch("os.path.isdir", MagicMock(return_value=True))
+    @patch("os.path.expanduser", MagicMock(return_value="/path/to/sugar"))
+    def test__config_log_level(self, cfg_class, default_master_configuration):
+        """
+        Test log level configuration
+
+        :return: None
+        """
+        class _Opts(object):
+            log_level = "no_idea"
+
+        with patch("sugar.config.open", mock_open(read_data=default_master_configuration), create=True):
+            inst = cfg_class("/path/to/config", _Opts())
+            assert inst.root.log[0].level == _Opts.log_level
