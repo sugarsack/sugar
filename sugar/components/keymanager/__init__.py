@@ -54,6 +54,28 @@ class SugarKeyManager(object):
         if not self.factory.isSecure:
             raise Exception('Unable to initialte TLS')
 
+    def _format_keys(self, keys):
+        """
+        Format keys for the CLI output.
+
+        :param keys: Keys to format.
+        :return: list of dicts with the key data per each.
+        """
+        out = []
+        for host_key in keys:
+            if self.args.format == "short":
+                out.append({host_key.hostname: host_key.fingerprint})
+            else:
+                out.append({
+                    host_key.hostname: OrderedDict([
+                        ("fingerprint", host_key.fingerprint),
+                        ("machine-id", host_key.machine_id),
+                        ("filename", host_key.filename),
+                        ("notes", host_key.notes or "N/A")
+                    ]),
+                })
+        return out
+
     def list(self):
         """
         List keys by status.
@@ -69,46 +91,20 @@ class SugarKeyManager(object):
             self.cli.error("You should specify either *fingerprint* or *hostname* or *machine ID*.")
             sys.exit(sugar.utils.exitcodes.EX_USAGE)
         elif sugar.utils.data.exactly_one([self.args.fingerprint, self.args.hostname, self.args.machineid]):
-            out = []
             if self.args.fingerprint:
-                text, keys = "fingerprint", self._keystore.get_key_by_fingerprint(self.args.fingerprint)
+                text, keys = "list by fingerprint", self._keystore.get_key_by_fingerprint(self.args.fingerprint)
             elif self.args.machineid:
-                text, keys = "machine id", self._keystore.get_key_by_machine_id(self.args.machineid)
+                text, keys = "list by machine id", self._keystore.get_key_by_machine_id(self.args.machineid)
             else:
-                text, keys = "host name", self._keystore.get_key_by_hostname(self.args.hostname)
+                text, keys = "list by host name", self._keystore.get_key_by_hostname(self.args.hostname)
 
-            for host_key in keys:
-                if self.args.format == "short":
-                    out.append({host_key.hostname: host_key.fingerprint})
-                else:
-                    out.append({
-                        host_key.hostname: OrderedDict([
-                            ("fingerprint", host_key.fingerprint),
-                            ("machine-id", host_key.machine_id),
-                            ("filename", host_key.filename),
-                            ("notes", host_key.notes or "N/A")
-                        ]),
-                    })
-            ret[text] = out
+            ret[text] = self._format_keys(keys)
             title_output.add(text.title(), "info")
         else:
             for section in all_sections:
                 text, style = section
                 if self.args.status == "all" or self.args.status == text:
-                    out = []
-                    for host_key in getattr(self._keystore, "get_{}".format(text))():
-                        if self.args.format == "short":
-                            out.append({host_key.hostname: host_key.fingerprint})
-                        else:
-                            out.append({
-                                host_key.hostname: OrderedDict([
-                                    ("fingerprint", host_key.fingerprint),
-                                    ("machine-id", host_key.machine_id),
-                                    ("filename", host_key.filename),
-                                    ("notes", host_key.notes or "N/A")
-                                ]),
-                            })
-                    ret[text] = out
+                    ret[text] = self._format_keys(getattr(self._keystore, "get_{}".format(text))())
                     title_output.add(text.title(), style)
 
         for text in ret:
@@ -133,7 +129,11 @@ class SugarKeyManager(object):
             by_type = "in batch"
             self.cli.warning("Dangerous mode!")
             if sugar.utils.console.get_yn_input("Are you sure?"):
-                keys = [key for key in self._keystore.get_new() if key.status != status]
+                if self.args.command in ["accept", "reject", "deny"]:
+                    keys = [key for key in self._keystore.get_new() if key.status != status]
+                elif self.args.command == "delete":
+                    for keyfunction in [self._keystore.get_rejected, self._keystore.get_denied, self._keystore.get_new]:
+                        keys.extend([key for key in keyfunction() if key.status != status])
         if keys:
             self.cli.info("*{} {} key{}* ({}):", doing.title(), len(keys), len(keys) > 1 and "s" or "", by_type)
             for key in keys:
@@ -209,7 +209,9 @@ class SugarKeyManager(object):
                 and not self.args.match_all_keys_at_once):
             self.cli.error("Error: please specify fingerprint or hostname or decide to match all keys at once.")
             sys.exit(1)
-        elif self.args.command == "delete" and not self.args.fingerprint:
+
+        elif self.args.command == "delete" and not sugar.utils.data.how_many([self.args.fingerprint,
+                                                                              self.args.match_all_keys_at_once]):
             self.cli.error("Error: please specify fingerprint to delete a key.")
             sys.exit(1)
 
