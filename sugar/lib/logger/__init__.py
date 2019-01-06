@@ -21,19 +21,19 @@ class Logger(object):
 
     """
     LOG_LEVELS = {
-        'all': logging.NOTSET,
-        'debug': logging.DEBUG,
-        'error': logging.ERROR,
-        'critical': logging.CRITICAL,
-        'info': logging.INFO,
-        'warning': logging.WARNING,
-        'fatal': logging.FATAL
+        'all': logging.NOTSET,         # 0
+        'debug': logging.DEBUG,        # 10
+        'error': logging.ERROR,        # 40
+        'critical': logging.CRITICAL,  # 50  <--+
+        'info': logging.INFO,          # 20     |
+        'warning': logging.WARNING,    # 30     |
+        'fatal': logging.FATAL         # 50  <--+
     }
 
-    def __init__(self, name):
+    def __init__(self, name, threshold):
         self.name = name
+        self.threshold = threshold
         for method in self.LOG_LEVELS:
-
             def make_log_level_caller(level):
                 """
                 Wrap Twisted's log into levels
@@ -42,7 +42,8 @@ class Logger(object):
                 :return: Whatever log.msg returns
                 """
                 def _msg(message):
-                    log.msg(message, level=level, system=self.name)
+                    if level >= self.threshold:
+                        log.msg(message, level=level, system=self.name)
                 return _msg
 
             setattr(self, method, make_log_level_caller(self.LOG_LEVELS[method]))

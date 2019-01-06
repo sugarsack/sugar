@@ -32,7 +32,7 @@ class SugarLogObserver(log.FileLogObserver):
         :param level: any log level
         :return: supported log level with default to the current log level
         """
-        level = logging.ERROR if bool(event_data.get('isError')) else event_data.get('level', logging.INFO)
+        level = logging.ERROR if bool(event_data.get('isError')) else event_data.get('level', self.log_level)
         return self.log_level if level < self.log_level else level
 
     def emit(self, event_data):
@@ -42,7 +42,6 @@ class SugarLogObserver(log.FileLogObserver):
         :param event_data: event data to be emitted
         :return: None
         """
-
         msg = log.textFromEventDict(event_data)
         if msg:
             if six.PY3:
@@ -86,7 +85,8 @@ class LoggerManager(object):
         if not isinstance(name, six.string_types):
             name = "{}.{}".format(name.__class__.__module__, name.__class__.__name__)
 
-        return self.logger_store.setdefault(name, Logger(name))
+        return self.logger_store.setdefault(name, Logger(name=name,
+                                                         threshold=Logger.LOG_LEVELS[self.config.log[0].level]))
 
 
 get_logger = LoggerManager().get_logger  # pylint: disable=C0103
