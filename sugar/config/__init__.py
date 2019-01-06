@@ -178,6 +178,7 @@ class CurrentConfiguration(object):
                 if os.path.isdir(path):
                     self._load_config(cfg_file)
                     self.__config['config_path'] = path
+                    break
 
     def _load_config(self, config_path):
         """
