@@ -75,6 +75,8 @@ Available components:
         """
         parser.add_argument('-l', '--log-level', help='Set output log level. Default: info',
                             choices=list(sorted(Logger.LOG_LEVELS.keys())), default=None)
+        parser.add_argument('-L', '--log-output', help='Set destination of the logging. '
+                                                       'Default: as configured', default=None)
         parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory.', default=None)
 
     def setup(self):
@@ -85,12 +87,17 @@ Available components:
         """
         self.component_args = self.component_cli_parser.parse_args(sys.argv[2:])
         try:
-            CurrentConfiguration(self.component_args.config_dir, self.component_args)
+            conf = CurrentConfiguration(self.component_args.config_dir, self.component_args)
         except schemelib.SchemaError as ex:
             sys.stderr.write('Configuration error:\n  {}\n'.format(ex))
             if self.component_args.log_level == 'debug':
                 raise ex
             sys.exit(1)
+        if self.component_args.log_output is not None:
+            conf.update({"log": [{"file": self.component_args.log_output,
+                                  "max_size_mb": conf.root.log[0].max_size_mb,
+                                  "level": conf.root.log[0].level,
+                                  "rotate": conf.root.log[0].rotate}]})
 
         # This calls configuration! Should be called therefore after singleton init above.
         from sugar.lib.logger.manager import get_logger
