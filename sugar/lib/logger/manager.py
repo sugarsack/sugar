@@ -77,7 +77,7 @@ class LoggerManager(object):
 
     def get_logger(self, name):
         """
-        Get logger with the specified name
+        Get logger with the specified name.
 
         :param name: name of the logger
         :return: logger
