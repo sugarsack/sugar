@@ -51,9 +51,9 @@ class Logger(object):
                     except Exception as err:
                         raise exceptions.SugarRuntimeException(
                             "Formatting log message '{}' failed: {}".format(message, str(err)))
-
                     if level >= self.threshold:
                         log.msg(message, level=level, system=self.name)
+
                 return _msg
 
             setattr(self, method, make_log_level_caller(self.LOG_LEVELS[method]))
