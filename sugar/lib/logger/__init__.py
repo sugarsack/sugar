@@ -35,6 +35,7 @@ class Logger(object):
         self.name = name
         self.threshold = threshold
         for method in self.LOG_LEVELS:
+
             def make_log_level_caller(level):
                 """
                 Wrap Twisted's log into levels
