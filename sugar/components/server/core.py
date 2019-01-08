@@ -56,7 +56,8 @@ class ServerCore(object):
         :param evt: an event
         :return: None
         """
-        self.log.info(">>> SEND TASK TO CLIENTS: {}".format(evt))
+        self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\ttarget: {}\n\targs: {}",
+                       evt.fun, evt.tgt, evt.arg)
 
     def register_client_protocol(self, machine_id, proto):
         """
