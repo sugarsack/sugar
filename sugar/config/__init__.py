@@ -202,7 +202,10 @@ class CurrentConfiguration(object):
         :return:
         """
         merge_dicts(self.__config, conf or {})
+        config_path = self.__config.pop("config_path", None)
         getattr(scheme, '{}_scheme'.format(self.component)).validate(self.__config)
+        if config_path is not None:
+            self.__config["config_path"] = config_path
         _DefaultConfigurations.add_defaults(self.__config, self.__opts)
 
     def update(self, data):
