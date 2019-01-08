@@ -28,6 +28,7 @@ class _DefaultConfigurations(object):
     # This is inherited as is at its main level.
     # Common part should be designed at the top levels.
     _common = {
+        # TODO: Get rid of this list!
         'log': [
             {
                 'file': 'STDOUT',
