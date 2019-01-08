@@ -6,6 +6,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import logging
 
 from twisted.python import log
+from sugar.lib import exceptions
 
 
 class Logger(object):
@@ -41,7 +42,16 @@ class Logger(object):
                 :param level: Log level
                 :return: Whatever log.msg returns
                 """
-                def _msg(message):
+                def _msg(message, *args, **kwargs):
+                    try:
+                        if args:
+                            message = message.format(*args)
+                        elif kwargs:
+                            message = message.format(**kwargs)
+                    except Exception as err:
+                        raise exceptions.SugarRuntimeException(
+                            "Formatting log message '{}' failed: {}".format(message, str(err)))
+
                     if level >= self.threshold:
                         log.msg(message, level=level, system=self.name)
                 return _msg
