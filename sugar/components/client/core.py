@@ -134,7 +134,7 @@ class ClientCore(object):
         """
         self._proto.setdefault(proto_id, proto)
         self._queue.setdefault(proto_id, queue.Queue())
-        self.log.debug("Added protocol with ID {}".format(proto_id))
+        self.log.debug("added protocol with ID {}", proto_id)
 
     def remove_protocol(self, proto_id):
         """
@@ -143,13 +143,13 @@ class ClientCore(object):
         :param proto_id: Protocol ID reference
         :return: None
         """
-        self.log.debug("Removing protocol, ID: {}".format(proto_id))
+        self.log.debug("removing protocol, ID: {}", proto_id)
         for container in [self._proto, self._queue]:
             try:
                 del container[proto_id]
+                self.log.all("protocol with the ID {} has been deleted", proto_id)
             except KeyError:
-                self.log.error("Unable to remove protol with ID {} from {}".format(
-                    proto_id, container.__class__.__name__))
+                self.log.error("unable to remove protocol with ID {} from {}", proto_id, container.__class__.__name__)
 
     def get_queue(self, channel="_") -> queue.Queue:
         """
@@ -182,10 +182,9 @@ class ClientSystemEvents(object):
     def __init__(self, core: ClientCore):
         self.log = get_logger(self)
         self.core = core
-        self.pki_path = os.path.join(self.core.config.config_path,
-                                     "pki/{}".format(get_current_component()))
+        self.pki_path = os.path.join(self.core.config.config_path, "pki/{}".format(get_current_component()))
         if not os.path.exists(self.pki_path):
-            self.log.info("creating directory for keys in: {}".format(self.pki_path))
+            self.log.info("creating directory for keys in: {}", self.pki_path)
             os.makedirs(self.pki_path)
 
     def on_startup(self):
@@ -205,7 +204,7 @@ class ClientSystemEvents(object):
         mpk_path = os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)
         ret = os.path.exists(mpk_path)
         if not ret:
-            self.log.warning("Master public key '{}' was not found".format(mpk_path))
+            self.log.warning("master public key '{}' was not found", mpk_path)
 
         return ret
 
@@ -221,9 +220,11 @@ class ClientSystemEvents(object):
         if not os.path.exists(mpk_path) or force:
             with open(mpk_path, "wb") as mpk_h:
                 mpk_h.write(sugar.utils.stringutils.to_bytes(pubkey_pem))
-            self.log.info("Master RSA key has been saved")
+            self.log.info("master RSA key has been saved")
         else:
-            raise SugarClientException("Master public key already exists: {}".format(mpk_path))
+            msg = "master public key already exists: {}".format(mpk_path)
+            self.log.error(msg)
+            raise SugarClientException(msg)
 
     def check_master_token(self) -> bool:
         """
@@ -232,12 +233,14 @@ class ClientSystemEvents(object):
 
         :return: bool
         """
-        self.log.info("Verifying master token")
+        self.log.debug("verifying master token...")
         tkn_path = os.path.join(self.pki_path, self.TOKEN_CIPHER_FILE)
         ret = os.path.exists(tkn_path)
         if not ret:
-            self.log.warning("{} file was not found".format(tkn_path))
+            self.log.warning("{} file was not found", tkn_path)
             # self.core.put_message()
+        else:
+            self.log.debug("master token has been verified")
 
         return ret
 
@@ -253,7 +256,7 @@ class ClientSystemEvents(object):
             with open(os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)) as master_pubkey_fh:
                 pubkey_rsa = master_pubkey_fh.read()
         except Exception as ex:
-            self.log.error("Error encrypting token with RSA key: {}".format(ex))
+            self.log.error("error encrypting token with RSA key: {}", ex)
             raise ex
 
         return sugar.utils.stringutils.to_bytes(self.core.crypto.encrypt_rsa(pubkey_rsa, client_id))
@@ -265,11 +268,11 @@ class ClientSystemEvents(object):
 
         :return: bool
         """
-        self.log.info("Verifying signature of the token to the master")
+        self.log.debug("verifying signature of the token to the master")
         sig_path = os.path.join(self.pki_path, self.SIGNATURE_FILE)
         ret = os.path.exists(sig_path)
         if not ret:
-            self.log.warning("Signature {} was not found.".format(sig_path))
+            self.log.warning("signature {} was not found.", sig_path)
 
         return ret
 
@@ -292,9 +295,9 @@ class ClientSystemEvents(object):
         :param proto: Protocol instance
         :return: None
         """
-        self.log.info("Waiting for RSA key acceptance...")
+        self.log.info("waiting for RSA key acceptance...")
         reply = self.core.get_queue().get()
-        self.log.info("RSA key was {}".format(reply.internal))
+        self.log.debug("RSA key was {}", reply.internal)
         self.core.hds.rsa_accept_wait = False
         proto.restart_handshake()
 
@@ -306,7 +309,7 @@ class ClientSystemEvents(object):
         :return: None
         """
         key_status = None
-        self.log.info("Verifying master public key")
+        self.log.info("verifying master public key")
 
         # Phase 1: Get Master's RSA public key on board
         if not self.check_master_pubkey():
@@ -317,7 +320,7 @@ class ClientSystemEvents(object):
             if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP:
                 self.save_master_pubkey(reply.internal["payload"])
         else:
-            self.log.debug("Master's RSA public key is saved")
+            self.log.debug("master's RSA public key is saved")
 
         # Phase 2: Tell Master client is authentic
         cipher = self.create_master_token()
@@ -327,12 +330,12 @@ class ClientSystemEvents(object):
         msg.internal["signature"] = signature
         proto.sendMessage(ClientMsgFactory.pack(msg), is_binary=True)
 
-        self.log.debug("Master token cipher created, signed and sent")
+        self.log.debug("master token cipher created, signed and sent")
         reply = self.core.get_queue().get()
-        self.log.debug("Got server response: {}".format(hex(reply.kind)))
+        self.log.debug("got server response: {}".format(hex(reply.kind)))
 
         if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP:
-            self.log.info("Key needs to be sent for the registration")
+            self.log.debug("key needs to be sent for the registration")
             registration_request = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
             registration_request.internal["payload"] = sugar.lib.pki.utils.get_public_key(self.pki_path)
             registration_request.internal["machine-id"] = self.core.traits.data.get('machine-id')
@@ -341,20 +344,20 @@ class ClientSystemEvents(object):
             self.log.debug("RSA key bound to the metadata and sent")
         elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP:
             if reply.internal.get("payload") == KeyStore.STATUS_CANDIDATE:
-                self.log.debug("Handshake: Waiting for key to be accepted...")
+                self.log.debug("the key needs to be accepted")
                 self.core.hds.rsa_accept_wait = True
             elif reply.internal.get("payload") != KeyStore.STATUS_ACCEPTED:
                 self.core.hds.set_failed()
                 key_status = reply.internal["payload"]
-                self.log.info("RSA key {}".format(key_status))
+                self.log.info("RSA key is {}".format(key_status))
         elif reply.kind == ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP:
-            self.log.debug("Master token response: {}".format(reply.internal["payload"]))
+            self.log.debug("master token response: {}".format(reply.internal["payload"]))
             key_status = reply.internal["payload"]
             if key_status == KeyStore.STATUS_ACCEPTED:
                 self.core.hds.set_successfull()
             else:
                 self.core.hds.set_failed()
-            self.log.info("RSA key {}".format(key_status))
+            self.log.info("RSA key has been {}".format(key_status))
 
         if key_status is not None and key_status != KeyStore.STATUS_ACCEPTED:
             proto.factory.reactor.stop()

@@ -28,7 +28,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
         :param response: Peer response
         :return: None
         """
-        self.log.info("Server connected: {0}".format(response.peer))
+        self.log.debug("connected to the server: {0}".format(response.peer))
         self.factory.core.set_protocol(self._id, self)
 
     def sendMessage(self, payload, is_binary=False, fragment_size=None, sync=False, do_not_compress=False):
@@ -69,7 +69,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
         elif not self.factory.core.hds.ended and self.factory.core.hds.rsa_accept_wait:
             threads.deferToThread(self.factory.core.system.wait_rsa_acceptance, self)
         elif self.factory.core.hds.ended and not self.factory.core.hds.rsa_accept_wait:
-            self.log.debug("Handshake is finished")
+            self.log.debug("the handshake routine is finished")
         else:
             self.dropConnection()  # Something entirely went wrong
 
@@ -97,7 +97,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
         :param reason: reason closing protocol
         :return: None
         """
-        self.log.info("WebSocket connection closed: {0}".format(reason))
+        self.log.info("connection to the server is closed: {0}".format(reason))
         self.factory.core.remove_protocol(self._id)
         self.factory.core.get_queue().queue.clear()
         self.factory.core.hds.reset()
@@ -133,6 +133,6 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         :param reason: Reason connection failure
         :return: None
         """
-        self.log.debug("Connection lost: {}".format(reason))
+        self.log.debug("connection to the server is lost: {}".format(reason))
         self.resetDelay()
         self.retry(connector)
