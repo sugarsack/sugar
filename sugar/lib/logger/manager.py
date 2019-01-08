@@ -71,9 +71,9 @@ class LoggerManager(object):
 
         for log_cfg in self.config.log:
             path = log_cfg.file if log_cfg.file not in ['STDOUT', 'STDERR'] else None
-            device = LogFile.fromFullPath(
-                path, rotateLength=0xa00000, maxRotatedFiles=10) if path else getattr(sys, log_cfg.file.lower())
-            log.addObserver(SugarLogObserver(device, Logger.LOG_LEVELS[log_cfg.level]))
+            out = LogFile.fromFullPath(path, rotateLength=(log_cfg.max_size_mb or 10) * 0x400 * 0x400,
+                                       maxRotatedFiles=log_cfg.rotate) if path else getattr(sys, log_cfg.file.lower())
+            log.addObserver(SugarLogObserver(out, Logger.LOG_LEVELS[log_cfg.level]))
 
     def get_logger(self, name):
         """
