@@ -30,11 +30,11 @@ class SugarClient(object):
             url = 'wss://{h}:{p}'.format(h=target.hostname, p=target.ctrl_port)
             break
 
-        self.log.debug('Socket ')
         self.factory = SugarClientFactory(url)
         self.factory.core.system.on_startup()
 
         if not self.factory.isSecure:
+            self.log.error("TLS is not available. Raising an exception.")
             raise Exception('Unable to initialte TLS')
 
     def run(self):

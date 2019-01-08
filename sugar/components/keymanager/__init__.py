@@ -135,6 +135,7 @@ class SugarKeyManager(object):
                     for keyfunction in [self._keystore.get_rejected, self._keystore.get_denied, self._keystore.get_new]:
                         keys.extend([key for key in keyfunction() if key.status != status])
         if keys:
+            self.log.debug("{} keys matching {} criteria", len(keys), by_type)
             self.cli.info("*{} {} key{}* ({}):", doing.title(), len(keys), len(keys) > 1 and "s" or "", by_type)
             for key in keys:
                 key.status = func(key.fingerprint)  # The instance of this "key" is beyound the transaction.
@@ -160,6 +161,7 @@ class SugarKeyManager(object):
         :return: None
         """
         if self.factory.core.local_token is not None:
+            self.log.debug("local token found of running master. Connecting...")
             connectWS(self.factory, ssl.ClientContextFactory())
             reactor.run()
 
@@ -169,6 +171,7 @@ class SugarKeyManager(object):
 
         :return: list of accepted keys
         """
+        self.log.debug("accepting keys")
         return self._set_keys_status(KeyStore.STATUS_ACCEPTED, "accepting", self._keystore.accept)
 
     def deny(self):
@@ -177,6 +180,7 @@ class SugarKeyManager(object):
 
         :return: list of denied keys
         """
+        self.log.debug("denying keys")
         return self._set_keys_status(KeyStore.STATUS_DENIED, "denying", self._keystore.deny)
 
     def reject(self):
@@ -185,6 +189,7 @@ class SugarKeyManager(object):
 
         :return: list of rejected keys
         """
+        self.log.debug("dejecting keys")
         return self._set_keys_status(KeyStore.STATUS_REJECTED, "rejecting", self._keystore.reject)
 
     def delete(self):
@@ -194,6 +199,7 @@ class SugarKeyManager(object):
 
         :return: list of deleted keys
         """
+        self.log.debug("deleting keys")
         return self._set_keys_status(KeyStore.STATUS_ACCEPTED, "deleting", self._keystore.delete)
 
     def run(self):
@@ -202,18 +208,22 @@ class SugarKeyManager(object):
 
         :return: None
         """
-        self.log.debug("Running Key Manager")
+        self.log.debug("starting Key Manager")
         if (self.args.command not in ["list", "delete"]
                 and not self.args.fingerprint
                 and not self.args.hostname
                 and not self.args.match_all_keys_at_once):
             self.cli.error("Error: please specify fingerprint or hostname or decide to match all keys at once.")
+            self.log.debug("unknown key criteria (fingerprint or hostname or all) "
+                           "while deleting or listing a key. Exiting.")
             sys.exit(1)
 
         elif self.args.command == "delete" and not sugar.utils.data.how_many([self.args.fingerprint,
                                                                               self.args.match_all_keys_at_once]):
             self.cli.error("Error: please specify fingerprint to delete a key.")
+            self.log.debug("unknown key fingerprint while attempt to delete a key. Exiting.")
             sys.exit(1)
 
         if getattr(self, self.args.command)():
+            self.log.debug("changes has been made, sending that to the Master.")
             self.send_to_master()

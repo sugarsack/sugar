@@ -20,7 +20,7 @@ class SugarConsoleProtocol(WebSocketClientProtocol):
         WebSocketClientProtocol.__init__(self)
 
     def onConnect(self, response):
-        self.log.debug("Console connected: {0}".format(response.peer))
+        self.log.debug("console connected: {0}".format(response.peer))
 
     def onOpen(self):
         msg_obj = self.factory.console.get_task()
@@ -29,8 +29,8 @@ class SugarConsoleProtocol(WebSocketClientProtocol):
     def onMessage(self, payload, binary):
         if binary:
             response = ServerMsgFactory.unpack(payload)
-            self.log.info('Reply: {}'.format(response.ret.message))
-            self.log.info('Response from the master accepted. Stopping.')
+            self.log.debug('reply: {}'.format(response.ret.message))
+            self.log.debug('response from the master accepted. Stopping.')
 
             print('-' * 80)
             print(any_binary(payload))
@@ -41,7 +41,7 @@ class SugarConsoleProtocol(WebSocketClientProtocol):
             self.log.error("Non-binary message: {}".format(payload))
 
     def onClose(self, wasClean, code, reason):
-        self.log.debug("Socket closed: {0}".format(reason))
+        self.log.debug("socket closed: {0}".format(reason))
 
 
 class SugarClientFactory(WebSocketClientFactory, ClientFactory):
@@ -62,5 +62,5 @@ class SugarClientFactory(WebSocketClientFactory, ClientFactory):
         :param reason: failure reason
         :return: None
         """
-        self.log.error('Cannot connect console. Is Master running?')
+        self.log.error('cannot connect with the console. Is Master is running locally?')
         self.reactor.stop()

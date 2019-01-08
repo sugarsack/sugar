@@ -56,7 +56,8 @@ class ServerCore(object):
         :param evt: an event
         :return: None
         """
-        self.log.info(">>> SEND TASK TO CLIENTS: {}".format(evt))
+        self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\ttarget: {}\n\targs: {}",
+                       evt.fun, evt.tgt, evt.arg)
 
     def register_client_protocol(self, machine_id, proto):
         """
@@ -220,7 +221,7 @@ class ServerSystemEvents(object):
 
         if not client_key:
             # No key in the database yet. Request for RSA send, then repeat handshake
-            self.log.info("RSA key not found for {} or client is not registered yet.".format(machine_id))
+            self.log.error("RSA key not found for {} or client is not registered yet.".format(machine_id))
             reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP)
         elif client_key.status != KeyStore.STATUS_ACCEPTED:
             reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
