@@ -1,5 +1,6 @@
 #!/bin/bash
 
+git clone git@github.com:sugarsack/sugar.git
 python3 -m venv sugar-env
 source sugar-env/bin/activate
 
@@ -10,4 +11,4 @@ pip install git+https://github.com/rtfd/recommonmark.git
 
 cd sugar
 SITE_PACKAGES="$(python -c "import sysconfig;print(sysconfig.get_paths()['purelib'])")"
-ln -s $(pwd) $SITE_PACKAGES
+ln -s "$(pwd)/sugar" $SITE_PACKAGES
