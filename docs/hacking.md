@@ -147,6 +147,9 @@ Sugar repository](https://github.com/sugarsack/sugar). Thanks alot, ahead!
 
 ## Running Sugar
 
+Sugar has command line interface, similar to Git. That is, all Sugar sub-applications are
+called under `sugar` command umbrella: `sugar master --help`, `sugar client --help` and so on.
+
 After environment is setup, at this point you should be able to run Sugar:
 
 ```
@@ -167,24 +170,53 @@ Available components:
 
 To start Sugar Master and see events right in the console, run the following:
 
-```
-$ sugar master -l debug -L STDOUT
-
-```
+    $ sugar master -l debug -L STDOUT
 
 Next, from another activated environment you can start Sugar Client:
 
-```
-sugar client -l debug -L STDOUT
-
-```
+    sugar client -l debug -L STDOUT
 
 
+And finally, from the third activated environment you should be able to manage keys
+and issue Sugar commands. For example, now Master should have one pending key from
+the newly running client:
 
-## Running Linter/Code checks
+    sugar keys list
+
+For more help on `keys`, call `sugar keys --help`.
+
+## Running Linter/Code Checks
 
 TBD
 
 ## Running tests
 
 TBD
+
+## First Quick Tips
+
+### Logging
+
+#### Levels
+
+Logging level is always taken from the configuration. If you want it in `debug` then
+please setup so.
+
+#### Output
+
+At any time you can always override logging output. If Sugar is configured to log to
+some file and you need it on a screen right away, add `-L STDOUT` at any time.
+
+#### Look at tracebacks
+
+You can always raise level to `debug` by adding `-l debug` parameter anywhere. But
+this _in addition to changing logging level_ will include full Python tracebacks,
+once something went wrong.
+
+### Pull Requests
+
+If you make a Pull Request, please make sure that:
+
+- Lint checkers aren't failing (all of them). Refer to "Running Linter/Code Checks" section.
+- No existing tests are broken
+- Your tests are written. :-)
