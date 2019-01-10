@@ -49,8 +49,8 @@ class SugarServer(object):
         """
         self.factory.core.system.on_startup()
         context_factory = ssl.DefaultOpenSSLContextFactory(
-            os.path.join(self.config.config_path, "ssl", "key.pem"),
-            os.path.join(self.config.config_path, "ssl", "certificate.pem"),
+            os.path.join(self.config.config_path, "ssl", self.config.crypto.ssl.private),
+            os.path.join(self.config.config_path, "ssl", self.config.crypto.ssl.certificate),
         )
 
         listenWS(self.factory, context_factory)

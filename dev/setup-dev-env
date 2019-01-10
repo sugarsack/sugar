@@ -3,6 +3,7 @@
 # Author: Bo Maryniuk <bo@maryniuk.net>
 
 PY_EXE="python3"
+MY_HME="$(pwd)"
 
 #
 # Checkout repo
@@ -46,21 +47,46 @@ function check_python_version () {
     echo "Using your $(which $PY_EXE) for setup"
 }
 
+#
+# Check if openssl is around
+#
+function check_openssl_installed () {
+    if ! hash openssl; then
+	echo "Please install openssl tools to continue"
+	exit 1;
+    fi
+}
 
 #
 # Create ~/.sugar configuration symlink
 #
 function setup_configuration_symlink () {
+    cd $MY_HME
     ln -s $(pwd)/sugar/etc/sugar $HOME/.sugar
 }
 
+#
+# Setup SSL keys.
+# NOTE: This is only for the development purposes.
+#       Please never use these keys for production.
+#
+function setup_ssl () {
+    cd $MY_HME
+    SSL_DIR="$(pwd)/sugar/etc/sugar/ssl"
+    mkdir $SSL_DIR
+    openssl req -newkey rsa:2048 -nodes -keyout $SSL_DIR/key.pem -x509 -days 365 -out $SSL_DIR/cert.pem
+    openssl x509 -text -noout -in $SSL_DIR/cert.pem
+    openssl pkcs12 -inkey $SSL_DIR/key.pem -in $SSL_DIR/cert.pem -export -out $SSL_DIR/certificate.p12
+    openssl pkcs12 -in $SSL_DIR/certificate.p12 -noout -info
+}
 
 #
 # Setup hacking environment for daily use
 #
 function setup_hacking_env () {
+    cd $MY_HME
     echo "PATH=\"$(pwd)/sugar/bin:\$PATH\"" >> "$(pwd)/sugar/dev/hacking"
-    echo "source $(pwd)/sugar/env/bin/activate" >> "$(pwd)/sugar/dev/hacking"
+    echo "source $(pwd)/sugar-env/bin/activate" >> "$(pwd)/sugar/dev/hacking"
 }
 
 #
@@ -73,7 +99,7 @@ function final_notes () {
     echo "Now the last step (and repeat it every time you open"
     echo "this terminal:"
     echo
-    echo "    source /path/to/sugar/dev/hacking"
+    echo "    source $(pwd)/sugar/dev/hacking"
     echo
     echo "-------------------------------------------------------"
     echo
@@ -88,14 +114,16 @@ function final_notes () {
     echo
 }
 
-echo "Checking Python version"
+echo "Checking requirements"
 check_python_version
+check_openssl_installed
 
 echo "Cloning Git repo"
 checkout_repo
 
 echo "Setting up your virtual environment"
 setup_virt_env
+setup_ssl
 setup_hacking_env
 setup_configuration_symlink
 
