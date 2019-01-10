@@ -1,68 +1,149 @@
 # Hacking
 
+## Requirements
+
+To successfully setup your development environment, the following requirements should be met:
+
+- Python 3.5+
+- OpenSSL tools
+
+If you are on Ubuntu/Debian, make sure the following packages are installed:
+ - `python3.5-dev` (in case Python 3.5)
+ - `python3-venv`
+
 ## Setting up dev environment
 
-To start developing Sugar, to the following steps:
+Since Sugar Project is on the very early stage, please help improving this process
+if it fails on your operating system. There are two ways of setting up your
+development environment:
 
-1. Check out Git repository:
+- Bootstrapping (preferred)
+- Manual (if bootstrapping doesn't work for you)
 
+```Important:: Bootstrapping was currently tested only on Ubuntu LTS 16.04 and 18.04.
 ```
-   git clone git@github.com:sugarsack/sugar.git
-```
 
-2. Prepare tools for Python virtual environment. Depending on what OS you are, but for example,
+### Bootstrapping
+
+To start contributing to Sugar, please follow the following steps:
+
+1. Create an empty directory where GitHub repo and virtual environment is going
+to be created and navigate there:
+
+       mkdir sugarsack
+       cd sugarsack
+
+2. Being in that directory, now download shell script that will do the rest for
+you (please just copy-paste the below):
+
+       wget https://raw.githubusercontent.com/sugarsack/sugar/master/dev/setup-dev-env
+       
+   Or the same with `curl` if you do not have `wget` installed:
+   
+       curl https://raw.githubusercontent.com/sugarsack/sugar/master/dev/setup-dev-env -o setup-dev-env
+       
+   This script is in the same repository as you are going to download.
+   You can [review its content](https://github.com/sugarsack/sugar/blob/master/dev/setup-dev-env) before executing on your machine.
+
+3. Run it with Bash:
+
+       bash setup-dev-env
+
+   What it will do:
+   
+     - Check if you have installed Python 3.5 or greater version.
+     - Check if you have installed OpenSSL tools.
+     - Setup virtual environment in your current directory, called `sugar-env`.
+     - Clone the GitHub repo into your current directory, called `sugar`.
+     - Make a symbolic link in your home `~/.sugar` pointing to the `sugar/etc/sugar` directory.
+
+   On the moment when bootstrapping will generate SSL certificate,
+   please answer typical for OpenSSL certificate generator questions or simply
+   press <ENTER> key on each question.
+
+4. At the end of the bootstrapping process, you will see the last notification,
+which will ask you to `source` into your shell (Bash) Python virtual environment
+and modify your `$PATH` environment variable, which will add `sugar` command.
+If you've just missed it (or forgot), simply `source` the `sugarsack/sugar/dev/hacking`
+file.
+
+   This is the step you will be always repeating while starting the terminal.
+
+### Manual
+
+OK, seems bootstrapping failed for you and thus you're here. Sorry for that...
+To setup manually developing environment for Sugar, please go through the following steps:
+
+1. Make sure you have `python` available as 3.5 version or better. As well make sure
+`openssl` tool is avilable.
+
+2. Clone Git repository of `sugar`:
+
+       git clone git@github.com:sugarsack/sugar.git
+
+3. Prepare tools for Python virtual environment. Depending on what OS you are, but for example,
 if you are on Ubuntu/Debian, you should additionally install `python3-venv`:
 
-```
-   sudo apt-get install python3-venv
-```
+       sudo apt-get install python3-venv
 
-3. Create virtual environment for Python3 and call it for example "sugar-env:
+4. Create virtual environment for Python3 and call it `sugar-env`:
 
-```
-   python3 -m venv sugar-env
-```
+       python3 -m venv sugar-env
 
-4. Activate it:
+5. Activate it:
 
-```
-   source sugar-env/bin/activate
-```
+       source sugar-env/bin/activate
 
-5. Upgrade your PIP and then install dependencies. To do so, please issue the following commands:
+6. Upgrade your PIP and then install all the dependencies. To do so, please issue the following commands:
 
-```
-   pip install --upgrade pip
-   pip install -r sugar/requirements.txt
-   pip install service_identity --force --upgrade
-   pip install git+https://github.com/rtfd/recommonmark.git
-```
+       pip install --upgrade pip
+       pip install -r sugar/requirements.txt
+       pip install service_identity --force --upgrade
+       pip install git+https://github.com/rtfd/recommonmark.git
 
-6. Right now it is still needed to link the entire library to your Python installation. For that,
-navigate to your `sugar` repository and link inner `sugar/` directory to the Python's `site-packages`. For example,
-assuming you are running Python 3.7 and your virtual environment is called `sugar-env`, your command
-will look something like this:
+7. Right now it is still needed to link the entire library to your Python installation. For that,
+navigate to your `sugar` repository and link inner `sugar/` directory to the Python's `site-packages`.
+For example, assuming you are running Python 3.5 and your virtual environment is called `sugar-env`,
+your command will look something like this:
 
-```
-   cd sugar
-   ln -s $(pwd) ../../sugar-env/lib/python3.7/site-packages/sugar
-```
+       cd sugar
+       ln -s $(pwd) ../../sugar-env/lib/python3.5/site-packages/sugar
 
-7. At last, export your local `bin/` to the common `PATH`. From the Git repo do the following:
+8. From the `sugarsack` main directory, update your `hacking` environment which you will import
+every time into your Bash environment:
 
-```
-   cd bin
-   export PATH="$(pwd):$PATH"
-```
+       echo "PATH=\"$(pwd)/sugar/bin:\$PATH\"" >> "$(pwd)/sugar/dev/hacking"
+       echo "source $(pwd)/sugar-env/bin/activate" >> "$(pwd)/sugar/dev/hacking"
 
-8. Sugar also is looking for its configuration either in `/etc/sugar` or `~/.sugar` directories.
-For your convenience, you can create `etc/sugar` subdirectory in the Git repo and symlink it there:
+9. Generate SSL certificates. Being in `sugarsack` directory, do the following:
 
-```
-cd
-ln -s .sugar /path/to/your/gitrepo/with/sugar/etc/sugar/
+       mkdir sugar/etc/sugar/ssl
+       cd sugar/etc/sugar/ssl
+       ../../../dev/gen_ssl.sh
+       
+   This will generate three files in the current `ssl` directory:
+   
+     - `certificate.p12`
+     - `certificate.pem`
+     - `key.pem`
+   
+   Rename `certificate.pem` and `key.pem` according to the configuration in `etc/sugar/master.conf` file.
 
-```
+10. Sugar is looking for its configuration in the following directories:
+ 
+     - `/etc/sugar`
+     - `~/.sugar`
+   
+11. As you probably don't want to have a system global `/etc/sugar` directory, you should create a symbolic link
+   `~/.sugar` to the current configuration. From the main `sugarsack` directory, issue the following command:
+   
+        ln -s $(pwd)/sugar/etc/sugar $HOME/.sugar
+
+11. Hopefully now we're all set up!
+
+    One more thing: as you're at this step already, please update the process of bootstrapping script
+so it won't fail for the environments like yours, and make a [Pull Request to
+Sugar repository](https://github.com/sugarsack/sugar). Thanks alot, ahead!
 
 ## Running Sugar
 
