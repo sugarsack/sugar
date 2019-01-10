@@ -10,6 +10,14 @@ and immutable systems.
 
 And remember: sugar is included in cookies!
 
+
+Communication
+-------------
+
+- `Mailing list at Google Groups <https://groups.google.com/forum/#!forum/sugarsack>`_
+- `Twitter <https://twitter.com/_sugarsack>`_
+
+  
 About
 -----
 
