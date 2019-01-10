@@ -31,13 +31,13 @@ jobs:
           name: Linter
           command: |
             . venv/bin/activate
-            ./py-lint --disable=R0401 sugar/
+            ./dev/py-lint --disable=R0401 sugar/
 
       - run:
           name: PEP8 code style checks
           command: |
             . venv/bin/activate
-            ./py-flake
+            ./dev/py-flake
 
       - run:
           name: Unit Tests

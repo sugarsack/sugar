@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# kill everything, when it stuck...
+for pid in $(ps uax | grep sugar | awk '{print $2}'); do kill -9 $pid; done
