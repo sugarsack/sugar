@@ -107,6 +107,7 @@ html_static_path = ['docs_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Sugardoc'
 
+html_show_sourcelink = False
 
 # -- Options for LaTeX output ------------------------------------------------
 
