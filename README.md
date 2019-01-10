@@ -20,11 +20,12 @@ nothing much. Stay tuned for the first release of it!
 
 ## Download
 
-TBD
+So far there is no any packages yet available. Please refer to the
+documentation below and simply bootstrap your development environment.
 
 ## Documentation
 
-TBD
+Basic-always-growing [documentation is available here](http://www.sugarsack.org/docs/).
 
 # Licence
 
