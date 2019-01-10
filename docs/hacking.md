@@ -187,11 +187,46 @@ For more help on `keys`, call `sugar keys --help`.
 
 ## Running Linter/Code Checks
 
-TBD
+To check if your code is correct and there is no issues, related to your contribution,
+please issue the following command to verify that. From the `sugar` repo main directory:
+
+    ./dev/py-lint sugar/path/to/your/code.py
+    
+You should be looking at this:
+
+    --------------------------------------------------------------------
+    Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+
+If you see something else then above, it already suggests you why it is, where this is
+happening and what to do next.
+
+If the above worked, please check for PEP8 errors. These tests are usually much lighter.
+Simply issue the following command, which will verify _the entire_ project code:
+
+    ./dev/py-flake
+
+You whould be looking at this:
+
+    No PEP8 errors has been found. G'job!
+
+Again, please fix the error, in case you don't get this message.
 
 ## Running tests
 
-TBD
+Tests are all handled by PyTest. The PyTest is already setup for you, so you can just
+use it transparently from any places and any way you like. You can _just_ issue it
+in the main directory:
+
+    pytest
+    
+Or you can call specific test file:
+
+    pytest tests/unit/transport/test_serialisable.py
+    
+Or, as usual, only specific testing function from the particular class:
+
+    pytest tests/unit/transport/test_serialisable.py::TestSerialise::test_load
+
 
 ## First Quick Tips
 
@@ -220,3 +255,13 @@ If you make a Pull Request, please make sure that:
 - Lint checkers aren't failing (all of them). Refer to "Running Linter/Code Checks" section.
 - No existing tests are broken
 - Your tests are written. :-)
+
+### Pytest
+
+You can also have a bit more convenient PyTest "wrapper". Just add an alias to your shell:
+
+    alias py-test="pytest --disable-warnings --tb=native --color=yes -svv"
+
+Now you can use `py-test` instead of `pytest` but the output will be more verbose and
+cleaner. This might be nicer for you while developing.
+
