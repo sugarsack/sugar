@@ -2,7 +2,7 @@ Sugar Project
 =============
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    hacking
    contributing
