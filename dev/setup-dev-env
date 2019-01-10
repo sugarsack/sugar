@@ -1,14 +1,102 @@
 #!/bin/bash
+#
+# Author: Bo Maryniuk <bo@maryniuk.net>
 
-git clone git@github.com:sugarsack/sugar.git
-python3 -m venv sugar-env
-source sugar-env/bin/activate
+PY_EXE="python3"
 
-pip install --upgrade pip
-pip install -r sugar/requirements.txt
-pip install service_identity --force --upgrade
-pip install git+https://github.com/rtfd/recommonmark.git
+#
+# Checkout repo
+#
+function checkout_repo () {
+    git clone git@github.com:sugarsack/sugar.git
+}
 
-cd sugar
-SITE_PACKAGES="$(python -c "import sysconfig;print(sysconfig.get_paths()['purelib'])")"
-ln -s "$(pwd)/sugar" $SITE_PACKAGES
+#
+# Create virtual environment
+#
+function setup_virt_env () {
+    python3 -m venv sugar-env
+
+    source sugar-env/bin/activate
+
+    pip install --upgrade pip
+    pip install -r sugar/requirements.txt
+    pip install service_identity --force --upgrade
+    pip install git+https://github.com/rtfd/recommonmark.git
+
+    cd sugar
+
+    # Link it to the virtual environment instead of installing
+    # This will allow to use it and break too :-) during the development.
+    ln -s "$(pwd)/sugar" "$(python -c "import sysconfig;print(sysconfig.get_paths()['purelib'])")"
+}
+
+#
+# Check python version. Minimun 3.6 is required
+#
+function check_python_version () {
+    if ! hash $PY_EXE; then
+	echo "Python 3 executable is not found, using default"
+	PY_EXE="python"
+	if ! hash $PY_EXE; then
+	    echo "No Python found, exiting..."
+	    exit 1
+	fi
+    fi
+    echo "Using your $(which $PY_EXE) for setup"
+}
+
+
+#
+# Create ~/.sugar configuration symlink
+#
+function setup_configuration_symlink () {
+    ln -s $(pwd)/sugar/etc/sugar $HOME/.sugar
+}
+
+
+#
+# Setup hacking environment for daily use
+#
+function setup_hacking_env () {
+    echo "PATH=\"$(pwd)/sugar/bin:\$PATH\"" >> "$(pwd)/sugar/dev/hacking"
+    echo "source $(pwd)/sugar/env/bin/activate" >> "$(pwd)/sugar/dev/hacking"
+}
+
+#
+# Say final notes
+#
+function final_notes () {
+    echo
+    echo "----[ ALL DONE ]---------------------------------------"
+    echo
+    echo "Now the last step (and repeat it every time you open"
+    echo "this terminal:"
+    echo
+    echo "    source /path/to/sugar/dev/hacking"
+    echo
+    echo "-------------------------------------------------------"
+    echo
+    echo "What is next? For example, you could think of this:"
+    echo
+    echo "    1. git checkout -b your-awesome-feature"
+    echo "    2. Fix a bug, write a doc or make something great"
+    echo "    3. git push origin your-awesome-feature"
+    echo "    4. Make a pull request to the upstream! :-)"
+    echo
+    echo 'Remember: have a lot of fun!'
+    echo
+}
+
+echo "Checking Python version"
+check_python_version
+
+echo "Cloning Git repo"
+checkout_repo
+
+echo "Setting up your virtual environment"
+setup_virt_env
+setup_hacking_env
+setup_configuration_symlink
+
+final_notes
