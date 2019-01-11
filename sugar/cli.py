@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 Main app file, processing CLI
 """
