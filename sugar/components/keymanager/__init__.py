@@ -52,7 +52,7 @@ class SugarKeyManager(object):
         url = 'wss://{h}:{p}'.format(h='localhost', p=5507)
         self.factory = SugarKeymanagerFactory(url)
         if not self.factory.isSecure:
-            raise Exception('Unable to initialte TLS')
+            raise Exception('Unable to initialise TLS')
 
     def _format_keys(self, keys):
         """
