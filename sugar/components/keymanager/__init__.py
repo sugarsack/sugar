@@ -20,6 +20,7 @@ from sugar.lib import exceptions
 import sugar.utils.console
 import sugar.utils.exitcodes
 import sugar.utils.data
+from sugar.lib.i18n import gettext as __
 
 
 class SugarKeyManager(object):
@@ -40,6 +41,7 @@ class SugarKeyManager(object):
             raise exceptions.SugarConfigurationException("Configuration not found")
 
         self.args = args
+
         self.log = get_logger(self)
         self._keystore = KeyStore(os.path.abspath(self.config.config_path))
         self.cli = ConsoleMessages(colors=self.config.terminal.colors,
@@ -47,7 +49,7 @@ class SugarKeyManager(object):
 
         self._list_output = IterableOutput(colors=self.config.terminal.colors,
                                            encoding=self.config.terminal.encoding)
-        self._list_output.symbols_utf["n/a"] = self._list_output.symbols_ascii["n/a"] = "   No keys"
+        self._list_output.symbols_utf["n/a"] = self._list_output.symbols_ascii["n/a"] = __("   No keys")
 
         url = 'wss://{h}:{p}'.format(h='localhost', p=5507)
         self.factory = SugarKeymanagerFactory(url)
