@@ -1,0 +1,15 @@
+'   No keys':
+- '   No keys'
+- none: '   No keys'
+accepted:
+- accepted
+- none: accepted
+denied:
+- denied
+- none: denied
+new:
+- new
+- none: new
+rejected:
+- rejected
+- none: rejected
