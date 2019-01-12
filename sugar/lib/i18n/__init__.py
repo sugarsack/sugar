@@ -40,7 +40,7 @@ class GetText(object):
         """
         if self.path is not None:
             with sugar.utils.files.fopen(self.path) as tr_fh:
-                self.__translations = yaml.load(tr_fh.read())
+                self.__translations = yaml.load(tr_fh.read()) or {}
 
     def save(self) -> None:
         """
