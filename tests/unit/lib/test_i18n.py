@@ -6,6 +6,7 @@ from __future__ import unicode_literals, absolute_import
 from mock import MagicMock, patch, mock_open
 import pytest
 import sugar.lib.i18n
+from sugar.utils.jid import jidstore
 
 # pylint: disable=W0621,R0201,R0201,W0612
 
@@ -76,8 +77,7 @@ apple:
             assert plurals["none"] == plurals["one"] == plurals["few"] == plurals["many"] == msg
 
     @patch("sugar.lib.i18n.get_logger", MagicMock())
-    @patch("os.path.join", MagicMock(return_value="/in/the/middle/of/nowhere"))
-    @patch("os.path.exists", MagicMock(return_value=False))
+    @patch("os.path.join", MagicMock(return_value="/in/the/middle/of/nowhere/{}".format(jidstore.create())))
     @patch("os.access", MagicMock(return_value=True))
     def test_load_skip_no_access(self, gettext_class):
         """
