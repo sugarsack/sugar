@@ -448,7 +448,7 @@ class ConsoleMessages(object):
         :return: colored string
         """
         return self._emph("{}{}{}".format(colored.fg(self.__style()["info"]),
-                                          message.format(*args, **kwargs), colored.attr("reset")), "info")
+                                          __(message).format(*args, **kwargs), colored.attr("reset")), "info")
 
     def input(self, message, *args, **kwargs):
         """
@@ -483,7 +483,7 @@ class ConsoleMessages(object):
         """
         message = __(message)
         otty.puts(self._emph("{}{}{}".format(colored.fg(self.__style()["warning"]),
-                                             message.format(*args, **kwargs), colored.attr("reset")),
+                                             __(message).format(*args, **kwargs), colored.attr("reset")),
                              "warning"))
 
     def error(self, message, *args, **kwargs):
@@ -496,4 +496,4 @@ class ConsoleMessages(object):
         :return: colored string
         """
         otty.puts(self._emph("{}{}{}".format(colored.fg(self.__style()["error"]),
-                                             message.format(*args, **kwargs), colored.attr("reset")), "error"))
+                                             __(message).format(*args, **kwargs), colored.attr("reset")), "error"))
