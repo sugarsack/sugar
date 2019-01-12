@@ -74,3 +74,16 @@ apple:
             assert msg in translation_entry
             plurals = translation_entry[msg]
             assert plurals["none"] == plurals["one"] == plurals["few"] == plurals["many"] == msg
+
+    @patch("sugar.lib.i18n.get_logger", MagicMock())
+    @patch("os.path.join", MagicMock(return_value="/in/the/middle/of/nowhere"))
+    @patch("os.path.exists", MagicMock(return_value=False))
+    @patch("os.access", MagicMock(return_value=True))
+    def test_load_skip_no_access(self, gettext_class):
+        """
+        Test data is not loaded if no read access to it.
+
+        :param gettext_class: gettext_class fixture
+        :return: None
+        """
+        assert gettext_class().path is None
