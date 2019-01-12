@@ -29,7 +29,7 @@ class CapitalisedHelpFormatter(argparse.HelpFormatter):
         :return: Return the result of HelpFormtter.add_usage
         """
         for action in actions:
-            if isinstance(action, argparse._HelpAction):
+            if isinstance(action, argparse._HelpAction):  # pylint: disable=W0212
                 action.help = __(action.help)
         return super(CapitalisedHelpFormatter, self).add_usage(usage, actions, groups, prefix)
 
