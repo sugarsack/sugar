@@ -50,20 +50,24 @@ class Gettext(object):
         """
         Adds a text to the messages and returns it back as is,
         because the text is new.
+        One entry structure is following:
+           {"sometext": ["sometranslation", {"many": "translations"}]}
+           {"sometext": ["sometranslation, {}]}
 
         :param text: Text ID.
         :param plural: plurals section.
-        :return: translated text
+        :raises
+        :return: None
         """
 
     def __get(self, text, plural):
         """
         Gets a text from the messages. If none found, adds one.
+        One entry structure is following:
+           {"sometext": ["sometranslation", {"many": "translations"}]}
+           {"sometext": ["sometranslation, {}]}
 
         :param text: Text ID.
         :param plural: plurals section.
         :return: translated text.
         """
-        # get stuff from the text
-        # if not, add to it and save.
-        # reload.
