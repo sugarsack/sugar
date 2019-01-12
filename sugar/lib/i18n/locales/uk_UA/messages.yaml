@@ -4,6 +4,10 @@ Accepted:
   none: Прийняті
 Denied:
   none: Заборонені
+List By Fingerprint:
+  none: Список за ідентифікатором ключа
+List By Host Name:
+  none: Список за доменним іменем
 New:
   none: Нові
 Rejected:

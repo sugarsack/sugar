@@ -1,15 +1,14 @@
 '   No keys':
-- '   No keys'
-- none: '   No keys'
-accepted:
-- accepted
-- none: accepted
-denied:
-- denied
-- none: denied
-new:
-- new
-- none: new
-rejected:
-- rejected
-- none: rejected
+  none: '   No keys'
+Accepted:
+  none: Accepted
+Denied:
+  none: Denied
+List By Fingerprint:
+  none: List By Fingerprint
+List By Host Name:
+  none: List By Host Name
+New:
+  none: New
+Rejected:
+  none: Rejected
