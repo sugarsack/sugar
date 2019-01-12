@@ -87,3 +87,22 @@ apple:
         :return: None
         """
         assert gettext_class().path is None
+
+    @patch("os.path.join", MagicMock(return_value="/in/the/middle/of/nowhere/{}".format(jidstore.create())))
+    @patch("os.path.exists", MagicMock(return_value=True))
+    @patch("os.access", MagicMock(return_value=False))
+    def test_save_skip_no_access(self, gettext_class):
+        """
+        Test if auto-add won't add if write-access is denied.
+
+        :param gettext_class:
+        :return:
+        """
+        logger_mock = MagicMock()
+        with patch("sugar.utils.files.fopen",
+                   mock_open(read_data="")) as fhdr, patch("sugar.lib.i18n.get_logger",
+                                                           logger_mock) as lgr:
+            gtx = gettext_class()
+            gtx.gettext(jidstore.create())
+            msg = logger_mock.call_args_list[0][0][0].log.error.call_args_list[0][0][0]
+            assert "Unable to update i18n messages at" in msg
