@@ -1,0 +1,64 @@
+'   No keys':
+  none: '   No keys'
+Accepted:
+  none: Accepted
+Action on known keys:
+  none: Action on known keys
+Alternative to default configuration directory:
+  none: Alternative to default configuration directory
+Component to run:
+  none: Component to run
+Denied:
+  none: Denied
+'Format of the listing. Default: short':
+  none: 'Format of the listing. Default: short'
+List By Fingerprint:
+  none: List By Fingerprint
+List By Host Name:
+  none: List By Host Name
+'List only with the following status. Default: all':
+  none: 'List only with the following status. Default: all'
+New:
+  none: New
+Query:
+  none: Query
+Rejected:
+  none: Rejected
+'Set destination of the logging. Default: as configured':
+  none: 'Set destination of the logging. Default: as configured'
+'Set output log level. Default: info':
+  none: 'Set output log level. Default: info'
+Specify hostname of the key:
+  none: Specify hostname of the key
+Specify key fingerprint of the key:
+  none: Specify key fingerprint of the key
+Specify machine ID of the key:
+  none: Specify machine ID of the key
+Sugar Client, receives commands from a remote Sugar Master:
+  none: Sugar Client, receives commands from a remote Sugar Master
+Sugar Console, sends commants to a remote Sugar Master:
+  none: Sugar Console, sends commants to a remote Sugar Master
+Sugar Keys Manager, manages authentication keys:
+  none: Sugar Keys Manager, manages authentication keys
+Sugar Master, used to control Sugar Clients:
+  none: Sugar Master, used to control Sugar Clients
+? Sugar allows for commands to be executed across a space of remote systems in parallel,
+  so they can be both controlled and queried with ease.
+: none: Sugar allows for commands to be executed across a space of remote systems
+    in parallel, so they can be both controlled and queried with ease.
+Take all keys for acceptance/rejection/deletion:
+  none: Take all keys for acceptance/rejection/deletion
+Take all keys or acceptance/rejection/deletion:
+  none: Take all keys or acceptance/rejection/deletion
+show this help message and exit:
+  none: show this help message and exit
+? "sugar [<target>] [<component>] [<args>]\n\nTarget is a name or a pattern in Unix\
+  \ shell-style\nwildcard that matches client names.\n\nAvailable components:\n\n\
+  \    master     Used to control Sugar Clients\n    client     Receives commands\
+  \ from a remote Sugar Master\n    keys       Used to manage Sugar authentication\
+  \ keys\n    local      Local orchestration"
+: none: "sugar [<target>] [<component>] [<args>]\n\nTarget is a name or a pattern\
+    \ in Unix shell-style\nwildcard that matches client names.\n\nAvailable components:\n\
+    \n    master     Used to control Sugar Clients\n    client     Receives commands\
+    \ from a remote Sugar Master\n    keys       Used to manage Sugar authentication\
+    \ keys\n    local      Local orchestration"

@@ -5,10 +5,53 @@ CLI output formatters.
 from __future__ import absolute_import, print_function, unicode_literals
 
 import os
+import io
 import sys
 import collections
-
 import colored
+
+from sugar.lib.i18n import gettext as __
+
+
+class SystemOutput(object):
+    """
+    replace sys.stdout/stderr for output with i18n.
+    """
+    def __init__(self, output: io.BytesIO, gtxt=None):
+        """
+        System outputter.
+        :param output: sys.stdout, sys.stderr, string IO, file handler etc
+        """
+        self.__output = output
+        self.gettext = gtxt if gtxt is not None else lambda data: data
+
+    def write(self, data):
+        """
+        Write data content to the output device.
+
+        :param data: bytes
+        :return: None
+        """
+        self.__output.write(self.gettext(data))
+
+    def puts(self, data):
+        """
+        Write data content to the output device with the '\n' (POSIX) or '\r\n' (Windows) at the end.
+
+        :param data: bytes
+        :return: None
+        """
+        self.write(data)
+        self.__output.write(os.linesep)
+
+
+# pylint: disable=C0103, W0201
+otty = SystemOutput(sys.stdout)
+otty.i18n = SystemOutput(sys.stdout, __)
+
+etty = SystemOutput(sys.stderr)
+etty.i18n = SystemOutput(sys.stderr, __)
+# pylint: enable=C0103, W0201
 
 
 class _BaseOutput(object):
@@ -273,7 +316,7 @@ class TitleOutput(object):
         :param style: style name
         :return: None
         """
-        self._titles[title] = style
+        self._titles[__(title)] = style
 
     def paint(self, text):
         """
@@ -282,6 +325,7 @@ class TitleOutput(object):
         :param text: Text
         :return: colored title
         """
+        text = __(text)
         style = self._titles.get(text)
         if style:
             style = self._get_style()[style]
@@ -406,7 +450,7 @@ class ConsoleMessages(object):
         :return: colored string
         """
         return self._emph("{}{}{}".format(colored.fg(self.__style()["info"]),
-                                          message.format(*args, **kwargs), colored.attr("reset")), "info")
+                                          __(message).format(*args, **kwargs), colored.attr("reset")), "info")
 
     def input(self, message, *args, **kwargs):
         """
@@ -417,7 +461,7 @@ class ConsoleMessages(object):
         :param kwargs: keyword arguments to format the message
         :return: colored string
         """
-        sys.stdout.write(self._standard(message, *args, **kwargs))
+        otty.write(self._standard(message, *args, **kwargs))
 
     def info(self, message, *args, **kwargs):
         """
@@ -428,8 +472,7 @@ class ConsoleMessages(object):
         :param kwargs: keyword arguments to format the message
         :return: colored string
         """
-        sys.stdout.write(self._standard(message, *args, **kwargs))
-        sys.stdout.write(os.linesep)
+        otty.puts(self._standard(message, *args, **kwargs))
 
     def warning(self, message, *args, **kwargs):
         """
@@ -440,9 +483,10 @@ class ConsoleMessages(object):
         :param kwargs: keyword arguments to format the message
         :return: colored string
         """
-        sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["warning"]),
-                                                      message.format(*args, **kwargs), colored.attr("reset")),
-                                    "warning"))
+        message = __(message)
+        otty.puts(self._emph("{}{}{}".format(colored.fg(self.__style()["warning"]),
+                                             __(message).format(*args, **kwargs), colored.attr("reset")),
+                             "warning"))
 
     def error(self, message, *args, **kwargs):
         """
@@ -453,5 +497,5 @@ class ConsoleMessages(object):
         :param kwargs: keyword arguments to format the message
         :return: colored string
         """
-        sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["error"]),
-                                                      message.format(*args, **kwargs), colored.attr("reset")), "error"))
+        otty.puts(self._emph("{}{}{}".format(colored.fg(self.__style()["error"]),
+                                             __(message).format(*args, **kwargs), colored.attr("reset")), "error"))

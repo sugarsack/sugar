@@ -1,0 +1,58 @@
+'   No keys':
+  none: '   Немає ключів'
+Accepted:
+  none: Прийняті
+Action on known keys:
+  none: Дія на відомих ключах
+Alternative to default configuration directory:
+  none: Альтернативна директорія конфіґурації
+Component to run:
+  none: Запуск відповідної підпрограми
+Denied:
+  none: Заборонені
+'Format of the listing. Default: short':
+  none: 'Форматування списку. По замовчуванню: short'
+List By Fingerprint:
+  none: Список за ідентифікатором ключа
+List By Host Name:
+  none: Список за доменним іменем
+'List only with the following status. Default: all':
+  none: 'Список тільки поточного статусу. По замовчуванню: all'
+New:
+  none: Нові
+Rejected:
+  none: Відкинуті
+'Set destination of the logging. Default: as configured':
+  none: 'Вибрати куди виводити дані логу. По замовчуванню: відповідно конфіґурації'
+'Set output log level. Default: info':
+  none: 'Вибрати рівень логу. По замовчуванню: info'
+Specify hostname of the key:
+  none: Вказати ім'я хоста ключа
+Specify key fingerprint of the key:
+  none: Вказати ідентифікатор ключа
+Specify machine ID of the key:
+  none: Вказати ID машини ключа
+Sugar Client, receives commands from a remote Sugar Master:
+  none: Sugar Client. Отримує команди з віддаленого Sugar Master
+Sugar Keys Manager, manages authentication keys:
+  none: Sugar Keys Manager. Управдіння ключами аутентифікації віддалених Sugar Client'ів
+Sugar Master, used to control Sugar Clients:
+  none: Sugar Master використовується для операцій з багатьма Sugar Client'ами
+? Sugar allows for commands to be executed across a space of remote systems in parallel,
+  so they can be both controlled and queried with ease.
+: none: Sugar дозволяє паралельний запуск команд через простір віддалених систем,
+    відтак вони можуть бути легко контрольовані чи вибрані.
+Take all keys for acceptance/rejection/deletion:
+  none: Вибрати всі ключі для прийняття, відкидання чи їх видалення
+show this help message and exit:
+  none: Показати це повідомлення і завершити роботу
+? "sugar [<target>] [<component>] [<args>]\n\nTarget is a name or a pattern in Unix\
+  \ shell-style\nwildcard that matches client names.\n\nAvailable components:\n\n\
+  \    master     Used to control Sugar Clients\n    client     Receives commands\
+  \ from a remote Sugar Master\n    keys       Used to manage Sugar authentication\
+  \ keys\n    local      Local orchestration"
+: none: "sugar [<target>] [<component>] [<args>]\n\n'Target' є іменем або шаблоном\
+    \ у стилі Unix shell\nсимвола узагальнення що відповідає іменам клієнтів.\n\nДоступні компоненти:\n\
+    \n     master   Використовується для контрою Sugar Client'ів\n     client   Отримує команди\
+    \ з віддаленого Sugar Master'а\n       keys   Управління ключами Sugar аутентифікацією\
+    \ \n      local   Локальне оркестрування"
