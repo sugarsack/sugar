@@ -4,10 +4,13 @@ i18n, based on Zope 2 ideas.
 """
 from __future__ import absolute_import, unicode_literals
 import os
+import yaml
 import locale
+import sugar.utils.files
+from sugar.lib.logger.manager import get_logger
 
 
-class Gettext(object):
+class GetText(object):
     """
     Get/add text
     """
@@ -18,9 +21,19 @@ class Gettext(object):
 
         :param domain: domain of the messages. Default: "default".
         """
-        self.path = os.path.join(os.path.dirname(__file__), "locales", locale.getlocale()[0], domain, "messages.yaml")
+        self.log = get_logger(self)
+        for loc_val in [locale.getlocale()[0], "en_US"]:
+            self.path = os.path.join(os.path.dirname(__file__), "locales", loc_val, domain, "messages.yaml")
+            if os.path.exists(self.path):
+                break
+            else:
+                self.path = None
+                self.log.error("i18n messages file at {fname} is missing for locale {loc}.",
+                               fname=self.path, loc=loc_val)
         self._plural_none = conf.get("none", 0)
         self.few = conf.get("few", 3)
+        self.load()
+        self.__translations = {}
 
     def load(self):
         """
@@ -72,6 +85,8 @@ class Gettext(object):
         :raises
         :return: None
         """
+        self.__translations.setdefault(text, [text, {plural: text}])  # Add the same text for further edit
+        return text
 
     def __get(self, text, plural):
         """
@@ -84,3 +99,10 @@ class Gettext(object):
         :param plural: plurals section.
         :return: translated text.
         """
+        tr_text, plurals = self.__translations.get(text, (None, None))
+        if tr_text is not None:
+            tr_text = plural.get(plural, tr_text)
+        else:
+            tr_text = self.__add(text, plural=plural)
+
+        return tr_text
