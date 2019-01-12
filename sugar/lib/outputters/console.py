@@ -7,8 +7,9 @@ from __future__ import absolute_import, print_function, unicode_literals
 import os
 import sys
 import collections
-
 import colored
+
+from sugar.lib.i18n import gettext as __
 
 
 class _BaseOutput(object):
@@ -273,7 +274,7 @@ class TitleOutput(object):
         :param style: style name
         :return: None
         """
-        self._titles[title] = style
+        self._titles[__(title)] = style
 
     def paint(self, text):
         """
@@ -282,6 +283,7 @@ class TitleOutput(object):
         :param text: Text
         :return: colored title
         """
+        text = __(text)
         style = self._titles.get(text)
         if style:
             style = self._get_style()[style]
@@ -440,6 +442,7 @@ class ConsoleMessages(object):
         :param kwargs: keyword arguments to format the message
         :return: colored string
         """
+        message = __(message)
         sys.stdout.write(self._emph("{}{}{}\n".format(colored.fg(self.__style()["warning"]),
                                                       message.format(*args, **kwargs), colored.attr("reset")),
                                     "warning"))
