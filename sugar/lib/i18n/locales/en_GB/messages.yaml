@@ -20,6 +20,8 @@ List By Host Name:
   none: 'List only with the following status. Default: all'
 New:
   none: New
+Query:
+  none: Query
 Rejected:
   none: Rejected
 'Set destination of the logging. Default: as configured':
@@ -34,6 +36,8 @@ Specify machine ID of the key:
   none: Specify machine ID of the key
 Sugar Client, receives commands from a remote Sugar Master:
   none: Sugar Client, receives commands from a remote Sugar Master
+Sugar Console, sends commants to a remote Sugar Master:
+  none: Sugar Console, sends commants to a remote Sugar Master
 Sugar Keys Manager, manages authentication keys:
   none: Sugar Keys Manager, manages authentication keys
 Sugar Master, used to control Sugar Clients:
@@ -42,8 +46,12 @@ Sugar Master, used to control Sugar Clients:
   so they can be both controlled and queried with ease.
 : none: Sugar allows for commands to be executed across a space of remote systems
     in parallel, so they can be both controlled and queried with ease.
+Take all keys for acceptance/rejection/deletion:
+  none: Take all keys for acceptance/rejection/deletion
 Take all keys or acceptance/rejection/deletion:
   none: Take all keys or acceptance/rejection/deletion
+show this help message and exit:
+  none: show this help message and exit
 ? "sugar [<target>] [<component>] [<args>]\n\nTarget is a name or a pattern in Unix\
   \ shell-style\nwildcard that matches client names.\n\nAvailable components:\n\n\
   \    master     Used to control Sugar Clients\n    client     Receives commands\
