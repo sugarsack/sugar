@@ -14,7 +14,7 @@ from sugar.utils.jid import jidstore
 @pytest.fixture
 def gettext_class():
     """
-    Singleton-free class.
+    Un-singleton the class init, so it can be reused in the tests.
 
     :return: GetText instance
     """
