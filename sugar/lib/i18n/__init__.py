@@ -117,4 +117,5 @@ class GetText(object):
         return tr_text
 
 
-gettext = GetText().gettext
+def gettext(text, count=0):
+    return GetText().gettext(text=text, count=count)
