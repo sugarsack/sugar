@@ -10,6 +10,28 @@ import sys
 from sugar.config import CurrentConfiguration
 from sugar.lib.logger import Logger
 from sugar.lib import schemelib
+from sugar.lib.i18n import gettext as __
+from sugar.lib.outputters.console import otty
+
+
+class CapitalisedHelpFormatter(argparse.HelpFormatter):
+    """
+    Custom argparse formatter.
+    """
+    def add_usage(self, usage, actions, groups, prefix=None):
+        """
+        On add usage action.
+
+        :param usage: Usage object
+        :param actions: List of current actions
+        :param groups: Available groups
+        :param prefix: Action prefix
+        :return: Return the result of HelpFormtter.add_usage
+        """
+        for action in actions:
+            if isinstance(action, argparse._HelpAction):
+                action.help = __(action.help)
+        return super(CapitalisedHelpFormatter, self).add_usage(usage, actions, groups, prefix)
 
 
 class SugarCLI(object):
@@ -20,9 +42,9 @@ class SugarCLI(object):
 
     def __init__(self):
         parser = argparse.ArgumentParser(
-            description="Sugar allows for commands to be executed across a space of remote systems in parallel, "
-                        "so they can be both controlled and queried with ease.",
-            usage="""sugar [<target>] [<component>] [<args>]
+            description=__("Sugar allows for commands to be executed across a space of remote systems in parallel, "
+                           "so they can be both controlled and queried with ease."),
+            usage=__("""sugar [<target>] [<component>] [<args>]
 
 Target is a name or a pattern in Unix shell-style
 wildcard that matches client names.
@@ -32,15 +54,15 @@ Available components:
     master     Used to control Sugar Clients
     client     Receives commands from a remote Sugar Master
     keys       Used to manage Sugar authentication keys
-    local      Local orchestration""")
-        parser.add_argument('component', help='Component to run')
+    local      Local orchestration"""), formatter_class=CapitalisedHelpFormatter)
+        parser.add_argument('component', help=__("Component to run"))
         args = parser.parse_args(sys.argv[1:2])
         if SugarCLI.is_target(args.component):
             self.console()
             sys.exit(1)
 
         if args.component not in self.COMPONENTS:
-            sys.stderr.write('Unrecognized command\n')
+            otty.i18n.puts("Unrecognized command")
             parser.print_help()
             sys.exit(1)
 
@@ -74,11 +96,12 @@ Available components:
         :param parser: argparse.ArgumentParser
         :return: None
         """
-        parser.add_argument('-l', '--log-level', help='Set output log level. Default: info',
+        parser.add_argument('-l', '--log-level', help=__("Set output log level. Default: info"),
                             choices=list(sorted(Logger.LOG_LEVELS.keys())), default=None)
-        parser.add_argument('-L', '--log-output', help='Set destination of the logging. '
-                                                       'Default: as configured', default=None)
-        parser.add_argument('-c', '--config-dir', help='Alternative to default configuration directory.', default=None)
+        parser.add_argument('-L', '--log-output', help=__("Set destination of the logging. Default: as configured"),
+                            default=None)
+        parser.add_argument('-c', '--config-dir', help=__("Alternative to default configuration directory"),
+                            default=None)
 
     def setup(self):
         """
@@ -90,7 +113,7 @@ Available components:
         try:
             conf = CurrentConfiguration(self.component_args.config_dir, self.component_args)
         except schemelib.SchemaError as ex:
-            sys.stderr.write('Configuration error:\n  {}\n'.format(ex))
+            otty.puts("{msg}:\n  {err}".format(msg=__("Configuration error"), err=ex))
             if self.component_args.log_level == 'debug':
                 raise ex
             sys.exit(1)
@@ -117,7 +140,8 @@ Available components:
             else:
                 reactor(self.component_args).run()
         except Exception as ex:
-            sys.stderr.write('Error running {}:\n  {}\n'.format(sys.argv[1].title(), ex))
+            sys.stderr.write('{errmsg} {msg}:\n  {err}\n'.format(errmsg="Error running",
+                                                                 msg=__(sys.argv[1].title()), err=ex))
             if self.component_args.log_level == 'debug':
                 raise ex
 
@@ -128,7 +152,9 @@ Available components:
         :return: None
         """
         self.component_cli_parser = argparse.ArgumentParser(
-            description='Sugar Master, used to control Sugar Clients')
+            description=__("Sugar Master, used to control Sugar Clients"),
+            formatter_class=CapitalisedHelpFormatter)
+
         SugarCLI.add_common_params(self.component_cli_parser)
 
         self.setup()
@@ -149,7 +175,8 @@ Available components:
         """
 
         self.component_cli_parser = argparse.ArgumentParser(
-            description='Sugar Client, receives commands from a remote Sugar Master')
+            description=__("Sugar Client, receives commands from a remote Sugar Master"),
+            formatter_class=CapitalisedHelpFormatter)
         SugarCLI.add_common_params(self.component_cli_parser)
 
         self.setup()
@@ -170,8 +197,9 @@ Available components:
         :return: None
         """
         self.component_cli_parser = argparse.ArgumentParser(
-            description='Sugar Console, sends commants to a remote Sugar Master')
-        self.component_cli_parser.add_argument('query', nargs="+", help="Query")
+            description=__("Sugar Console, sends commants to a remote Sugar Master"),
+            formatter_class=CapitalisedHelpFormatter)
+        self.component_cli_parser.add_argument('query', nargs="+", help=__("Query"))
         SugarCLI.add_common_params(self.component_cli_parser)
 
         self.setup()
@@ -188,26 +216,27 @@ Available components:
         :return: None
         """
         self.component_cli_parser = argparse.ArgumentParser(
-            description='Sugar Keys Manager, manages authentication keys')
-        self.component_cli_parser.add_argument("command", help="Action on known keys", default=None,
+            description=__("Sugar Keys Manager, manages authentication keys"),
+            formatter_class=CapitalisedHelpFormatter)
+        self.component_cli_parser.add_argument("command", help=__("Action on known keys"), default=None,
                                                choices=sorted(["accept", "deny", "reject", "list", "delete"]))
-        self.component_cli_parser.add_argument("-f", "--format", help="Format of the listing. Default: short",
+        self.component_cli_parser.add_argument("-f", "--format", help=__("Format of the listing. Default: short"),
                                                default="short", choices=sorted(["short", "full"]))
-        self.component_cli_parser.add_argument("-s", "--status", help="List only with the following status. "
-                                                                      " Default: all",
+        self.component_cli_parser.add_argument("-s", "--status", help=__("List only with the following status. "
+                                                                         "Default: all"),
                                                default="all", choices=sorted(["all", "new", "accepted",
                                                                               "rejected", "denied"]))
         self.component_cli_parser.add_argument("-t", "--fingerprint",
-                                               help="Specify key fingerprint of the key",
+                                               help=__("Specify key fingerprint of the key"),
                                                default=None)
         self.component_cli_parser.add_argument("-n", "--hostname",
-                                               help="Specify hostname of the key",
+                                               help=__("Specify hostname of the key"),
                                                default=None)
         self.component_cli_parser.add_argument("-i", "--machineid",
-                                               help="Specify machine ID of the key",
+                                               help=__("Specify machine ID of the key"),
                                                default=None)
         self.component_cli_parser.add_argument("--match-all-keys-at-once",
-                                               help="Take all keys or acceptance/rejection/deletion",
+                                               help=__("Take all keys for acceptance/rejection/deletion"),
                                                action="store_true")
         SugarCLI.add_common_params(self.component_cli_parser)
 
