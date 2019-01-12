@@ -45,11 +45,13 @@ class SystemOutput(object):
         self.__output.write(os.linesep)
 
 
+# pylint: disable=C0103, W0201
 otty = SystemOutput(sys.stdout)
 otty.i18n = SystemOutput(sys.stdout, __)
 
 etty = SystemOutput(sys.stderr)
 etty.i18n = SystemOutput(sys.stderr, __)
+# pylint: enable=C0103, W0201
 
 
 class _BaseOutput(object):
