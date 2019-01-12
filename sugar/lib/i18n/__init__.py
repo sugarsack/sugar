@@ -87,10 +87,8 @@ class GetText(object):
         :raises
         :return: original text.
         """
-        translation = {plural: text}
-        if plural != "none":
-            translation[plural] = text
-        self.__translations.setdefault(text, translation)
+        self.__translations.setdefault(text, {})
+        self.__translations[text].setdefault(plural, text)
         self.save()
 
         return text
