@@ -70,7 +70,7 @@ class GetText(object):
             plural = "one"
         elif 1 < count <= self.few:
             plural = "few"
-        elif count > self.few + 1:
+        elif count > self.few:
             plural = "many"
         return self.__get(text, plural=plural)
 
