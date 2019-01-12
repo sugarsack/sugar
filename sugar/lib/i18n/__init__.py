@@ -28,6 +28,19 @@ class Gettext(object):
 
         :return: None
         """
+        if self.path is not None:
+            with sugar.utils.files.fopen(self.path) as tr_fh:
+                self.__translations = yaml.load(tr_fh.read())
+
+    def save(self):
+        """
+        Save messages.
+
+        :return: None
+        """
+        if self.path is not None:
+            with sugar.utils.files.fopen(self.path, "w") as tr_fh:
+                tr_fh.write(yaml.dump(self.__translations, default_flow_style=False))
 
     def gettext(self, text, count=0):
         """
