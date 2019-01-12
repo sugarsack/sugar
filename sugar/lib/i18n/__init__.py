@@ -4,8 +4,8 @@ i18n, based on Zope 2 ideas.
 """
 from __future__ import absolute_import, unicode_literals
 import os
-import yaml
 import locale
+import yaml
 import sugar.utils.files
 from sugar.lib.logger.manager import get_logger
 from sugar.utils.objects import Singleton
@@ -78,13 +78,13 @@ class GetText(object):
         """
         Adds a text to the messages and returns it back as is,
         because the text is new.
+
         One entry structure is following:
-           {"sometext": {"many": "translations"}}
-           {"sometext": {}}
+          {"sometext": {"many": "translations"}}
+          {"sometext": {}}
 
         :param text: Text ID.
         :param plural: plurals section.
-        :raises
         :return: original text.
         """
         self.__translations.setdefault(text, {})
@@ -116,4 +116,11 @@ class GetText(object):
 
 
 def gettext(text, count=0):
+    """
+    Usable gettext.
+
+    :param text: Text for translation
+    :param count: count for plurals
+    :return: Translated text
+    """
     return GetText().gettext(text=text, count=count)
