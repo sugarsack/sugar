@@ -32,7 +32,7 @@ class GetText(object):
         self.__translations = {}
         self.load()
 
-    def load(self):
+    def load(self) -> None:
         """
         Load messages for the specific locale.
 
@@ -42,9 +42,11 @@ class GetText(object):
             with sugar.utils.files.fopen(self.path) as tr_fh:
                 self.__translations = yaml.load(tr_fh.read())
 
-    def save(self):
+    def save(self) -> None:
         """
-        Save messages.
+        Save messages to the disk.
+        Note: this won't do it on production, where packaged
+              product is distributed read-only.
 
         :return: None
         """
@@ -55,13 +57,13 @@ class GetText(object):
             else:
                 self.log.error("Unable to update i18n messages at {}", self.path)
 
-    def gettext(self, text, count=0):
+    def gettext(self, text: str, count: int = 0) -> str:
         """
-        Get or add text.
+        Get a text translation or transparently add a new text (in development mode).
 
         :param text: Text ID.
         :param count: count for plurals
-        :return: translated text, if any
+        :return: translated text, if any. Original, if nothing found.
         """
         plural = "none"
         if count == 1:
@@ -72,7 +74,7 @@ class GetText(object):
             plural = "many"
         return self.__get(text, plural=plural)
 
-    def __add(self, text, plural):
+    def __add(self, text: str, plural: str) -> str:
         """
         Adds a text to the messages and returns it back as is,
         because the text is new.
@@ -83,7 +85,7 @@ class GetText(object):
         :param text: Text ID.
         :param plural: plurals section.
         :raises
-        :return: None
+        :return: original text.
         """
         translation = {plural: text}
         if plural != "none":
@@ -93,7 +95,7 @@ class GetText(object):
 
         return text
 
-    def __get(self, text, plural):
+    def __get(self, text: str, plural: str) -> str:
         """
         Gets a text from the messages. If none found, adds one.
         One entry structure is following:
