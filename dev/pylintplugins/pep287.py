@@ -62,13 +62,21 @@ class PEP287Checker(checkers.BaseChecker):
             "PEP287-tabs",
             "Please do not use tabs, but four spaces instead."),
         "E8022": (
-            "Code raises '%s' but the docstring doesn't mention that.",
+            "Code raises %s but the docstring doesn't mention that.",
             "PEP287-raises-missing",
             "Add to the docstring the info about what exceptions are being raised."),
-        "E8024": (
-            "Code does not raises '%s' as docstring describes.",
+        "E8023": (
+            "Code does not raises %s as docstring describes.",
             "PEP287-superfluous-raises",
             "Please remove from the docstring superfluous data."),
+        "E8024": (
+            "Docstring is missing explanation why %s is raised.",
+            "PEP287-doc-why-raised-missing",
+            "Please explain why this explanation is raised."),
+        "E8025": (
+            "The syntax is ':raises %s:', i.e. it should end with the semi-colon, when describing the exception.",
+            "PEP287-doc-raised-wrong-syntax",
+            "Please add a semi-colon."),
     }
 
     def _cleanup_spaces(self, data):
@@ -101,6 +109,24 @@ class PEP287Checker(checkers.BaseChecker):
         """
         ret = self._cleanup_spaces(line).split(" ", 1)
         return (ret + ['' for _ in range(2 - len(ret))])[-1]
+
+    def _check_raises_described(self, node, raised):
+        """
+        Check if 'raises' is properly documented.
+
+        :param doc:
+        :return:
+        """
+        for line in (node.doc or '').strip().split(os.linesep):
+            line = line.strip()
+            if line.startswith(":raises "):
+                exc_name = line.split(" ", 1)[-1].split(" ", 1)
+                if len(exc_name) == 1:
+                    self.add_message("PEP287-doc-why-raised-missing", node=node,
+                                     args=(exc_name[0].replace(":", ""),))
+                elif not exc_name[0].endswith(":"):
+                    self.add_message("PEP287-doc-raised-wrong-syntax", node=node,
+                                     args=(exc_name[0],))
 
     def _get_doc_params(self, doc):
         """
@@ -230,7 +256,16 @@ class PEP287Checker(checkers.BaseChecker):
 
         for element in node.get_children():
             if isinstance(element, astroid.node_classes.Raise):
-                raises.append(element.exc.func.name)
+                if isinstance(element.exc, astroid.node_classes.Name):
+                    raises.append("previous exception through the variable '{}'".format(element.exc.name))
+                elif element.exc is None and element.cause is None:
+                    raises.append("current exception")
+                elif hasattr(element.exc.func, "name"):
+                    raises.append(element.exc.func.name)
+                elif hasattr(element.exc.func, "attrname"):
+                    raises.append(element.exc.func.attrname)
+                else:
+                    raises.append("undetected exception")
             else:
                 raises = self.what_raises(element, raises=raises)
 
@@ -245,15 +280,22 @@ class PEP287Checker(checkers.BaseChecker):
         :return: None
         """
         exceptions = self.what_raises(node)
-        for line in node.doc.strip().split(os.linesep):
+        documented = 0
+        self._check_raises_described(node, raised=exceptions)
+        for line in (node.doc or '').strip().split(os.linesep):
             line = line.strip()
             if line.startswith(":rais"):
-                exc_name = line.replace(":raises ", ":raise ").split(" ", 1)[-1]
+                exc_name = line.replace(":raises ", ":raise ").split(" ", 1)[-1].replace(":", "").split(" ")[0]
                 if exc_name not in exceptions:
                     self.add_message("PEP287-superfluous-raises", node=node, args=(exc_name,))
                 else:
+                    documented += 1
                     exceptions.pop(exceptions.index(exc_name))
         for exc_name in exceptions:
+            if (exc_name.startswith("previous exception") or exc_name.startswith("current exception")) and documented:
+                continue
+            if not exc_name.startswith("previous") and not exc_name.startswith("current"):
+                exc_name = '"{}"'.format(exc_name)
             self.add_message("PEP287-raises-missing", node=node, args=(exc_name,))
 
     @utils.check_messages('docstring-triple-quotes')
@@ -262,7 +304,8 @@ class PEP287Checker(checkers.BaseChecker):
         Check if docstring always starts and ends from/by triple double-quotes
         and they are on the new line.
         """
-        print(">>>", self._check_raises(node))
+        self._check_raises(node)
+
         if not node.name.startswith("_") and node.doc:
             self._check_tabs(node)
             self._check_explanation_block(node)
