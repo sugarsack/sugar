@@ -22,6 +22,11 @@ class ObjectResolver:
 
     This should return "/opt/sugar/main/foo/bar.st" if "bar" is a file,
     and "/opt/sugar/main/foo/bar/init.st" if "bar" is a directory.
+
+    Rules:
+      - Works only with one environment.
+      - Only one "main.st" per environment.
+      - URI that references directory is prepended with "init.st" file.
     """
 
     INIT_STATE = "init.st"
