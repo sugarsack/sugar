@@ -31,8 +31,9 @@ class ObjectResolver:
 
     INIT_STATE = "init.st"
     TOP_STATE = "main.st"
+    DEFAULT_ENV = "main"
 
-    def __init__(self, path, env="main"):
+    def __init__(self, path, env=None):
         """
         Constructor.
 
@@ -40,15 +41,29 @@ class ObjectResolver:
         :param env: Environment, which is just a sub-directory to the root.
         :raises OSError: if exist_ok is False
         """
+        if not env:
+            env = self.DEFAULT_ENV
+
         self.log = get_logger(self)
-        self._path = sugar.utils.sanitisers.join_path(path, env)
-        if not os.path.exists(self._path):
+        self.__path = sugar.utils.sanitisers.join_path(path, env).rstrip(os.path.sep)
+        if self.__path == path:
+            self.__path = sugar.utils.sanitisers.join_path(path, self.DEFAULT_ENV).rstrip(os.path.sep)
+        if not os.path.exists(self.__path):
             try:
-                os.makedirs(self._path)
+                os.makedirs(self.__path)
             except OSError as ex:
                 self.log.error("Failure to initialise environment: {}", ex)
                 raise ex
         self.__main_path = None
+
+    @property
+    def path(self):
+        """
+        Root path for the states.
+
+        :return: absolute path.
+        """
+        return self.__path
 
     def get_main(self):
         """
@@ -57,7 +72,7 @@ class ObjectResolver:
         :return: Path to main.st if needed.
         """
         if self.__main_path is None:
-            for item in os.walk(self._path):
+            for item in os.walk(self.__path):
                 pth, dirs, files = item
                 if self.TOP_STATE in files:
                     self.__main_path = os.path.join(pth, self.TOP_STATE)
@@ -72,7 +87,7 @@ class ObjectResolver:
         :param subpath: subpath after the URI
         :return: Full path to the resource.
         """
-        _path = os.path.join(self._path, subpath)
+        _path = os.path.join(self.__path, subpath)
         if os.path.isdir(_path):
             _path = os.path.join(_path, self.INIT_STATE)
         else:
