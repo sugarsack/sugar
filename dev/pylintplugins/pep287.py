@@ -117,16 +117,16 @@ class PEP287Checker(checkers.BaseChecker):
         :param doc:
         :return:
         """
-        for line in (node.doc or '').strip().split(os.linesep):
+        for line in node.doc.strip().split(os.linesep):
             line = line.strip()
             if line.startswith(":raises "):
                 exc_name = line.split(" ", 1)[-1].split(" ", 1)
                 if len(exc_name) == 1:
                     self.add_message("PEP287-doc-why-raised-missing", node=node,
-                                     args=(exc_name[0].replace(":", ""),))
+                                     args=('"{}"'.format(exc_name[0].replace(":", "")),))
                 elif not exc_name[0].endswith(":"):
                     self.add_message("PEP287-doc-raised-wrong-syntax", node=node,
-                                     args=(exc_name[0],))
+                                     args=('"{}"'.format(exc_name[0]),))
 
     def _get_doc_params(self, doc):
         """
@@ -257,9 +257,9 @@ class PEP287Checker(checkers.BaseChecker):
         for element in node.get_children():
             if isinstance(element, astroid.node_classes.Raise):
                 if isinstance(element.exc, astroid.node_classes.Name):
-                    raises.append("previous exception through the variable '{}'".format(element.exc.name))
+                    raises.append('-') # skipper
                 elif element.exc is None and element.cause is None:
-                    raises.append("current exception")
+                    raises.append("-")
                 elif hasattr(element.exc.func, "name"):
                     raises.append(element.exc.func.name)
                 elif hasattr(element.exc.func, "attrname"):
@@ -279,24 +279,31 @@ class PEP287Checker(checkers.BaseChecker):
         :param node: function node
         :return: None
         """
-        exceptions = self.what_raises(node)
+        exceptions = list(set(self.what_raises(node)))
         documented = 0
         self._check_raises_described(node, raised=exceptions)
-        for line in (node.doc or '').strip().split(os.linesep):
+        for line in node.doc.strip().split(os.linesep):
             line = line.strip()
             if line.startswith(":rais"):
                 exc_name = line.replace(":raises ", ":raise ").split(" ", 1)[-1].replace(":", "").split(" ")[0]
-                if exc_name not in exceptions:
+                if exc_name not in exceptions and '-' not in exceptions:
                     self.add_message("PEP287-superfluous-raises", node=node, args=(exc_name,))
                 else:
                     documented += 1
-                    exceptions.pop(exceptions.index(exc_name))
+                    if exc_name in exceptions:
+                        exceptions.pop(exceptions.index(exc_name))
         for exc_name in exceptions:
-            if (exc_name.startswith("previous exception") or exc_name.startswith("current exception")) and documented:
+            if exc_name.startswith("current exception") and documented:
                 continue
-            if not exc_name.startswith("previous") and not exc_name.startswith("current"):
+            elif exc_name == "-":
+                continue
+            if not exc_name.startswith("current"):
                 exc_name = '"{}"'.format(exc_name)
             self.add_message("PEP287-raises-missing", node=node, args=(exc_name,))
+        # Here we check if there are only skippers, i.e. something is re-raised but never documented:
+        if len([skp for skp in exceptions if skp == '-']) > documented:
+            self.add_message("PEP287-raises-missing", node=node,
+                             args=("an exception in the function '{}'".format(node.name),))
 
     @utils.check_messages('docstring-triple-quotes')
     def visit_functiondef(self, node):
@@ -304,7 +311,8 @@ class PEP287Checker(checkers.BaseChecker):
         Check if docstring always starts and ends from/by triple double-quotes
         and they are on the new line.
         """
-        self._check_raises(node)
+        if not node.name.startswith("__") and node.doc is not None:
+            self._check_raises(node)
 
         if not node.name.startswith("_") and node.doc:
             self._check_tabs(node)
