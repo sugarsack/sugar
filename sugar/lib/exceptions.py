@@ -98,3 +98,11 @@ class SugarServerException(SugarException):
     General server exception.
     """
     __prefix__ = "Server error"
+
+
+# Compiler
+class SugarSCResolverException(SugarException):
+    """
+    Sugar State Compiler resolver exception.
+    """
+    __prefix__ = "State Compiler error"
