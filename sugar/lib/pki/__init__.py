@@ -107,6 +107,7 @@ class Crypto(object):
         Decrypt data with AES with EAX mode (verification for tampering).
 
         :param data: encrypted cipher
+        :raises SugarDependencyException: if AES algorithm is not available.
         :return: decrypted data
         """
         if AES is None:

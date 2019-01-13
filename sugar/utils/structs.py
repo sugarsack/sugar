@@ -44,6 +44,7 @@ class ImmutableDict(dict):
 
         :param other: -
         :param kwargs: -
+        :raises AttributeAccessError: when update
         :return: -
         """
         raise ImmutableDict.AttributeAccessError('Attempt to update protected dictionary')
@@ -54,6 +55,7 @@ class ImmutableDict(dict):
 
         :param key: -
         :param value: -
+        :raises AttributeAccessError: when setting default value
         :return: -
         """
         raise ImmutableDict.AttributeAccessError('Attempt to set default value to a protected dictionary')
@@ -154,6 +156,7 @@ def update(dest, upd, recursive_update=True, merge_lists=False):
     :param upd: source dict
     :param recursive_update: bool
     :param merge_lists: bool
+    :raises TypeError: if instance is not a mapping
     :return: None
     """
     if (not isinstance(dest, collections.Mapping)) or (not isinstance(upd, collections.Mapping)):

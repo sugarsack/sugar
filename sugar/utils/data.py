@@ -116,6 +116,7 @@ def decode(data, encoding=None, errors='strict', keep=False,
     :param preserve_dict_class: bool
     :param preserve_tuples: bool
     :param to_str: bool
+    :raises UnicodeDecodeError: if "keep" parameter is false.
     :return: decoded data
     """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
@@ -158,6 +159,7 @@ def decode_dict(data, encoding=None, errors='strict', keep=False,
     :param preserve_dict_class: bool
     :param preserve_tuples: bool
     :param to_str: bool
+    :raises UnicodeDecodeError: if parameter "keep" is false
     :return: decoded data
     """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
@@ -222,6 +224,7 @@ def decode_list(data, encoding=None, errors='strict', keep=False,
     :param preserve_dict_class: bool
     :param preserve_tuples: bool
     :param to_str: bool
+    :raises UnicodeDecodeError: if parameter "keep" is false
     :return: decoded data
     """
     _decode_func = stringutils.to_unicode if not to_str else stringutils.to_str
@@ -293,6 +296,7 @@ def encode(data, encoding=None, errors='strict', keep=False,
     :param keep: bool
     :param preserve_dict_class: bool
     :param preserve_tuples: bool
+    :raises UnicodeDecodeError: if parameter "keep" is false
     :return: encoded data
     """
     if isinstance(data, Mapping):
@@ -331,6 +335,7 @@ def encode_dict(data, encoding=None, errors='strict', keep=False,
     :param keep: bool
     :param preserve_dict_class: bool
     :param preserve_tuples: bool
+    :raises UnicodeDecodeError: if parameter "keep" is false
     :return: encoded data
     """
     ret = data.__class__() if preserve_dict_class else {}
@@ -389,6 +394,7 @@ def encode_list(data, encoding=None, errors='strict', keep=False,
     :param keep: bool
     :param preserve_dict_class: bool
     :param preserve_tuples: bool
+    :raises UnicodeDecodeError: if parameter "keep" is false
     :return: encoded list
     """
     ret = []
@@ -988,7 +994,7 @@ def json_query(data, expr):
 
     :param data: JSON query
     :param expr: expression
-    :raises: RuntimeError
+    :raises RuntimeError: if jmespath module is not installed
     :returns: search result
     """
     if jmespath is None:

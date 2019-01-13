@@ -214,6 +214,7 @@ class ClientSystemEvents(object):
 
         :param pubkey_pem: public key cipher
         :param force: bool
+        :raises SugarClientException: if master public key already exists.
         :return: None
         """
         mpk_path = os.path.join(self.pki_path, self.MASTER_PUBKEY_FILE)
@@ -249,6 +250,7 @@ class ClientSystemEvents(object):
         Create token for the master: encrypted machine_id cipher with the Master's RSA public key.
         It assumes RSA public key is on its place available.
 
+        :raises Exception: if RSA key failed to encrypt the token.
         :return: bytes
         """
         client_id = self.core.traits.data["machine-id"]

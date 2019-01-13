@@ -43,6 +43,7 @@ class ObjectGate(object):
 
         :param obj: Binary
         :param binary: bool
+        :raises Exception: if ObjectGate failed
         :return: Serialisable
         """
         if binary:

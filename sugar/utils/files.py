@@ -134,6 +134,7 @@ def copyfile(source, dest, cachedir=''):
     :param source: source
     :param dest: destination
     :param cachedir: default ""
+    :raises IOError: if source or destination were not found
     :return: None
     """
     if not os.path.isfile(source):
@@ -190,6 +191,7 @@ def rename(src, dst):
 
     :param src: source
     :param dst: destination
+    :raises SugarException: if unable to remove destination file
     :return: None
     """
     try:
@@ -215,6 +217,7 @@ def process_read_exception(exc, path):
 
     :param exc: exception
     :param path: path of the object
+    :raises SugarConsoleException: if path doesn't exist or permission denied to read it.
     :return: none
     """
     if exc.errno == errno.ENOENT:
@@ -241,6 +244,7 @@ def wait_lock(path, lock_fn=None, timeout=5, sleep=0.1, time_start=None):
     :param timeout: lock timeout
     :param sleep: sleeping time
     :param time_start: starting point time
+    :raises SugarFileLockException: if lock error happens (file exists).
     :return: None
     """
     if not isinstance(path, six.string_types):
@@ -254,6 +258,9 @@ def wait_lock(path, lock_fn=None, timeout=5, sleep=0.1, time_start=None):
     def _raise_error(msg, race=False):
         """
         Raise a FileLockError
+
+        :raises SugarFileLockException: when requested
+        :returns: None
         """
         raise sugar.lib.exceptions.SugarFileLockException(msg, time_start=time_start)
 
@@ -362,6 +369,7 @@ def fopen(*args, **kwargs):
 
     :param args: -
     :param kwargs: -
+    :raises TypeError: if a file descriptor is not permitted.
     :return: file descriptor
     """
     if six.PY3:
@@ -575,6 +583,7 @@ def rm_rf(path):
     http://stackoverflow.com/a/2656405
 
     :param path: path
+    :raises IOError: if platform is Windows but no file access.
     :return: None
     """
     def _onerror(func, path, exc_info):
@@ -587,6 +596,8 @@ def rm_rf(path):
         If the error is for another reason it re-raises the error.
 
         Usage : `shutil.rmtree(path, onerror=onerror)`
+
+        :raises IOError: if platform is Windows but no file access.
         """
         if sugar.utils.platform.is_windows() and not os.access(path, os.W_OK):
             # Is the error an access error ?
@@ -711,14 +722,12 @@ def is_binary(path):
     return ret
 
 
-#
-# UNUSED @@@
-#
 def remove(path):
     """
     Runs os.remove(path) and suppresses the OSError if the file doesn't exist
 
     :param path: path to the file
+    :raises OSError: if any other exception occurs than "file does not exist".
     :return: None
     """
     try:
@@ -728,7 +737,6 @@ def remove(path):
             raise
 
 
-#
 # UNUSED @@@
 #
 def list_files(directory):
@@ -798,6 +806,7 @@ def human_size_to_bytes(human_size):
     Convert human-readable units to bytes
 
     :param human_size: human readable size
+    :raises ValueError: when size is not all digits with an optimal unit type (K, M, G, T or P)
     :return: bytes
     """
     size_exp_map = {'K': 1, 'M': 2, 'G': 3, 'T': 4, 'P': 5}
@@ -854,7 +863,7 @@ def get_encoding(path):
     - Check for ascii
 
     :param path: The path to the file to check
-    :raises: CommandExecutionError: If the encoding cannot be detected
+    :raises SugarRuntimeException: If the encoding cannot be detected
     :return: str: the encoding of the file.
     """
     def check_ascii(_data):
@@ -944,7 +953,7 @@ def mk_dirs(path):
     Create directories.
 
     :param path: path of the directory to be created
-    :raises: SugarRuntimeException if unable to create path
+    :raises SugarRuntimeException: if unable to create path
     :return: path of created directory
     """
     if not os.path.exists(path):
