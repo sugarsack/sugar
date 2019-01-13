@@ -47,17 +47,21 @@ class TestCompilerResolver:
         pth = "/opt/sugar"
         assert ObjectResolver(pth).resolve() == os.path.join(pth, "somewhere/main.st")
 
-
+    @patch("os.path.exists", MagicMock(return_value=True))
+    @patch("os.makedirs", MagicMock())
+    @patch("os.path.isdir", MagicMock(return_value=True))
     def test_resolve_init_by_uri(self):
         """
-        Resolve init.st by URI.
+        Resolve init.st by URI, where path is pointing to the directory.
 
         :return: None
         """
+        pth = "/opt/sugar"
+        assert ObjectResolver(pth).resolve("foo.bar") == os.path.join(pth, "main/foo/bar/init.st")
 
     def test_resolve_file_by_uri(self):
         """
-        Resolve state file path by URI.
+        Resolve state file path by URI, where path is pointing to a file.
 
         :return:
         """
