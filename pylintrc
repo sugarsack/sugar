@@ -34,7 +34,6 @@ load-plugins=docstring_triplequotes,
              backslashy,
              pep8_emptylines,
              pep287
-#             pylint.extensions.docparams
 
 # Pickle collected data for later comparisons.
 persistent=yes
