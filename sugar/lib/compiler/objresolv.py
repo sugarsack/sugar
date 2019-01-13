@@ -103,10 +103,13 @@ class ObjectResolver:
         """
         return sugar.utils.sanitisers.join_path(*uri.split("."), relative=True)
 
+    def resolve(self, uri=None):
         """
         Resolve URI. The URI is dotted notation, where os.path.sep
-        (slash or back-slash) is represented as "." (dot).
+        (slash or back-slash) is represented as "." (dot). If uri
+        parameter is None, then path to the top file is returned.
 
-        :param url:
+        :param uri: Dot-notated URI for specific state, None for getting main.
         :return: complete path to the state file.
         """
+        return self.get_main() if uri is None else self.get_resource_path(self.uri_to_subpath(uri))
