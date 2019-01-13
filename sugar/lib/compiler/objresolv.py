@@ -48,6 +48,22 @@ class ObjectResolver:
             except OSError as ex:
                 self.log.error("Failure to initialise environment: {}", ex)
                 raise ex
+        self.__main_path = None
+
+    def get_main(self):
+        """
+        Get state main.st (top).
+
+        :return: Path to main.st if needed.
+        """
+        if self.__main_path is None:
+            for item in os.walk(self._path):
+                pth, dirs, files = item
+                if self.TOP_STATE in files:
+                    self.__main_path = os.path.join(pth, self.TOP_STATE)
+                    break
+
+        return self.__main_path
 
     def get_resource_path(self, subpath):
         """
