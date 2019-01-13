@@ -31,12 +31,22 @@ class TestCompilerResolver:
         for env in ["\\\\\\\\\\\\\\\\\\\\\n", "\n\t  \n", None, "main", "../../../../../../../"]:
             assert ObjectResolver(pth, env).path == os.path.join(pth, "main")
 
+    @patch("os.path.exists", MagicMock(return_value=True))
+    @patch("os.makedirs", MagicMock())
+    @patch("os.walk", MagicMock(return_value=[
+        ("/opt/sugar", ["foo", "bar"], ["init.st"]),
+        ("/opt/sugar/foo", [], ["bar.st"]),
+        ("/opt/sugar/somewhere", ["theris"], ["main.st"]),
+    ]))
     def test_resolve_main_by_uri(self):
         """
         Resolve main.st when nothing is specified.
 
         :return: None
         """
+        pth = "/opt/sugar"
+        assert ObjectResolver(pth).resolve() == os.path.join(pth, "somewhere/main.st")
+
 
     def test_resolve_init_by_uri(self):
         """
