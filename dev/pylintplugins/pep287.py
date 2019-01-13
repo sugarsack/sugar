@@ -77,6 +77,10 @@ class PEP287Checker(checkers.BaseChecker):
             "The syntax is ':raises %s:', i.e. it should end with the semi-colon, when describing the exception.",
             "PEP287-doc-raised-wrong-syntax",
             "Please add a semi-colon."),
+        "E8026": (
+            "Got E8019 as well? Just use ':raises' instead of '%s' in function '%s'.",
+            "PEP287-doc-raises-instead-raise",
+            "Although 'raise' is valid keyword, still please use 'raises'."),
     }
 
     def _cleanup_spaces(self, data):
@@ -285,6 +289,11 @@ class PEP287Checker(checkers.BaseChecker):
         for line in node.doc.strip().split(os.linesep):
             line = line.strip()
             if line.startswith(":rais"):
+                keyword = line.split(" ", 1)[0]
+                if keyword == ":raise":  # This is actually an error
+                    self.add_message("PEP287-doc-raises-instead-raise", node=node, args=(keyword, node.name,))
+                elif keyword  != ":raises":
+                    self.add_message("PEP287-doc-raises-instead-raise", node=node, args=(keyword, node.name,))
                 exc_name = line.replace(":raises ", ":raise ").split(" ", 1)[-1].replace(":", "").split(" ")[0]
                 if exc_name not in exceptions and '-' not in exceptions:
                     self.add_message("PEP287-superfluous-raises", node=node, args=(exc_name,))
