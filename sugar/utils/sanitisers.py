@@ -15,11 +15,13 @@ def join_path(*elements, relative=False):
     :param elements:
     :return: path string
     """
-    char = re.compile(r'[^A-Za-z0-9]')
+    char = re.compile(r"[^A-Za-z0-9]")
+    undelim_ux = re.compile(r"/+")
+    undelim_wn = re.compile(r"\\\\+")
     out = ['']
     for elm in elements:
         for part in elm.lstrip(os.path.sep).split(os.path.sep):
             out.append(char.sub('', part))
 
-    out = os.path.sep.join(out)
+    out = undelim_ux.sub(os.path.sep, undelim_wn.sub(os.path.sep, os.path.sep.join(out)))
     return out.lstrip(os.path.sep) if relative else out
