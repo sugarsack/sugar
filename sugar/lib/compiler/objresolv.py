@@ -9,6 +9,7 @@ on the disk following the URI syntax.
 import os
 import sugar.utils.sanitisers
 from sugar.lib.logger.manager import get_logger
+import sugar.lib.exceptions
 
 
 class ObjectResolver:
@@ -22,6 +23,9 @@ class ObjectResolver:
     This should return "/opt/sugar/main/foo/bar.st" if "bar" is a file,
     and "/opt/sugar/main/foo/bar/init.st" if "bar" is a directory.
     """
+
+    INIT_STATE = "init.st"
+    TOP_STATE = "main.st"
 
     def __init__(self, path, env="main"):
         """
@@ -40,7 +44,42 @@ class ObjectResolver:
                 self.log.error("Failure to initialise environment: {}", ex)
                 raise ex
 
-    def resolve(self, url):
+    def get_resource_path(self, subpath):
+        """
+        Get resource. If this is a directory, this should append an "init.st".
+
+        :param subpath: subpath after the URI
+        :return: Full path to the resource.
+        """
+        _path = os.path.join(self._path, subpath)
+        if os.path.isdir(_path):
+            _path = os.path.join(_path, self.INIT_STATE)
+        else:
+            _path = "{}.st".format(_path)
+            if not os.path.exists(_path):
+                raise sugar.lib.exceptions.SugarSCResolverException(
+                    "No state files for URI '{}' has been found".format(self.subpath_to_uri(subpath)))
+
+        return _path
+
+    def subpath_to_uri(self, subpath):
+        """
+        Converts subpath to URI.
+
+        :param subpath:
+        :return:
+        """
+        return ".".join(subpath.split(os.path.sep))
+
+    def uri_to_subpath(self, uri):
+        """
+        Converts URI to subpath.
+
+        :param uri:
+        :return:
+        """
+        return sugar.utils.sanitisers.join_path(*uri.split("."), relative=True)
+
         """
         Resolve URI. The URI is dotted notation, where os.path.sep
         (slash or back-slash) is represented as "." (dot).
