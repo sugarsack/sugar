@@ -2,9 +2,11 @@
 """
 Unit tests for compiler resolver.
 """
-from sugar.lib.compiler.objresolv import ObjectResolver
-from mock import MagicMock, patch
 import os
+import pytest
+from mock import MagicMock, patch
+from sugar.lib.compiler.objresolv import ObjectResolver
+import sugar.lib.exceptions
 
 
 class TestCompilerResolver:
@@ -66,7 +68,22 @@ class TestCompilerResolver:
         """
         Resolve state file path by URI, where path is pointing to a file.
 
-        :return:
+        :return: None
         """
         pth = "/opt/sugar"
         assert ObjectResolver(pth).resolve("foo.bar") == os.path.join(pth, "main/foo/bar.st")
+
+    @patch("os.path.exists", MagicMock(return_value=False))
+    @patch("os.makedirs", MagicMock())
+    @patch("os.path.isdir", MagicMock(return_value=False))
+    def test_resolve_noexist_file_by_uri(self):
+        """
+        Resolve state file path by URI, where path is pointing to a file.
+        The file doesn't exist, an Exception should be raised.
+
+        :return: None
+        """
+        with pytest.raises(sugar.lib.exceptions.SugarSCResolverException) as exc:
+            pth = "/opt/sugar"
+            assert ObjectResolver(pth).resolve("foo.bar") == os.path.join(pth, "main/foo/bar.st")
+        assert "State Compiler error: No state files for URI 'foo.bar' has been found" in str(exc)
