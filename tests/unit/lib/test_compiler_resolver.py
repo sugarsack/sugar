@@ -87,3 +87,29 @@ class TestCompilerResolver:
             pth = "/opt/sugar"
             assert ObjectResolver(pth).resolve("foo.bar") == os.path.join(pth, "main/foo/bar.st")
         assert "State Compiler error: No state files for URI 'foo.bar' has been found" in str(exc)
+
+    @patch("os.path.exists", MagicMock(return_value=False))
+    @patch("os.makedirs", MagicMock(side_effect=[OSError("Fatal error right in front of screen")]))
+    @patch("os.path.isdir", MagicMock(return_value=False))
+    def test_resolve_failure_initialise_env(self):
+        """
+        Failure initialise environment due to OSError
+        that should be raised.
+
+        :return: None
+        """
+        logmock = MagicMock()
+        with pytest.raises(OSError) as exc, patch("sugar.lib.compiler.objresolv.get_logger", logmock) as lgr:
+            pth = "/opt/sugar"
+            assert ObjectResolver(pth).resolve("foo.bar") == os.path.join(pth, "main/foo/bar.st")
+        assert "in front of screen" in str(exc)
+
+        resolv_ref = logmock.call_args_list[0][0][0]
+
+        assert isinstance(resolv_ref, ObjectResolver)
+        assert resolv_ref.log.error.called
+
+        msgpat, err_obj = resolv_ref.log.error.call_args_list[0][0]
+
+        assert isinstance(err_obj, OSError)
+        assert "Failure to initialise environment" in msgpat.format(err_obj)
