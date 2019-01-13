@@ -107,6 +107,7 @@ Available components:
         """
         Setup component.
 
+        :raises SchemaError: when configuration validation fails
         :return: None
         """
         self.component_args = self.component_cli_parser.parse_args(sys.argv[2:])
@@ -132,6 +133,7 @@ Available components:
         Run reactor.
 
         :param reactor: Twisted reactor
+        :raises Exception: raised when log level is "debug" from the CLI
         :return: None
         """
         try:

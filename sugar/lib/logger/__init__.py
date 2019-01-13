@@ -41,6 +41,7 @@ class Logger(object):
                 Wrap Twisted's log into levels
 
                 :param level: Log level
+                :raises SugarRuntimeException: when formatting log message is not possible
                 :return: Whatever log.msg returns
                 """
                 def _msg(message, *args, **kwargs):

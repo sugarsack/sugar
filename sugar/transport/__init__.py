@@ -36,6 +36,7 @@ class _MessageFactory(object):
         """
         Create message.
 
+        :raises NotImplementedError: if this method is not overridden.
         :return: None
         """
         raise NotImplementedError()

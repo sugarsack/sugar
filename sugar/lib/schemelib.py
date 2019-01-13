@@ -122,6 +122,7 @@ class Or(And):
         one value is valid.
 
         :param data: data to be validated by provided schema.
+        :raises SchemaError: when validation failed.
         :return: return validated data if not validation
         """
         autos, errors = [], []
@@ -164,6 +165,7 @@ class Regex(object):
         Validated data using defined regex.
 
         :param data: data to be validated
+        :raises SchemaError: when data does not match
         :return: return validated data.
         """
         err = self._error
@@ -196,6 +198,7 @@ class Use(object):
         Validate object.
 
         :param data: data to validate
+        :raises SchemaError: when schema doesn't match
         :return: Validation result
         """
         try:
@@ -295,6 +298,11 @@ class Schema(object):
         Validate schema.
 
         :param data: examined object
+        :raises SchemaUnexpectedTypeError: when type mismatch
+        :raises SchemaWrongKeyError: when key is wrong
+        :raises SchemaForbiddenKeyError: when key is forbidden
+        :raises SchemaMissingKeyError: when key is missing
+        :raises SchemaError: when schema do not validate
         :return: validation result
         """
         # pylint: disable=R0914,R1702,R1705,R0912,R0915,R0911

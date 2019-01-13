@@ -31,6 +31,8 @@ def to_bytes(data, encoding=None, errors='strict'):
     :param data: data to be converted
     :param encoding: pass default encoding
     :param errors: type of the errors, default "strict"
+    :raises ValueError: when encoding is empty.
+    :raises TypeError: when unicode string is passed instead of bytes
     :return: bytes
     """
     if encoding is None:
@@ -74,6 +76,8 @@ def to_str(str_data, encoding=None, errors='strict', normalize=False):
     :param encoding: specify encoding
     :param errors: specify errors to be processed. Default "strict".
     :param normalize: bool
+    :raises ValueError: when encoding is empty
+    :raises TypeError: the value is not string or bytecode/array
     :return: String data
     """
     def _normalize(val):
@@ -128,6 +132,9 @@ def to_unicode(str_data, encoding=None, errors='strict', normalize=False):
     :param encoding: specify encoding to decode from.
     :param errors: errors to be processed while encoding to the unicode. Default "strict"
     :param normalize: bool
+    :raises UnicodeDecodeError: if unable to decode string
+    :raises TypeError: when is not passed bytes, string or bytearray
+    :raises ValueError: when encoding is empty
     :return: Unicode string
     """
     def _normalize(val):
@@ -190,6 +197,7 @@ def to_bool(text):
     Convert the string name of a boolean to that boolean value.
 
     :param text: text to be converted
+    :raises TypeError: when data cannot be converted to boolean.
     :return: bool
     """
     val = six.text_type(text).strip().lower()
@@ -445,6 +453,7 @@ def check_whitelist_blacklist(value, whitelist=None, blacklist=None):
     :param blacklist: The list of items that are black-listed. If ``value`` is found
                       in the blacklist, then the function returns ``False``. Otherwise,
                       it returns ``True``.
+    :raises TypeError: when data is not an iterable.
     :return: bool
     """
     # Normalize the input so that we have a list
@@ -555,6 +564,7 @@ def print_cli(msg, retries=10, step=0.01):
     :param msg: message to print
     :param retries: number retries
     :param step: step
+    :raises IOError: if error is not related to pipe suppressing
     :return: None
     """
     while retries:

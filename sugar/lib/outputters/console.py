@@ -155,6 +155,7 @@ class _BaseOutput(object):
 
         :param obj: object to process
         :param offset: leaf offset on the printing output
+        :raises NotImplementedError: this method must be overridden.
         :return: colored string
         """
         raise NotImplementedError("Not implemented")

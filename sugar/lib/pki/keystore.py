@@ -205,6 +205,7 @@ class KeyStore(object):
         Retrieve PEM key from the FS.
 
         :param key: StoredKey object
+        :raises SugarKeyStoreException: when PEM data is not found
         :return: PEM body of the key
         """
         self._lock_transation()
@@ -277,6 +278,7 @@ class KeyStore(object):
         Delete PEM key from the store.
 
         :param fingerprint: fingerprint of the key
+        :raises OSError: when key file was not found (DB/FS integrity broken)
         :return: None
         """
         self._lock_transation()
@@ -333,6 +335,7 @@ class KeyStore(object):
         Accept key by fingerprint.
 
         :param fingerprint: fingerprint string
+        :raises SugarKeyStoreException: when key is not found by the fingerprint
         :return: accepted status
         """
         self._lock_transation()
