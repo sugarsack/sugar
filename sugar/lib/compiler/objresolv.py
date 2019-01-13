@@ -62,7 +62,8 @@ class ObjectResolver:
 
         return _path
 
-    def subpath_to_uri(self, subpath):
+    @staticmethod
+    def subpath_to_uri(subpath):
         """
         Converts subpath to URI.
 
@@ -71,7 +72,8 @@ class ObjectResolver:
         """
         return ".".join(subpath.split(os.path.sep))
 
-    def uri_to_subpath(self, uri):
+    @staticmethod
+    def uri_to_subpath(uri):
         """
         Converts URI to subpath.
 
