@@ -30,3 +30,24 @@ class TestCompilerResolver:
 
         for env in ["\\\\\\\\\\\\\\\\\\\\\n", "\n\t  \n", None, "main", "../../../../../../../"]:
             assert ObjectResolver(pth, env).path == os.path.join(pth, "main")
+
+    def test_resolve_main_by_uri(self):
+        """
+        Resolve main.st when nothing is specified.
+
+        :return: None
+        """
+
+    def test_resolve_init_by_uri(self):
+        """
+        Resolve init.st by URI.
+
+        :return: None
+        """
+
+    def test_resolve_file_by_uri(self):
+        """
+        Resolve state file path by URI.
+
+        :return:
+        """
