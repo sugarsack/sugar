@@ -6,6 +6,7 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import re
+import astroid
 
 from pylint import checkers
 from pylint import interfaces
@@ -60,6 +61,14 @@ class PEP287Checker(checkers.BaseChecker):
             "Docstring in '%s' contains tabs instead of four spaces.",
             "PEP287-tabs",
             "Please do not use tabs, but four spaces instead."),
+        "E8022": (
+            "Code raises '%s' but the docstring doesn't mention that.",
+            "PEP287-raises-missing",
+            "Add to the docstring the info about what exceptions are being raised."),
+        "E8024": (
+            "Code does not raises '%s' as docstring describes.",
+            "PEP287-superfluous-raises",
+            "Please remove from the docstring superfluous data."),
     }
 
     def _cleanup_spaces(self, data):
@@ -151,7 +160,7 @@ class PEP287Checker(checkers.BaseChecker):
                 docmap.append(":")
                 kw_ident = max(self._get_ident_len(line), kw_ident)
             else:
-                a = self._get_ident_len(line)
+                # a = self._get_ident_len(line)
                 docmap.append(":" if kw_ident > -1 and self._get_ident_len(line) > kw_ident else "#")
         docmap = ''.join(docmap)
 
@@ -208,12 +217,52 @@ class PEP287Checker(checkers.BaseChecker):
         elif not d_pars["return"]:
             self.add_message("PEP287-no-doc-return", node=node, args=(node.name,))
 
+    def what_raises(self, node, raises=None):
+        """
+        Return number of raises statements in the code.
+
+        :param node: function node
+        :param raises: Reserved for the internal data transfer
+        :return: List of explicitly raised exception class names
+        """
+        if raises is None:
+            raises = []
+
+        for element in node.get_children():
+            if isinstance(element, astroid.node_classes.Raise):
+                raises.append(element.exc.func.name)
+            else:
+                raises = self.what_raises(element, raises=raises)
+
+        return raises
+
+    def _check_raises(self, node):
+        """
+        Find out if a function raises something but
+        is not documents that or vice versa.
+
+        :param node: function node
+        :return: None
+        """
+        exceptions = self.what_raises(node)
+        for line in node.doc.strip().split(os.linesep):
+            line = line.strip()
+            if line.startswith(":rais"):
+                exc_name = line.replace(":raises ", ":raise ").split(" ", 1)[-1]
+                if exc_name not in exceptions:
+                    self.add_message("PEP287-superfluous-raises", node=node, args=(exc_name,))
+                else:
+                    exceptions.pop(exceptions.index(exc_name))
+        for exc_name in exceptions:
+            self.add_message("PEP287-raises-missing", node=node, args=(exc_name,))
+
     @utils.check_messages('docstring-triple-quotes')
     def visit_functiondef(self, node):
         """
         Check if docstring always starts and ends from/by triple double-quotes
         and they are on the new line.
         """
+        print(">>>", self._check_raises(node))
         if not node.name.startswith("_") and node.doc:
             self._check_tabs(node)
             self._check_explanation_block(node)
