@@ -52,13 +52,18 @@ class ObjectTree:
         :return: Rendered YAML structure
         """
         # TODO: add an exception handling if this is failing, so we know which file/subfile is it.
-        # TODO: perform here rendering prior loading
         with sugar.utils.files.fopen(self._resolve_uri(uri)) as entry_fh:
             st_src = entry_fh.read()
 
         return sugar.lib.compiler.objrender.render(st_src)
 
     def _load_subtree(self, uri):
+        """
+        Load subtree from the URI.
+
+        :param uri: URI to the substate.
+        :return: mapping subtree structure
+        """
         return yaml.load(self._render_statefile(uri=uri))
 
     def _resolve_tree(self, subtree):
