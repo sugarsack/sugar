@@ -15,8 +15,8 @@ Object tree does the following:
 import collections
 from sugar.lib.compat import yaml
 import sugar.utils.files
-from sugar.lib.compiler.objresolv import ObjectResolver
 import sugar.lib.compiler.objrender
+import sugar.lib.exceptions
 
 
 class ObjectTree:
@@ -66,10 +66,11 @@ class ObjectTree:
         Resolve all the formula tree into one dataset.
 
         :param uri: URI to resolve
-        :return:
+        :raises SugarSCResolverException: when state syntax does not represents a tree structure.
+        :return: subtree mapping
         """
         if not isinstance(subtree, collections.Mapping):
-            raise Exception("Not a subtree")
+            raise sugar.lib.exceptions.SugarSCResolverException("State syntax error: not a tree structure.")
 
         n_tree = collections.OrderedDict()
         for key, val in subtree.items():
@@ -89,9 +90,9 @@ class ObjectTree:
 
     def load(self, uri=None):
         """
-        Resolve the entry point of the formula.
+        Resolve the entry point of the formula and load the entire [sub]tree.
 
-        :param uri:
-        :return:
+        :param uri: URI of the resource
+        :return: None
         """
         self._dsl_tree = self._resolve_tree(self._load_subtree(uri))
