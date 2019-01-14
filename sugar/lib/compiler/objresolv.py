@@ -73,7 +73,7 @@ class ObjectResolver:
         """
         if self.__main_path is None:
             for item in os.walk(self.__path):
-                pth, dirs, files = item
+                pth, _, files = item
                 if self.TOP_STATE in files:
                     self.__main_path = os.path.join(pth, self.TOP_STATE)
                     break
