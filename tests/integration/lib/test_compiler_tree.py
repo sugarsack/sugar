@@ -58,12 +58,16 @@ class TestCompilerTree:
         :return: None
         """
 
-    def test_load_templated_state(self):
+    def test_load_templated_state(self, get_states_root):
         """
         Test loading templated state.
 
         :return: None
         """
+        otree = ObjectTree(ObjectResolver(get_states_root))
+        otree.load("dynamic")
+        assert "enumerate" in otree.tree
+        assert otree.tree["enumerate"] == ['echo "1"', 'echo "2"', 'echo "3"']
 
     def test_load_subset_by_uri(self, get_states_root):
         """
