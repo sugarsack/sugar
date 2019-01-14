@@ -32,6 +32,15 @@ class ObjectTree:
         self._dsl_tree = collections.OrderedDict()
         self._uri_stack = {}
 
+    @property
+    def tree(self):
+        """
+        Object tree.
+
+        :return: Mapping
+        """
+        return self._dsl_tree
+
     def _resolve_uri(self, uri):
         """
         Resolve URI
