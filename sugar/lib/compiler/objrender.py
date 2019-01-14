@@ -56,7 +56,7 @@ class Jinja2Renderer(BaseRenderer):
         return jinja2.Template(data).render(**self.namespace)
 
 
-__renderer_registry = {
+__RENDERER_REGISTRY = {
     Jinja2Renderer.__shebang__: Jinja2Renderer
 }
 
@@ -71,7 +71,7 @@ def render(src):
     shebang = src.split(os.linesep)[0]
     if not shebang.startswith("#!"):
         shebang = BaseRenderer.__shebang__
-    renderer = __renderer_registry.get(shebang)
+    renderer = __RENDERER_REGISTRY.get(shebang)
     if renderer is None:
         sugar.lib.exceptions.SugarSCException("Unable to render state: unknown shebang '{}'.".format(shebang))
 
