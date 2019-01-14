@@ -85,6 +85,7 @@ class ObjectResolver:
         Get resource. If this is a directory, this should append an "init.st".
 
         :param subpath: subpath after the URI
+        :raises SugarSCResolverException: raised when no states found by the given URI.
         :return: Full path to the resource.
         """
         _path = os.path.join(self.__path, subpath)
@@ -103,8 +104,8 @@ class ObjectResolver:
         """
         Converts subpath to URI.
 
-        :param subpath:
-        :return:
+        :param subpath: Relative path to the state.
+        :return: URI
         """
         return ".".join(subpath.split(os.path.sep))
 
@@ -113,8 +114,8 @@ class ObjectResolver:
         """
         Converts URI to subpath.
 
-        :param uri:
-        :return:
+        :param uri: URI to the state
+        :return: subpath
         """
         return sugar.utils.sanitisers.join_path(*uri.split("."), relative=True)
 
