@@ -51,13 +51,6 @@ class TestCompilerTree:
         assert list(otree.tree.keys()) == ['pyssl', 'ssh_configuration', 'httpd_installed']
         assert otree.tree["ssh_configuration"]["pkg.installed"]["pkgs"][0] == "openssh-server"
 
-    def test_load_state(self):
-        """
-        Test loading state.
-
-        :return: None
-        """
-
     def test_load_templated_state(self, get_states_root):
         """
         Test loading templated state.
