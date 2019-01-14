@@ -12,3 +12,6 @@ if six.PY2:
 else:
     import queue
     from collections.abc import Mapping as CollectionsMapping
+
+# Ordered YAML
+from sugar.lib import oyaml as yaml
