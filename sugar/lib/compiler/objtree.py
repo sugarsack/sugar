@@ -16,6 +16,7 @@ import collections
 from sugar.lib.compat import yaml
 import sugar.utils.files
 from sugar.lib.compiler.objresolv import ObjectResolver
+import sugar.lib.compiler.objrender
 
 
 class ObjectTree:
@@ -55,7 +56,7 @@ class ObjectTree:
         with sugar.utils.files.fopen(self._resolve_uri(uri)) as entry_fh:
             st_src = entry_fh.read()
 
-        return st_src
+        return sugar.lib.compiler.objrender.render(st_src)
 
     def _load_subtree(self, uri):
         return yaml.load(self._render_statefile(uri=uri))
