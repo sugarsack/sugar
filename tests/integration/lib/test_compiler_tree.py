@@ -90,3 +90,25 @@ class TestCompilerTree:
             otree.load("faulty_yaml_syntax")
 
         assert "mapping values are not allowed here" in str(exc)
+
+    def test_multiple_excludes(self, get_states_root):
+        """
+        Test multiple excludes in different state files.
+
+        :param get_states_root: states root fixture function
+        :return: None
+        """
+        otree = ObjectTree(ObjectResolver(get_states_root))
+        otree.load("inheritance.overlay")
+
+        # Multiple exclusions
+        assert "statement_one" not in otree.tree
+        assert "statement_two" not in otree.tree
+        assert "statement_three" in otree.tree
+        assert "statement_four" in otree.tree
+        assert len(otree.tree) == 2
+
+        # Order is kept
+        three, four = list(otree.tree.keys())
+        assert three == "statement_three"
+        assert four == "statement_four"
