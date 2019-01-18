@@ -63,4 +63,4 @@ if sys.version_info < (3, 7):
 del map_constructor, map_representer
 
 # Merge PyYAML namespace for drop-in replacement
-from yaml import *
+from yaml import *  # noqa
