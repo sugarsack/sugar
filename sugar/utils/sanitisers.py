@@ -10,7 +10,8 @@ import os
 
 def join_path(*elements, relative=False):
     """
-    Join path safely, cleaning-up all the elements
+    Join path safely, cleaning-up all the elements.
+    This method forbids relative changing directories to the parent via "..".
 
     :param elements:
     :return: path string
@@ -21,7 +22,9 @@ def join_path(*elements, relative=False):
     out = ['']
     for elm in elements:
         for part in elm.lstrip(os.path.sep).split(os.path.sep):
-            out.append(char.sub('', part))
+            part = char.sub('', part)
+            if part not in [".."]:
+                out.append(part)
 
     out = undelim_ux.sub(os.path.sep, undelim_wn.sub(os.path.sep, os.path.sep.join(out)))
     return out.lstrip(os.path.sep) if relative else out
