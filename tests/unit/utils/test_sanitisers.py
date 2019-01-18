@@ -27,3 +27,11 @@ class TestSanitisers:
         :return: None
         """
         assert sugar.utils.sanitisers.join_path("foo", "bar") == mk_compat_path("foo", "bar")
+
+    def test_relative_chdir(self):
+        """
+        Test relative change directory.
+
+        :return: None
+        """
+        assert sugar.utils.sanitisers.join_path("foo", "..", "bar") == mk_compat_path("foo", "bar")
