@@ -35,3 +35,11 @@ class TestSanitisers:
         :return: None
         """
         assert sugar.utils.sanitisers.join_path("foo", "..", "bar") == mk_compat_path("foo", "bar")
+
+    def test_path_naming(self):
+        """
+        Test path naming.
+
+        :return: None
+        """
+        assert sugar.utils.sanitisers.join_path("foo*", "\\.\\.", "$$", "%bar") == mk_compat_path("foo", "bar")
