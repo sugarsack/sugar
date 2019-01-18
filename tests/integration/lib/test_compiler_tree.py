@@ -9,7 +9,7 @@ import pytest
 from sugar.lib.compiler.objtree import ObjectTree
 from sugar.lib.compiler.objresolv import ObjectResolver
 import tests.integration
-from sugar.lib.outputters.console import MappingOutput
+from sugar.lib.compat import yaml
 
 
 @pytest.fixture
@@ -30,6 +30,7 @@ class TestCompilerTree:
         """
         Test loading main state (main.st) implicitly.
 
+        :param get_states_root: states root fixture function
         :return: None
         """
         otree = ObjectTree(ObjectResolver(get_states_root))
@@ -42,6 +43,7 @@ class TestCompilerTree:
         """
         Test loading main state (main.st) explicitly.
 
+        :param get_states_root: states root fixture function
         :return: None
         """
 
@@ -55,6 +57,7 @@ class TestCompilerTree:
         """
         Test loading templated state.
 
+        :param get_states_root: states root fixture function
         :return: None
         """
         otree = ObjectTree(ObjectResolver(get_states_root))
@@ -66,10 +69,24 @@ class TestCompilerTree:
         """
         Test loading templated state by uri subset.
 
-        :return:
+        :param get_states_root: states root fixture function
+        :return: None
         """
         otree = ObjectTree(ObjectResolver(get_states_root))
         otree.load("services.ssl")
         assert len(otree.tree) == 1
         assert "pyssl" in otree.tree
         assert otree.tree["pyssl"]["file"][0]["managed"]["name"] == "/etc/ssl.conf"
+
+    def test_faulty_yaml_syntax(self, get_states_root):
+        """
+        Test an exception raises when resolving faulty YAML syntax.
+
+        :param get_states_root: states root fixture function
+        :return: None
+        """
+        with pytest.raises(yaml.scanner.ScannerError) as exc:
+            otree = ObjectTree(ObjectResolver(get_states_root))
+            otree.load("faulty_yaml_syntax")
+
+        assert "mapping values are not allowed here" in str(exc)
