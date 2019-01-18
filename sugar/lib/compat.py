@@ -14,4 +14,7 @@ else:
     from collections.abc import Mapping as CollectionsMapping
 
 # Ordered YAML
+from yaml import scanner
 from sugar.lib import oyaml as yaml
+yaml.scanner = scanner
+del scanner
