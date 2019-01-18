@@ -11,7 +11,7 @@ Object tree does the following:
 - Allows inclusion/exclusion of objects
 - Calls renderers
 """
-
+import os
 import collections
 from sugar.lib.compat import yaml
 import sugar.utils.files
@@ -110,9 +110,11 @@ class ObjectTree:
         self._resolver = resolver
         self._dsl_tree = collections.OrderedDict()
         self._uri_stack = {}
+        self._excludes = ExcludesTracker(resolver=self._resolver)
+        self._trace = []
 
     @property
-    def tree(self):
+    def tree(self) -> dict:
         """
         Object tree.
 
@@ -120,11 +122,11 @@ class ObjectTree:
         """
         return self._dsl_tree
 
-    def _resolve_uri(self, uri):
+    def _resolve_uri(self, uri: str) -> str:
         """
         Resolve URI
         :param uri:
-        :return:
+        :return: path
         """
         path = self._uri_stack.get(uri)
         if path is None:
@@ -132,7 +134,7 @@ class ObjectTree:
 
         return path
 
-    def _render_statefile(self, uri):
+    def _render_statefile(self, uri: str) -> str:
         """
         Render a state file.
 
@@ -145,7 +147,7 @@ class ObjectTree:
 
         return sugar.lib.compiler.objrender.render(st_src)
 
-    def _load_subtree(self, uri):
+    def _load_subtree(self, uri: str) -> dict:
         """
         Load subtree from the URI.
 
@@ -154,10 +156,11 @@ class ObjectTree:
         """
         return yaml.load(self._render_statefile(uri=uri))
 
-    def _resolve_tree(self, subtree):
+    def _resolve_tree(self, subtree: dict, uri: str) -> dict:
         """
         Resolve all the formula tree into one dataset.
 
+        :param subtree: subtree to walk around
         :param uri: URI to resolve
         :raises SugarSCResolverException: when state syntax does not represents a tree structure.
         :return: subtree mapping
@@ -173,7 +176,10 @@ class ObjectTree:
                     for inn_key, inn_val in inner.items():
                         n_tree[inn_key] = inn_val
                     del inner
-                n_tree = self._resolve_tree(subtree=n_tree)
+                n_tree = self._resolve_tree(subtree=n_tree, uri=uri)
+            elif key == "exclude":
+                for statement in val:
+                    self._excludes.add(statement=statement, uri=uri)
             else:
                 n_tree[key] = val
         subtree = n_tree
@@ -181,11 +187,42 @@ class ObjectTree:
 
         return subtree
 
-    def load(self, uri=None):
+    def _check_trace(self):
+        """
+        Iterate of tracepoints, make a message
+        error and raise an exception, if any.
+
+        :raises Exception: if trace errors
+        :return: None
+        """
+        msg = []
+        for trace in self._trace:
+            mpt = [
+                "",
+                "-" * 80,
+                "Failiing statement: {stm}".format(stm=trace.statement),
+                "{errname}: {exc}, while calling '{uri}' ({path})".format(errname=trace.exception.cause,
+                                                                          exc=trace.exception,
+                                                                          uri=trace.uri, path=trace.path),
+                "-" * 80,
+            ]
+            msg.append(os.linesep.join(mpt))
+        msg = os.linesep.join(msg)
+        if msg:
+            raise sugar.lib.exceptions.SugarSCException(msg)
+
+    def load(self, uri: str = None) -> None:
         """
         Resolve the entry point of the formula and load the entire [sub]tree.
 
         :param uri: URI of the resource
         :return: None
         """
-        self._dsl_tree = self._resolve_tree(self._load_subtree(uri))
+        self._dsl_tree = self._resolve_tree(self._load_subtree(uri), uri)
+        for excluded in self._excludes.statements:
+            try:
+                del self._dsl_tree[excluded.statement]
+            except KeyError as exc:
+                self._trace.append(TraceRef(statement=excluded.statement, uri=excluded.uri,
+                                            path=excluded.path, exc=exc))
+        self._check_trace()
