@@ -143,20 +143,24 @@ class ObjectTree:
         :param uri: State file URI for the resolver
         :return: Rendered YAML structure
         """
-        # TODO: add an exception handling if this is failing, so we know which file/subfile is it.
         with sugar.utils.files.fopen(self._resolve_uri(uri)) as entry_fh:
             st_src = entry_fh.read()
+        try:
+            rendered = sugar.lib.compiler.objrender.render(st_src)
+        except sugar.lib.exceptions.SugarSCRenderException as exc:
+            self._trace.append(TraceRef(statement=None, uri=uri, path=self._resolver.resolve(uri), exc=exc))
+            rendered = "{}"
 
-        return sugar.lib.compiler.objrender.render(st_src)
+        return rendered
 
     def _load_subtree(self, uri: str) -> dict:
         """
         Load subtree from the URI.
 
         :param uri: URI to the substate.
-        :return: mapping subtree structure
+        :return: mapping subtree structure or an empty tree
         """
-        return yaml.load(self._render_statefile(uri=uri))
+        return yaml.load(self._render_statefile(uri=uri)) or {}
 
     def _resolve_tree(self, subtree: dict, uri: str) -> dict:
         """
@@ -199,21 +203,18 @@ class ObjectTree:
         """
         msg = []
         for trace in self._trace:
-            mpt = [
-                "",
-                "-" * 80,
-                "Failiing statement: {stm}".format(stm=trace.statement),
-                "{errname}: {exc}, while calling '{uri}' ({path})".format(errname=trace.exception.cause,
-                                                                          exc=trace.exception,
-                                                                          uri=trace.uri, path=trace.path),
-                "-" * 80,
-            ]
+            mpt = ["", "-" * 80]
+            if trace.statement is not None:
+               mpt.append("Failiing statement: {stm}".format(stm=trace.statement))
+            mpt.append("{errname}: {exc}, while calling '{uri}' ({path})".format(
+                errname=trace.exception.cause, exc=trace.exception, uri=trace.uri, path=trace.path))
+            mpt.append("-" * 80)
             msg.append(os.linesep.join(mpt))
         msg = os.linesep.join(msg)
         if msg:
             raise sugar.lib.exceptions.SugarSCException(msg)
 
-    def load(self, uri: str = None) -> None:
+    def load(self, uri: str = None):
         """
         Resolve the entry point of the formula and load the entire [sub]tree.
 
