@@ -62,7 +62,8 @@ class ExcludesTracker:
         def uri(self) -> str:
             """
             URI of the file in which reference is
-            :return:
+
+            :return: uri
             """
             return self._uri
 
@@ -70,7 +71,8 @@ class ExcludesTracker:
         def path(self) -> str:
             """
             URL of the file in which reference is
-            :return:
+
+            :return: path
             """
             return self._resolver.resolve(self._uri)
 
@@ -84,7 +86,7 @@ class ExcludesTracker:
 
         :param statement: exclusion statement
         :param uri: uri of the state
-        :return:
+        :return: None
         """
         self._collector.append(self.Ref(statement=statement, uri=uri, resolver=self._resolver))
 
@@ -192,7 +194,7 @@ class ObjectTree:
         Iterate of tracepoints, make a message
         error and raise an exception, if any.
 
-        :raises Exception: if trace errors
+        :raises SugarSCException: if trace errors
         :return: None
         """
         msg = []
@@ -216,7 +218,7 @@ class ObjectTree:
         Resolve the entry point of the formula and load the entire [sub]tree.
 
         :param uri: URI of the resource
-        :return: None
+        :return: ObjectTree
         """
         self._dsl_tree = self._resolve_tree(self._load_subtree(uri), uri)
         for excluded in self._excludes.statements:
@@ -226,3 +228,5 @@ class ObjectTree:
                 self._trace.append(TraceRef(statement=excluded.statement, uri=excluded.uri,
                                             path=excluded.path, exc=exc))
         self._check_trace()
+
+        return self
