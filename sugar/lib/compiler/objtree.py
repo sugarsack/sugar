@@ -37,6 +37,67 @@ class TraceRef:
         self.exception.cause = self.EXC_TRANSLATIONS.get(exc_name, exc_name)
 
 
+class ExcludesTracker:
+    """
+    Collector of excludes.
+    Serves to track what should be excluded alongside
+    in which file statement was added.
+    """
+
+    class Ref:
+        """
+        Exclude ref element.
+        """
+        def __init__(self, statement, uri, resolver):
+            """
+            Constructor.
+            :param statement: uri to exclude
+            :param uri: uri in which statement is
+            """
+            self.statement = statement
+            self._uri = uri
+            self._resolver = resolver
+
+        @property
+        def uri(self) -> str:
+            """
+            URI of the file in which reference is
+            :return:
+            """
+            return self._uri
+
+        @property
+        def path(self) -> str:
+            """
+            URL of the file in which reference is
+            :return:
+            """
+            return self._resolver.resolve(self._uri)
+
+    def __init__(self, resolver):
+        self._resolver = resolver
+        self._collector = []
+
+    def add(self, statement: str, uri: str) -> None:
+        """
+        Add an exclusion statement.
+
+        :param statement: exclusion statement
+        :param uri: uri of the state
+        :return:
+        """
+        self._collector.append(self.Ref(statement=statement, uri=uri, resolver=self._resolver))
+
+    @property
+    def statements(self) -> tuple:
+        """
+        Exclusion statements with the info for the debugging.
+
+        :return: tuple of references
+        """
+        return tuple(self._collector)
+
+
 class ObjectTree:
     """
     Object tree is to take care of sub-files inclusion
