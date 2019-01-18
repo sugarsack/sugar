@@ -19,6 +19,24 @@ import sugar.lib.compiler.objrender
 import sugar.lib.exceptions
 
 
+class TraceRef:
+    """
+    Reference to the traced object.
+    """
+    EXC_TRANSLATIONS = {
+        "KeyError": "Statement was not found",
+    }
+
+    def __init__(self, statement, uri, path, exc):
+        self.statement = statement
+        self.uri = uri
+        self.path = path
+
+        exc_name = exc.__class__.__name__
+        self.exception = exc
+        self.exception.cause = self.EXC_TRANSLATIONS.get(exc_name, exc_name)
+
+
 class ObjectTree:
     """
     Object tree is to take care of sub-files inclusion
