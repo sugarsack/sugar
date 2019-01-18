@@ -8,8 +8,10 @@ import pytest
 
 from sugar.lib.compiler.objtree import ObjectTree
 from sugar.lib.compiler.objresolv import ObjectResolver
-import tests.integration
 from sugar.lib.compat import yaml
+import sugar.lib.exceptions
+
+import tests.integration
 
 
 @pytest.fixture
@@ -106,3 +108,23 @@ class TestCompilerTree:
         three, four = list(otree.tree.keys())
         assert three == "statement_three"
         assert four == "statement_four"
+
+    def test_jinja_syntax_broken(self, get_states_root):
+        """
+        Test broken Jinja2 syntax.
+
+        :param get_states_root: states root fixture function
+        :return: None
+        """
+        with pytest.raises(sugar.lib.exceptions.SugarSCException) as exc:
+            ObjectTree(ObjectResolver(get_states_root)).load("faulty_jinja_syntax")
+        assert "State Compiler error" in str(exc)
+
+    def test_empty_state(self, get_states_root):
+        """
+        Test empty state is not breaking compiler.
+
+        :param get_states_root: states root fixture function
+        :return: None
+        """
+        assert not bool(ObjectTree(ObjectResolver(get_states_root)).load("null").tree)
