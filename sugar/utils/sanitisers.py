@@ -15,7 +15,7 @@ def join_path(*elements, relative=False):
     :param elements:
     :return: path string
     """
-    char = re.compile(r"[^A-Za-z0-9]")
+    char = re.compile(r"[^A-Za-z0-9-_:.]")
     undelim_ux = re.compile(r"/+")
     undelim_wn = re.compile(r"\\\\+")
     out = ['']
