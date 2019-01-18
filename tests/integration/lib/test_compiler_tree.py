@@ -33,8 +33,7 @@ class TestCompilerTree:
         :param get_states_root: states root fixture function
         :return: None
         """
-        otree = ObjectTree(ObjectResolver(get_states_root))
-        otree.load()
+        otree = ObjectTree(ObjectResolver(get_states_root)).load()
 
         assert list(otree.tree.keys()) == ['pyssl', 'ssh_configuration', 'httpd_installed']
         assert otree.tree["ssh_configuration"]["pkg.installed"]["pkgs"][0] == "openssh-server"
@@ -47,8 +46,7 @@ class TestCompilerTree:
         :return: None
         """
 
-        otree = ObjectTree(ObjectResolver(get_states_root))
-        otree.load("main")
+        otree = ObjectTree(ObjectResolver(get_states_root)).load("main")
 
         assert list(otree.tree.keys()) == ['pyssl', 'ssh_configuration', 'httpd_installed']
         assert otree.tree["ssh_configuration"]["pkg.installed"]["pkgs"][0] == "openssh-server"
@@ -60,8 +58,7 @@ class TestCompilerTree:
         :param get_states_root: states root fixture function
         :return: None
         """
-        otree = ObjectTree(ObjectResolver(get_states_root))
-        otree.load("dynamic")
+        otree = ObjectTree(ObjectResolver(get_states_root)).load("dynamic")
         assert "enumerate" in otree.tree
         assert otree.tree["enumerate"] == ['echo "1"', 'echo "2"', 'echo "3"']
 
@@ -72,8 +69,7 @@ class TestCompilerTree:
         :param get_states_root: states root fixture function
         :return: None
         """
-        otree = ObjectTree(ObjectResolver(get_states_root))
-        otree.load("services.ssl")
+        otree = ObjectTree(ObjectResolver(get_states_root)).load("services.ssl")
         assert len(otree.tree) == 1
         assert "pyssl" in otree.tree
         assert otree.tree["pyssl"]["file"][0]["managed"]["name"] == "/etc/ssl.conf"
@@ -86,8 +82,7 @@ class TestCompilerTree:
         :return: None
         """
         with pytest.raises(yaml.scanner.ScannerError) as exc:
-            otree = ObjectTree(ObjectResolver(get_states_root))
-            otree.load("faulty_yaml_syntax")
+            ObjectTree(ObjectResolver(get_states_root)).load("faulty_yaml_syntax")
 
         assert "mapping values are not allowed here" in str(exc)
 
@@ -98,8 +93,7 @@ class TestCompilerTree:
         :param get_states_root: states root fixture function
         :return: None
         """
-        otree = ObjectTree(ObjectResolver(get_states_root))
-        otree.load("inheritance.overlay")
+        otree = ObjectTree(ObjectResolver(get_states_root)).load("inheritance.overlay")
 
         # Multiple exclusions
         assert "statement_one" not in otree.tree
