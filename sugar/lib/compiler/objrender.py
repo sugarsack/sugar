@@ -76,4 +76,9 @@ def render(src):
         sugar.lib.exceptions.SugarSCException("Unable to render state: unknown shebang '{}'.".format(shebang))
 
     # Put the namespace here
-    return renderer().render(src)
+    try:
+        out = renderer().render(src)
+    except jinja2.exceptions.TemplateError as exc:
+        raise sugar.lib.exceptions.SugarSCRenderException(exc)
+
+    return out
