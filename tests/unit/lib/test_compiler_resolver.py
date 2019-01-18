@@ -86,7 +86,7 @@ class TestCompilerResolver:
         with pytest.raises(sugar.lib.exceptions.SugarSCResolverException) as exc:
             pth = "/opt/sugar"
             assert ObjectResolver(pth).resolve("foo.bar") == os.path.join(pth, "main/foo/bar.st")
-        assert "State Compiler error: No state files for URI 'foo.bar' has been found" in str(exc)
+        assert "State Compiler resolver error: No state files for URI 'foo.bar' has been found" in str(exc)
 
     @patch("os.path.exists", MagicMock(return_value=False))
     @patch("os.makedirs", MagicMock(side_effect=[OSError("Fatal error right in front of screen")]))
