@@ -41,5 +41,19 @@ class StateTask:
     State task object.
 
     """
-    def __init__(self):
-        self._func_obs = []
+    def __init__(self, **state_task):
+        """
+
+        :param state_task:
+        """
+        assert len(state_task) == 1
+        self._state_task = state_task
+        self._func_obs = None
+        self._get_state_tasks()
+
+    def _get_state_tasks(self) -> None:
+        """
+        Get top-level state tasks.
+
+        :return: None
+        """
