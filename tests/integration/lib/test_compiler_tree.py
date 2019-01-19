@@ -3,25 +3,13 @@
 Unit tests for compiler tree.
 """
 
-import os
 import pytest
 
 from sugar.lib.compiler.objtree import ObjectTree
 from sugar.lib.compiler.objresolv import ObjectResolver
 from sugar.lib.compat import yaml
 import sugar.lib.exceptions
-
-import tests.integration
-
-
-@pytest.fixture
-def get_barestates_root():
-    """
-    Get states root (default env).
-
-    :return: path to the states root.
-    """
-    return os.path.join(os.path.dirname(tests.integration.__file__), "root", "barestates")
+from tests.integration.fixtures import get_barestates_root
 
 
 class TestCompilerTree:
