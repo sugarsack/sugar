@@ -26,7 +26,7 @@ class StateCompiler(object):
         """
         tasks = []
         for obj_id in self.tree:
-            tasks.append(StateTask(obj_id=self.tree[obj_id]))
+            tasks.append(StateTask(state_task={obj_id: self.tree[obj_id]}))
 
         return tasks
 
