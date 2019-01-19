@@ -6,17 +6,17 @@ import pytest
 import sugar.lib.exceptions
 from sugar.lib.compiler import StateCompiler
 from sugar.lib.compiler.objresolv import ObjectResolver
-from tests.integration.fixtures import get_barestates_root
+from tests.integration.fixtures import get_states_root
 
 
 @pytest.fixture
-def get_compiler(get_barestates_root):
+def get_compiler(get_states_root):
     """
     Get state compiler instance.
 
     :return:
     """
-    return StateCompiler(root=get_barestates_root,
+    return StateCompiler(root=get_states_root,
                          environment=ObjectResolver.DEFAULT_ENV)
 
 
@@ -47,11 +47,11 @@ class TestStateCompiler:
 
         :return:
         """
-        # get_compiler.compile()
-        # print()
-        # print("-" * 80)
-        # print(get_compiler)
-        # print("-" * 80)
+        get_compiler.compile("tasks.single")
+        print()
+        print("-" * 80)
+        print(get_compiler.tasklist)
+        print("-" * 80)
 
     def test_cmp_single_by_name_keyword(self, get_compiler):
         """
@@ -65,6 +65,7 @@ class TestStateCompiler:
 
         :return:
         """
+        assert False
 
     def test_cmp_single_by_positional_args(self, get_compiler):
         """
@@ -78,6 +79,7 @@ class TestStateCompiler:
 
         :return:
         """
+        assert False
 
     def test_cmp_single_by_args_kwargs(self, get_compiler):
         """
@@ -91,6 +93,7 @@ class TestStateCompiler:
 
         :return:
         """
+        assert False
 
     def test_cmp_multiple_by_id(self, get_compiler):
         """
@@ -109,6 +112,7 @@ class TestStateCompiler:
         :param get_compiler:
         :return:
         """
+        get_compiler.compile("tasks.multiple")
 
     def test_cmp_multiple_by_name_keyword(self, get_compiler):
         """
@@ -129,6 +133,7 @@ class TestStateCompiler:
 
         :return:
         """
+        assert False
 
     def test_cmp_multiple_by_positional_args(self, get_compiler):
         """
@@ -143,6 +148,7 @@ class TestStateCompiler:
 
         :return:
         """
+        assert False
 
     def test_cmp_multiple_by_args_kwargs(self, get_compiler):
         """
@@ -157,3 +163,4 @@ class TestStateCompiler:
 
         :return:
         """
+        assert False
