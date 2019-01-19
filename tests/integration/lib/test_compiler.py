@@ -6,7 +6,7 @@ import pytest
 import sugar.lib.exceptions
 from sugar.lib.compiler import StateCompiler
 from sugar.lib.compiler.objresolv import ObjectResolver
-from tests.integration.lib.test_compiler_tree import get_barestates_root
+from tests.integration.fixtures import get_barestates_root
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ class TestStateCompiler:
         Not compiled tree should raise an exception
         for the compilation is still required.
 
-        :param get_states_root:
+        :param get_barestates_root:
         :return:
         """
 
