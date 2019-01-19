@@ -25,6 +25,10 @@ over the same target:
   ]
 """
 
+import collections
+import sugar.lib.exceptions
+from sugar.lib.outputters.console import MappingOutput
+
 
 class FunctionObject:
     """
@@ -34,6 +38,10 @@ class FunctionObject:
     This object carries all the information for
     an exact task to be performed by the client.
     """
+    module = ""
+    function = ""
+    args = []
+    kwargs = []
 
 
 class StateTask:
@@ -41,19 +49,83 @@ class StateTask:
     State task object.
 
     """
-    def __init__(self, **state_task):
+    def __init__(self, state_task):
         """
 
         :param state_task:
         """
-        assert len(state_task) == 1
+        assert len(state_task) == 1, "Syntax error: should be one ID only."
+
         self._state_task = state_task
         self._func_obs = None
-        self._get_state_tasks()
+        self._set_state_tasks()
 
-    def _get_state_tasks(self) -> None:
+    def _add_single_task(self, container: list) -> None:
         """
-        Get top-level state tasks.
+        Add a single task instance to the container.
+
+        :param container: a list of the tasks
+        :return: None
+        """
+        # by id
+        # by name
+        # by positionals
+        # by mixed
+
+    def _add_multiple_tasks(self, container: list) -> None:
+        """
+        Add a multiple tasks instances to the container.
+
+        :param container: a list of the tasks
+        :return: None
+        """
+        # by id
+        # by name
+        # by positionals
+        # by mixed
+
+    def _set_state_tasks(self) -> None:
+        """
+        Set top-level state function tasks.
+        Each State Task object should have at least one Function Task.
 
         :return: None
         """
+        self._func_obs = []
+        if self.is_single():
+            self._add_single_task(self._func_obs)
+        elif self.is_multiple():
+            self._add_multiple_tasks(self._func_obs)
+        else:
+            raise sugar.lib.exceptions.SugarSCException("Syntax error: task is nor single neither multiple.")
+
+    def is_single(self) -> bool:
+        """
+        Verify if the task is singular.
+
+        :return: True, if singular.
+        """
+        return self._complies_to(collections.Mapping)
+
+    def is_multiple(self) -> bool:
+        """
+        Verify if the task is multiple.
+
+        :return: True, if multiple.
+        """
+        return self._complies_to(collections.Sequence)
+
+    def _complies_to(self, objtype) -> bool:
+        """
+        Check if the second level of the task tree
+        complies to the passed object type.
+
+        :param objtype: compliant object type
+        :return: Returns True if the second level is an instance of the objtype
+        """
+        ret = False
+        for tid in self._state_task.keys():
+            ret = isinstance(self._state_task[tid], objtype)
+            break
+
+        return ret
