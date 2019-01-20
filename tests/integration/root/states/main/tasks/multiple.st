@@ -4,7 +4,7 @@
 # First way is to place a name of the target
 # as an ID of the task
 /etc/hosts:
-  - file:
+  - system.io.file:
     - managed:
         - src: sugar://hosts
     - line:
@@ -17,7 +17,7 @@
 # into a parameter. This help to use the same ID
 # of the "batch task" over different targets
 update_hosts:
-  - file:
+  - system.io.file:
     - managed:
       - name: /etc/hosts
       - src: sugar://hosts
@@ -27,6 +27,7 @@ update_hosts:
       - add: bar
   - archive:
     - zip:
+        name: /etc/hosts
 
 # Third way is to use positional
 # arguments. In this case, first argument
@@ -53,3 +54,7 @@ name:/etc/hosts:
   - file:
     - managed:
         - src: sugar://hosts
+
+/etc/someconfig.conf:
+  - file:
+      - archived:
