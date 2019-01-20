@@ -175,9 +175,4 @@ class StateTask:
         :param objtype: compliant object type
         :return: Returns True if the second level is an instance of the objtype
         """
-        ret = False
-        for tid in self._state_task.keys():
-            ret = isinstance(self._state_task[tid], objtype)
-            break
-
-        return ret
+        return isinstance(self._state_task[next(iter(self._state_task))], objtype) if self._state_task else False
