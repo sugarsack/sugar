@@ -250,7 +250,26 @@ class TestStateCompiler:
 
         :return:
         """
-        assert False
+        get_compiler.compile("tasks.multiple")
+        assert len(get_compiler.tasklist) > 0
+
+        calls = []
+        for task in get_compiler.tasklist:
+            for call in task.calls:
+                calls.append(call)
+        assert len(calls) > 0
+
+        tests = (
+            {"module": "file", "function": "managed",
+              "args": ["/etc/hosts", "sugar://hosts"], "kwargs": {}},
+            {"module": "file", "function": "managed",
+              "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
+        )
+        for call, test in zip(calls[6:8], tests):
+            assert call.module == test["module"]
+            assert call.function == test["function"]
+            assert call.args == test["args"]
+            assert call.kwargs == test["kwargs"]
 
     def test_cmp_multiple_by_args_kwargs(self, get_compiler):
         """
