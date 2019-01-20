@@ -44,7 +44,7 @@ class FunctionObject:
 
     def __repr__(self):
         return "<{name} at {mem} Module: {mdl}, Function: {fnc}, Args: {arg}, Keywords: {kwr}>".format(
-            name=self.__class__.__name__, mem=id(self), mdl=self.module, fnc=self.function,
+            name=self.__class__.__name__, mem=hex(id(self)), mdl=self.module, fnc=self.function,
             arg=self.args, kwr=self.kwargs
         )
 
