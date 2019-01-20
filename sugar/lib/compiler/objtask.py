@@ -84,7 +84,7 @@ class StateTask:
         """
         args = []
         kwargs = {}
-        for arg in ref:
+        for arg in ref or {}:
             if isinstance(arg, collections.Mapping):
                 kwargs.update(arg)
             else:
