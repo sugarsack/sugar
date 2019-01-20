@@ -38,10 +38,16 @@ class FunctionObject:
     This object carries all the information for
     an exact task to be performed by the client.
     """
-    module = ""
-    function = ""
-    args = []
-    kwargs = []
+    module = None    # Module may include the namespace, e.g. "system.io.file"
+    function = None  # Function name to be called from that module
+    args = []        # Arguments to the function
+    kwargs = []      # Keywords to the function
+
+    def __repr__(self):
+        return "<{name} at {mem} Module: {mdl}, Function: {fnc}, Args: {arg}, Keywords: {kwr}>".format(
+            name=self.__class__.__name__, mem=id(self), mdl=self.module, fnc=self.function,
+            arg=self.args, kwr=self.kwargs
+        )
 
 
 class StateTask:
