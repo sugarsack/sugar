@@ -6,15 +6,17 @@ import pytest
 import sugar.lib.exceptions
 from sugar.lib.compiler import StateCompiler
 from sugar.lib.compiler.objresolv import ObjectResolver
-from tests.integration.fixtures import get_states_root
+from tests.integration.fixtures import get_states_root  # pylint:disable=W0611
 
+# pylint:disable=R0201,W0621
 
 @pytest.fixture
 def get_compiler(get_states_root):
     """
     Get state compiler instance.
 
-    :return:
+    :param get_states_root: states root path fixture
+    :return: None
     """
     return StateCompiler(root=get_states_root,
                          environment=ObjectResolver.DEFAULT_ENV)
@@ -29,8 +31,8 @@ class TestStateCompiler:
         Not compiled tree should raise an exception
         for the compilation is still required.
 
-        :param get_barestates_root:
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
 
         with pytest.raises(sugar.lib.exceptions.SugarSCException) as exc:
@@ -45,7 +47,8 @@ class TestStateCompiler:
           file.managed:
             - src: sugar://hosts
 
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
         get_compiler.compile("tasks.single")
         assert len(get_compiler.tasklist) == 5
@@ -69,7 +72,8 @@ class TestStateCompiler:
             - name: /etc/hosts
             - src: sugar://hosts
 
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
         get_compiler.compile("tasks.single")
         assert len(get_compiler.tasklist) == 5
@@ -93,7 +97,8 @@ class TestStateCompiler:
             - /etc/hosts
             - sugar://hosts
 
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
         get_compiler.compile("tasks.single")
         assert len(get_compiler.tasklist) == 5
@@ -117,7 +122,8 @@ class TestStateCompiler:
             - /etc/hosts
             - src: sugar://hosts
 
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
         get_compiler.compile("tasks.single")
         assert len(get_compiler.tasklist) == 5
@@ -141,7 +147,8 @@ class TestStateCompiler:
             - sugar://hosts
             - user: root
 
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
         get_compiler.compile("tasks.single")
         assert len(get_compiler.tasklist) == 5
@@ -159,35 +166,35 @@ class TestStateCompiler:
         """
         Test compile multiple tasks, that refers task by an ID:
 
-        /etc/hosts:
-          - file:
-            - managed:
-                - src: sugar://hosts
-            - line:
-                - remove: foo
-                - add: bar
-          - archive:
-            - zip:
+        >>> /etc/hosts:
+        >>>  - file:
+        >>>    - managed:
+        >>>        - src: sugar://hosts
+        >>>    - line:
+        >>>        - remove: foo
+        >>>        - add: bar
+        >>>  - archive:
+        >>>    - zip:
 
-        :param get_compiler:
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
         get_compiler.compile("tasks.multiple")
-        assert len(get_compiler.tasklist) > 0
+        assert get_compiler.tasklist
 
         calls = []
         for task in get_compiler.tasklist:
             for call in task.calls:
                 calls.append(call)
-        assert len(calls) > 0
+        assert calls
 
         tests = (
             {"module": "system.io.file", "function": "managed",
-              "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
+             "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
             {"module": "system.io.file", "function": "line",
-              "args": ["/etc/hosts"], "kwargs": {"remove": "foo", "add": "bar"}},
+             "args": ["/etc/hosts"], "kwargs": {"remove": "foo", "add": "bar"}},
             {"module": "archive", "function": "zip",
-              "args": ["/etc/hosts"], "kwargs": {}},
+             "args": ["/etc/hosts"], "kwargs": {}},
         )
         for call, test in zip(calls[:3], tests):
             assert call.module == test["module"]
@@ -200,37 +207,38 @@ class TestStateCompiler:
         Test compile multiple tasks, that refers task by
         the name keyword:
 
-        update_hosts:
-          - file:
-            - managed:
-              - name: /etc/hosts
-              - src: sugar://hosts
-            - line:
-              - name: /etc/ssh/ssh_config
-              - remove: foo
-              - add: bar
-          - archive:
-            - zip:
-              - name: /etc/hosts
+        >>> update_hosts:
+        >>>   - file:
+        >>>     - managed:
+        >>>       - name: /etc/hosts
+        >>>       - src: sugar://hosts
+        >>>     - line:
+        >>>       - name: /etc/ssh/ssh_config
+        >>>       - remove: foo
+        >>>       - add: bar
+        >>>   - archive:
+        >>>     - zip:
+        >>>       - name: /etc/hosts
 
+        :param get_compiler: compiler instance fixture
         :return: None
         """
         get_compiler.compile("tasks.multiple")
-        assert len(get_compiler.tasklist) > 0
+        assert get_compiler.tasklist
 
         calls = []
         for task in get_compiler.tasklist:
             for call in task.calls:
                 calls.append(call)
-        assert len(calls) > 0
+        assert calls
 
         tests = (
             {"module": "system.io.file", "function": "managed",
-              "args": [], "kwargs": {"name": "/etc/hosts", "src": "sugar://hosts"}},
+             "args": [], "kwargs": {"name": "/etc/hosts", "src": "sugar://hosts"}},
             {"module": "system.io.file", "function": "line",
-              "args": [], "kwargs": {"name": "/etc/ssh/ssh_config", "remove": "foo", "add": "bar"}},
+             "args": [], "kwargs": {"name": "/etc/ssh/ssh_config", "remove": "foo", "add": "bar"}},
             {"module": "archive", "function": "zip",
-              "args": [], "kwargs": {"name": "/etc/hosts"}},
+             "args": [], "kwargs": {"name": "/etc/hosts"}},
         )
         for call, test in zip(calls[3:6], tests):
             assert call.module == test["module"]
@@ -243,26 +251,27 @@ class TestStateCompiler:
         Test compile multiple tasks, that refers task by
         the positional arguments:
 
-        update_hosts_1:
-          - file:
-            - managed:
-                - /etc/hosts
-                - sugar://hosts
+        >>> update_hosts_1:
+        >>>   - file:
+        >>>     - managed:
+        >>>         - /etc/hosts
+        >>>         - sugar://hosts
 
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
         get_compiler.compile("tasks.multiple")
-        assert len(get_compiler.tasklist) > 0
+        assert get_compiler.tasklist
 
         calls = []
         for task in get_compiler.tasklist:
             for call in task.calls:
                 calls.append(call)
-        assert len(calls) > 0
+        assert calls
 
         tests = (
             {"module": "file", "function": "managed",
-              "args": ["/etc/hosts", "sugar://hosts"], "kwargs": {}},
+             "args": ["/etc/hosts", "sugar://hosts"], "kwargs": {}},
         )
         for call, test in zip(calls[6:7], tests):
             assert call.module == test["module"]
@@ -275,30 +284,27 @@ class TestStateCompiler:
         Test compile multiple tasks, that refers task by the
         positional arguments and keywords:
 
-        update_hosts_2:
-          - file:
-            - managed:
-                - /etc/hosts
-                - src: sugar://hosts
+        >>> update_hosts_2:
+        >>>   - file:
+        >>>     - managed:
+        >>>       - /etc/hosts
+        >>>       - src: sugar://hosts
 
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
         get_compiler.compile("tasks.multiple")
-        assert len(get_compiler.tasklist) > 0
+        assert get_compiler.tasklist
 
         calls = []
         for task in get_compiler.tasklist:
             for call in task.calls:
                 calls.append(call)
-        assert len(calls) > 0
+        assert calls
 
         tests = (
             {"module": "file", "function": "managed",
-              "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
-            # {"module": "system.io.file", "function": "managed",
-            #   "args": [], "kwargs": {"name": "/etc/hosts", "src": "sugar://hosts"}},
-            # {"module": "system.io.file", "function": "line",
-            #   "args": [], "kwargs": {"name": "/etc/ssh/ssh_config", "remove": "foo", "add": "bar"}},
+             "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
         )
         for call, test in zip(calls[7:8], tests):
             assert call.module == test["module"]
@@ -310,26 +316,26 @@ class TestStateCompiler:
         """
         Test compile multiple tasks, that refers task by the "name" tagged id.
 
-        name:/etc/hosts:
-          - file:
-            - managed:
-                - src: sugar://hosts
+        >>> name:/etc/hosts:
+        >>>   - file:
+        >>>     - managed:
+        >>>       - src: sugar://hosts
 
-        :param get_compiler:
-        :return:
+        :param get_compiler: compiler instance fixture
+        :return: None
         """
         get_compiler.compile("tasks.multiple")
-        assert len(get_compiler.tasklist) > 0
+        assert get_compiler.tasklist
 
         calls = []
         for task in get_compiler.tasklist:
             for call in task.calls:
                 calls.append(call)
-        assert len(calls) > 0
+        assert calls
 
         tests = (
             {"module": "file", "function": "managed",
-              "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
+             "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
         )
         for call, test in zip(calls[8:9], tests):
             assert call.module == test["module"]
@@ -341,24 +347,25 @@ class TestStateCompiler:
         """
         Test compile multiple tasks, that refers task by the id, while nothing is specified:
 
-        /etc/someconfig.conf:
-          - file:
-              - archived:
+        >>> /etc/someconfig.conf:
+        >>>   - file:
+        >>>     - archived:
 
+        :param get_compiler: compiler instance fixture
         :return: None
         """
         get_compiler.compile("tasks.multiple")
-        assert len(get_compiler.tasklist) > 0
+        assert get_compiler.tasklist
 
         calls = []
         for task in get_compiler.tasklist:
             for call in task.calls:
                 calls.append(call)
-        assert len(calls) > 0
+        assert calls
 
         tests = (
             {"module": "file", "function": "archived",
-              "args": ["/etc/someconfig.conf"], "kwargs": {}},
+             "args": ["/etc/someconfig.conf"], "kwargs": {}},
         )
         for call, test in zip(calls[9:10], tests):
             assert call.module == test["module"]
