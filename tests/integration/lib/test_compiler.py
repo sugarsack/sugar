@@ -214,7 +214,28 @@ class TestStateCompiler:
 
         :return:
         """
-        assert False
+        get_compiler.compile("tasks.multiple")
+        assert len(get_compiler.tasklist) > 0
+
+        calls = []
+        for task in get_compiler.tasklist:
+            for call in task.calls:
+                calls.append(call)
+        assert len(calls) > 0
+
+        tests = (
+            {"module": "system.io.file", "function": "managed",
+              "args": [], "kwargs": {"name": "/etc/hosts", "src": "sugar://hosts"}},
+            {"module": "system.io.file", "function": "line",
+              "args": [], "kwargs": {"name": "/etc/ssh/ssh_config", "remove": "foo", "add": "bar"}},
+            {"module": "archive", "function": "zip",
+              "args": [], "kwargs": {"name": "/etc/hosts"}},
+        )
+        for call, test in zip(calls[3:6], tests):
+            assert call.module == test["module"]
+            assert call.function == test["function"]
+            assert call.args == test["args"]
+            assert call.kwargs == test["kwargs"]
 
     def test_cmp_multiple_by_positional_args(self, get_compiler):
         """

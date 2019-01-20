@@ -27,7 +27,7 @@ update_hosts:
       - add: bar
   - archive:
     - zip:
-        name: /etc/hosts
+        - name: /etc/hosts
 
 # Third way is to use positional
 # arguments. In this case, first argument
