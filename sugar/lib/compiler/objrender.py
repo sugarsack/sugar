@@ -66,6 +66,8 @@ def render(src):
     Render the substate source.
 
     :param src: substate.
+    :raises SugarSCException: if renderer shebang is not recognised.
+    :raises SugarSCRenderException: if jinja template fails
     :return: Rendered YAML
     """
     shebang = src.split(os.linesep)[0]
@@ -73,7 +75,7 @@ def render(src):
         shebang = BaseRenderer.__shebang__
     renderer = __RENDERER_REGISTRY.get(shebang)
     if renderer is None:
-        sugar.lib.exceptions.SugarSCException("Unable to render state: unknown shebang '{}'.".format(shebang))
+        raise sugar.lib.exceptions.SugarSCException("Unable to render state: unknown shebang '{}'.".format(shebang))
 
     # Put the namespace here
     try:

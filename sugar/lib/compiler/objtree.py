@@ -205,7 +205,7 @@ class ObjectTree:
         for trace in self._trace:
             mpt = ["", "-" * 80]
             if trace.statement is not None:
-               mpt.append("Failiing statement: {stm}".format(stm=trace.statement))
+                mpt.append("Failiing statement: {stm}".format(stm=trace.statement))
             mpt.append("{errname}: {exc}, while calling '{uri}' ({path})".format(
                 errname=trace.exception.cause, exc=trace.exception, uri=trace.uri, path=trace.path))
             mpt.append("-" * 80)

@@ -27,7 +27,6 @@ over the same target:
 
 import collections
 import sugar.lib.exceptions
-from sugar.lib.outputters.console import MappingOutput
 
 
 class FunctionObject:
@@ -75,12 +74,13 @@ class StateTask:
         """
         return tuple(self._func_obs or [])
 
-    def _get_arguments(self, ref: collections.OrderedDict) -> tuple:
+    @staticmethod
+    def _get_arguments(ref: collections.OrderedDict) -> tuple:
         """
         Classify arguments and keywords.
 
-        :param ref:
-        :return:
+        :param ref: dictionary of the state args body
+        :return: tuple (args, kwargs
         """
         args = []
         kwargs = {}
@@ -96,7 +96,7 @@ class StateTask:
         Add a single task instance to the container.
 
         :param container: a list of the tasks
-        :raises: SugarSCException if module does not contain a function.
+        :raises SugarSCException: if module does not contain a function.
         :return: None
         """
         func_obj = FunctionObject()
@@ -140,6 +140,7 @@ class StateTask:
         Set top-level state function tasks.
         Each State Task object should have at least one Function Task.
 
+        :raises SugarSCException: when task is not single or multiple
         :return: None
         """
         self._func_obs = []

@@ -30,11 +30,11 @@ class StateCompiler(object):
 
         return tasks
 
-    def compile(self, uri):
+    def compile(self, uri: str) -> 'StateCompiler':  # Will be deprecated in Python 4.0!
         """
         Compile state tree for the given URI.
 
-        :param uri:
+        :param uri: URI of the state tree
         :return: self
         """
         self._tasks = None
@@ -48,7 +48,8 @@ class StateCompiler(object):
         """
         Return object tree.
 
-        :return:
+        :raises SugarSCException: if tree is not yet compiled
+        :return:  dictionary
         """
         if self._object_tree is None:
             raise sugar.lib.exceptions.SugarSCException("Nothing compiled yet")
@@ -63,7 +64,8 @@ class StateCompiler(object):
         Their concurrency should be decided
         by the task performer code.
 
-        :return:
+        :return: tuple of StateTask objects, each contains calls
+                 (one for single and many for multiple)
         """
         if self._tasks is None:
             self._tasks = tuple(self._get_state_tasks())
