@@ -43,9 +43,11 @@ class TestStateCompiler:
         """
         Test compile single task, that refers task by an ID:
 
-        /etc/hosts:
-          file.managed:
-            - src: sugar://hosts
+        .. code-block: yaml
+
+            /etc/hosts:
+              file.managed:
+                - src: sugar://hosts
 
         :param get_compiler: compiler instance fixture
         :return: None
@@ -67,10 +69,12 @@ class TestStateCompiler:
         Test compile single task, that refers task by
         the name keyword:
 
-        update_hosts:
-          file.managed:
-            - name: /etc/hosts
-            - src: sugar://hosts
+        .. code-block: yaml
+
+            update_hosts:
+              file.managed:
+                - name: /etc/hosts
+                - src: sugar://hosts
 
         :param get_compiler: compiler instance fixture
         :return: None
@@ -92,10 +96,12 @@ class TestStateCompiler:
         Test compile single task, that refers task by
         the positional arguments:
 
-        update_hosts:
-          file.managed:
-            - /etc/hosts
-            - sugar://hosts
+        .. code-block: yaml
+
+            update_hosts:
+              file.managed:
+                - /etc/hosts
+                - sugar://hosts
 
         :param get_compiler: compiler instance fixture
         :return: None
@@ -117,10 +123,12 @@ class TestStateCompiler:
         Test compile single task, that refers task by the
         positional arguments and keywords:
 
-        update_hosts:
-          file.managed:
-            - /etc/hosts
-            - src: sugar://hosts
+        .. code-block: yaml
+
+            update_hosts:
+              file.managed:
+                - /etc/hosts
+                - src: sugar://hosts
 
         :param get_compiler: compiler instance fixture
         :return: None
@@ -166,15 +174,17 @@ class TestStateCompiler:
         """
         Test compile multiple tasks, that refers task by an ID:
 
-        >>> /etc/hosts:
-        >>>  - file:
-        >>>    - managed:
-        >>>        - src: sugar://hosts
-        >>>    - line:
-        >>>        - remove: foo
-        >>>        - add: bar
-        >>>  - archive:
-        >>>    - zip:
+        .. code-block: yaml
+
+           /etc/hosts:
+             - file:
+               - managed:
+                 - src: sugar://hosts
+               - line:
+                 - remove: foo
+                 - add: bar
+             - archive:
+               - zip:
 
         :param get_compiler: compiler instance fixture
         :return: None
@@ -207,18 +217,20 @@ class TestStateCompiler:
         Test compile multiple tasks, that refers task by
         the name keyword:
 
-        >>> update_hosts:
-        >>>   - file:
-        >>>     - managed:
-        >>>       - name: /etc/hosts
-        >>>       - src: sugar://hosts
-        >>>     - line:
-        >>>       - name: /etc/ssh/ssh_config
-        >>>       - remove: foo
-        >>>       - add: bar
-        >>>   - archive:
-        >>>     - zip:
-        >>>       - name: /etc/hosts
+        .. code-block: yaml
+
+           update_hosts:
+          - file:
+            - managed:
+              - name: /etc/hosts
+              - src: sugar://hosts
+            - line:
+              - name: /etc/ssh/ssh_config
+              - remove: foo
+              - add: bar
+          - archive:
+            - zip:
+              - name: /etc/hosts
 
         :param get_compiler: compiler instance fixture
         :return: None
@@ -251,11 +263,13 @@ class TestStateCompiler:
         Test compile multiple tasks, that refers task by
         the positional arguments:
 
-        >>> update_hosts_1:
-        >>>   - file:
-        >>>     - managed:
-        >>>         - /etc/hosts
-        >>>         - sugar://hosts
+        .. code-block: yaml
+
+            update_hosts_1:
+              - file:
+                - managed:
+                    - /etc/hosts
+                    - sugar://hosts
 
         :param get_compiler: compiler instance fixture
         :return: None
@@ -284,11 +298,13 @@ class TestStateCompiler:
         Test compile multiple tasks, that refers task by the
         positional arguments and keywords:
 
-        >>> update_hosts_2:
-        >>>   - file:
-        >>>     - managed:
-        >>>       - /etc/hosts
-        >>>       - src: sugar://hosts
+        .. code-block: yaml
+
+            update_hosts_2:
+              - file:
+                - managed:
+                  - /etc/hosts
+                  - src: sugar://hosts
 
         :param get_compiler: compiler instance fixture
         :return: None
@@ -316,10 +332,12 @@ class TestStateCompiler:
         """
         Test compile multiple tasks, that refers task by the "name" tagged id.
 
-        >>> name:/etc/hosts:
-        >>>   - file:
-        >>>     - managed:
-        >>>       - src: sugar://hosts
+        .. code-block: yaml
+
+            name:/etc/hosts:
+              - file:
+                - managed:
+                  - src: sugar://hosts
 
         :param get_compiler: compiler instance fixture
         :return: None
@@ -347,9 +365,11 @@ class TestStateCompiler:
         """
         Test compile multiple tasks, that refers task by the id, while nothing is specified:
 
-        >>> /etc/someconfig.conf:
-        >>>   - file:
-        >>>     - archived:
+        .. code-block: yaml
+
+            /etc/someconfig.conf:
+              - file:
+                - archived:
 
         :param get_compiler: compiler instance fixture
         :return: None
