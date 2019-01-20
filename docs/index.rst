@@ -35,5 +35,14 @@ Developing
    :maxdepth: 2
 
    hacking
+   yaml_crashcourse
+
+
+Contributing
+------------
+
+.. toctree::
+   :maxdepth: 2
+
    contributing
    code_of_conduct

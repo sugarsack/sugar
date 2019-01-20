@@ -40,10 +40,16 @@ jobs:
             ./dev/py-flake
 
       - run:
+          name: Integration Tests
+          command: |
+            . venv/bin/activate
+            pytest -vv tests/integration
+
+      - run:
           name: Unit Tests
           command: |
             . venv/bin/activate
-            pytest tests/unit/
+            pytest -vv tests/unit/
 
       - run:
           name: Test Coverage Report (info only)

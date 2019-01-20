@@ -12,6 +12,7 @@ pyyaml
 pylint
 flake8
 pytest
+jinja2
 partd
 mock
 pudb
