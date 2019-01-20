@@ -66,17 +66,62 @@ class StateTask:
         self._func_obs = None
         self._set_state_tasks()
 
-    def _add_single_task(self, container: list) -> None:
+    @property
+    def calls(self) -> tuple:
+        """
+        Return function calls.
+
+        :return: tuple of function calls
+        """
+        return tuple(self._func_obs or [])
+
+    def _get_arguments(self, ref: collections.OrderedDict) -> tuple:
+        """
+        Classify arguments and keywords.
+
+        :param ref:
+        :return:
+        """
+        args = []
+        kwargs = {}
+        for arg in ref:
+            if isinstance(arg, collections.Mapping):
+                kwargs.update(arg)
+            else:
+                args.append(arg)
+        return args, kwargs
+
+    def _add_single_tasks(self) -> None:
         """
         Add a single task instance to the container.
 
         :param container: a list of the tasks
+        :raises: SugarSCException if module does not contain a function.
         :return: None
         """
-        # by id
-        # by name
-        # by positionals
-        # by mixed
+        func_obj = FunctionObject()
+
+        idn = next(iter(self._state_task))
+        _target = next(iter(self._state_task[idn]))
+        try:
+            func_obj.module, func_obj.function = _target.rsplit(".", 1)
+        except (ValueError, TypeError):
+            raise sugar.lib.exceptions.SugarSCException(
+                "Module should contain function in {}".format(_target))
+
+        func_obj.args, func_obj.kwargs = self._get_arguments(self._state_task[idn][_target])
+
+        if idn.startswith("name:"):
+            if "name" in func_obj.kwargs:
+                raise sugar.lib.exceptions.SugarSCException("The 'name' cannot be defined both in ID "
+                                                            "section and keywords. Statement: {}".format(idn))
+            func_obj.args.insert(0, idn.split(":", 1)[-1])
+        elif "name" in func_obj.kwargs:
+            func_obj.args.insert(0, func_obj.kwargs.pop("name"))
+        elif "name" not in func_obj.kwargs and not func_obj.args:
+            func_obj.args.append(idn)
+
+        self._func_obs.append(func_obj)
 
     def _add_multiple_tasks(self, container: list) -> None:
         """
@@ -99,7 +144,7 @@ class StateTask:
         """
         self._func_obs = []
         if self.is_single():
-            self._add_single_task(self._func_obs)
+            self._add_single_tasks()
         elif self.is_multiple():
             self._add_multiple_tasks(self._func_obs)
         else:
