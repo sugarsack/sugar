@@ -211,8 +211,9 @@ class TestStateCompiler:
               - add: bar
           - archive:
             - zip:
+              - name: /etc/hosts
 
-        :return:
+        :return: None
         """
         get_compiler.compile("tasks.multiple")
         assert len(get_compiler.tasklist) > 0
@@ -262,10 +263,8 @@ class TestStateCompiler:
         tests = (
             {"module": "file", "function": "managed",
               "args": ["/etc/hosts", "sugar://hosts"], "kwargs": {}},
-            {"module": "file", "function": "managed",
-              "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
         )
-        for call, test in zip(calls[6:8], tests):
+        for call, test in zip(calls[6:7], tests):
             assert call.module == test["module"]
             assert call.function == test["function"]
             assert call.args == test["args"]
@@ -284,4 +283,85 @@ class TestStateCompiler:
 
         :return:
         """
-        assert False
+        get_compiler.compile("tasks.multiple")
+        assert len(get_compiler.tasklist) > 0
+
+        calls = []
+        for task in get_compiler.tasklist:
+            for call in task.calls:
+                calls.append(call)
+        assert len(calls) > 0
+
+        tests = (
+            {"module": "file", "function": "managed",
+              "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
+            # {"module": "system.io.file", "function": "managed",
+            #   "args": [], "kwargs": {"name": "/etc/hosts", "src": "sugar://hosts"}},
+            # {"module": "system.io.file", "function": "line",
+            #   "args": [], "kwargs": {"name": "/etc/ssh/ssh_config", "remove": "foo", "add": "bar"}},
+        )
+        for call, test in zip(calls[7:8], tests):
+            assert call.module == test["module"]
+            assert call.function == test["function"]
+            assert call.args == test["args"]
+            assert call.kwargs == test["kwargs"]
+
+    def test_cmp_multiple_by_id_tagged(self, get_compiler):
+        """
+        Test compile multiple tasks, that refers task by the "name" tagged id.
+
+        name:/etc/hosts:
+          - file:
+            - managed:
+                - src: sugar://hosts
+
+        :param get_compiler:
+        :return:
+        """
+        get_compiler.compile("tasks.multiple")
+        assert len(get_compiler.tasklist) > 0
+
+        calls = []
+        for task in get_compiler.tasklist:
+            for call in task.calls:
+                calls.append(call)
+        assert len(calls) > 0
+
+        tests = (
+            {"module": "file", "function": "managed",
+              "args": ["/etc/hosts"], "kwargs": {"src": "sugar://hosts"}},
+        )
+        for call, test in zip(calls[8:9], tests):
+            assert call.module == test["module"]
+            assert call.function == test["function"]
+            assert call.args == test["args"]
+            assert call.kwargs == test["kwargs"]
+
+    def test_cmp_multiple_by_id_nothing_specified(self, get_compiler):
+        """
+        Test compile multiple tasks, that refers task by the id, while nothing is specified:
+
+        /etc/someconfig.conf:
+          - file:
+              - archived:
+
+        :return: None
+        """
+        get_compiler.compile("tasks.multiple")
+        assert len(get_compiler.tasklist) > 0
+
+        calls = []
+        for task in get_compiler.tasklist:
+            for call in task.calls:
+                calls.append(call)
+        assert len(calls) > 0
+
+        tests = (
+            {"module": "file", "function": "archived",
+              "args": ["/etc/someconfig.conf"], "kwargs": {}},
+        )
+        for call, test in zip(calls[9:10], tests):
+            assert call.module == test["module"]
+            assert call.function == test["function"]
+            assert call.args == test["args"]
+            assert call.kwargs == test["kwargs"]
