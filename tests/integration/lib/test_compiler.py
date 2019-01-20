@@ -95,7 +95,17 @@ class TestStateCompiler:
 
         :return:
         """
-        assert False
+        get_compiler.compile("tasks.single")
+        assert len(get_compiler.tasklist) == 5
+
+        task_by_id = get_compiler.tasklist[2]
+        assert len(task_by_id.calls) == 1
+
+        call = task_by_id.calls[0]
+        assert call.module == "file"
+        assert call.function == "managed"
+        assert call.args == ["/etc/hosts", "sugar://hosts"]
+        assert call.kwargs == {}
 
     def test_cmp_single_by_args_kwargs(self, get_compiler):
         """
