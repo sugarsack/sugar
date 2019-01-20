@@ -18,7 +18,11 @@ update_hosts:
 # arguments. In this case, first argument
 # is always the name.
 #
-# Rule is that the third level should be a list
+# Rules:
+#  - is that the third level should be a list
+#  - if there is no prefix "name:" in the ID,
+#    then the first element is the name.
+
 update_hosts_1:
   file.managed:
     - /etc/hosts
@@ -30,3 +34,10 @@ update_hosts_2:
   file.managed:
     - /etc/hosts
     - src: sugar://hosts
+
+# Fifth way is to point out that the ID is the name
+# by adding a prefix:
+name:/etc/hosts:
+  file.managed:
+    - sugar://hosts
+    - user: root

@@ -46,3 +46,10 @@ update_hosts_2:
     - managed:
         - /etc/hosts
         - src: sugar://hosts
+
+# Fifth way is like the other two above
+# except the ID is the name by prefix "name:".
+name:/etc/hosts:
+  - file:
+    - managed:
+        - src: sugar://hosts
