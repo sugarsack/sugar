@@ -36,8 +36,8 @@ update_hosts_2:
     - src: sugar://hosts
 
 # Fifth way is to point out that the ID is the name
-# by adding a prefix:
+# by adding a prefix. Modules can have own namespace!
 name:/etc/hosts:
-  file.managed:
+  system.io.file.managed:
     - sugar://hosts
     - user: root
