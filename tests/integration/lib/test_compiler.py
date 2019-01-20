@@ -131,6 +131,29 @@ class TestStateCompiler:
         assert call.args == ["/etc/hosts"]
         assert call.kwargs == {"src": "sugar://hosts"}
 
+    def test_cmp_single_by_id_name_prefix(self, get_compiler):
+        """
+        Test compile single task, that refers task by the
+        'name:' prefix in the ID:
+
+        name:/etc/hosts:
+          file.managed:
+            - sugar://hosts
+            - user: root
+
+        :return:
+        """
+        get_compiler.compile("tasks.single")
+        assert len(get_compiler.tasklist) == 5
+
+        task_by_id = get_compiler.tasklist[4]
+        assert len(task_by_id.calls) == 1
+
+        call = task_by_id.calls[0]
+        assert call.module == "system.io.file"
+        assert call.function == "managed"
+        assert call.args == ["/etc/hosts", "sugar://hosts"]
+        assert call.kwargs == {"user": "root"}
 
     def test_cmp_multiple_by_id(self, get_compiler):
         """
