@@ -123,17 +123,32 @@ class StateTask:
 
         self._func_obs.append(func_obj)
 
-    def _add_multiple_tasks(self, container: list) -> None:
+    def _add_multiple_tasks(self) -> None:
         """
         Add a multiple tasks instances to the container.
 
-        :param container: a list of the tasks
         :return: None
         """
-        # by id
-        # by name
-        # by positionals
-        # by mixed
+        idn = next(iter(self._state_task))
+
+        # Three nested loops aren't bad here.
+        # We expect only one or few items.
+        for _target in self._state_task[idn]:
+            assert len(_target) == 1, "Syntax error: should be only one task per a function call."
+            for _module in _target:
+                for _task in _target[_module]:
+                    func_obj = FunctionObject()
+                    func_obj.module = _module
+                    assert len(_task) == 1, "Syntax error: should be only one function per a task."
+                    func_obj.function = next(iter(_task))
+                    func_obj.args, func_obj.kwargs = self._get_arguments(_task[func_obj.function])
+
+                    idn_name = idn.split(":", 1)[-1] if idn.startswith("name:") else None
+                    if "name" not in func_obj.kwargs and idn_name is not None:  # idn is forced to be a name,
+                        func_obj.args.insert(0, idn_name)                       # unless overridden.
+                    elif "name" not in func_obj.kwargs and not func_obj.args:   # idn is the name
+                        func_obj.args.append(idn)
+                    self._func_obs.append(func_obj)
 
     def _set_state_tasks(self) -> None:
         """
@@ -147,7 +162,7 @@ class StateTask:
         if self.is_single():
             self._add_single_tasks()
         elif self.is_multiple():
-            self._add_multiple_tasks(self._func_obs)
+            self._add_multiple_tasks()
         else:
             raise sugar.lib.exceptions.SugarSCException("Syntax error: task is nor single neither multiple.")
 
