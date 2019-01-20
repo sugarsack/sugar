@@ -31,7 +31,7 @@ import sugar.lib.exceptions
 
 class FunctionObject:
     """
-    Function task object.
+    Function call object.
 
     An actual task of the State Task object.
     This object carries all the information for
