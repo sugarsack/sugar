@@ -1,6 +1,7 @@
 service_identity
 #pycryptodome
 observable
+pipupgrade
 pytest-cov
 pyOpenSSL
 pycrypto
