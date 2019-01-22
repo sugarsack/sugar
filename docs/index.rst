@@ -35,6 +35,7 @@ Developing
    :maxdepth: 2
 
    hacking
+   plugins_design
    yaml_crashcourse
 
 
