@@ -310,6 +310,41 @@ class ServerMsgFactory(_MessageFactory):
         return obj
 
 
+class RunnerModulesMsgFactory(_MessageFactory):
+    """
+    Return objects for the runner modules.
+    """
+    COMPONENT = 0x10
+
+    scheme = Schema({
+        Optional("."): None,  # Marker
+        And('component'): int,
+        And("errcode"): int,
+        And("payload"): {},
+        And("infos"): [],
+        And("warnings"): [],
+        And("errors"): [],
+    })
+
+    @classmethod
+    def create(cls):
+        """
+        Create state modules return message.
+
+        :return: Serialisable
+        """
+        obj = Serialisable()
+        obj.component = cls.COMPONENT
+        obj.errcode = 0
+        obj.payload = {}
+        obj.infos = []
+        obj.warnings = []
+        obj.errors = []
+
+        cls.validate(obj)
+
+        return obj
+
 def any_binary(data):
     """
     Parse any known binary messages, detect where
