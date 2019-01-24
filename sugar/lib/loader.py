@@ -14,7 +14,7 @@ from sugar.lib.logger.manager import get_logger
 import sugar.lib.exceptions
 
 
-class SugarModuleLoader:
+class RunnerModuleLoader:
     """
     Lazy loader class.
     """
