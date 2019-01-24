@@ -120,3 +120,11 @@ class SugarSCRenderException(SugarException):
     Sugar State Compiler render exception.
     """
     __prefix__ = "State Compiler render error"
+
+
+# Loader
+class SugarLoaderException(SugarException):
+    """
+    General Sugar module loader exception.
+    """
+    __prefix__ = "Sugar Loader error"
