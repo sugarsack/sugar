@@ -3,7 +3,7 @@
 Abstract module bases
 """
 from sugar.lib.traits import Traits
-from sugar.lib.loader import RunnerModuleLoader
+from sugar.lib.loader import VirtualModuleLoader
 import sugar.modules.runners
 import sugar.lib.exceptions
 
@@ -123,7 +123,7 @@ class BaseStateModule(BaseModule):
 
     def __init__(self):
         BaseModule.__init__(self)
-        self.__modules = RunnerModuleLoader(sugar.modules.runners)  # Map should be sigleton, so no rescan happens
+        self.__modules = VirtualModuleLoader(sugar.modules.runners)  # Map should be sigleton, so no rescan happens
 
     @property
     def modules(self):

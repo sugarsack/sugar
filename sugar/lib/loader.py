@@ -42,10 +42,11 @@ class BaseModuleLoader(abc.ABC):
     """
     Lazy loader class base.
     """
-    def __init__(self, entrymod: types.ModuleType = None):
+    def __init__(self, entrymod: types.ModuleType = None, filter_type=None):
         self.log = get_logger(self)
         self._id = "."
         self._parent = None
+        self.__type__ = filter_type
 
         if entrymod:
             self._root_path = os.path.dirname(entrymod.__file__)
@@ -134,7 +135,7 @@ class BaseModuleLoader(abc.ABC):
         """
 
 
-class RunnerModuleLoader(BaseModuleLoader):
+class VirtualModuleLoader(BaseModuleLoader):
     """
     Runner lazy loader class.
     """
@@ -218,11 +219,11 @@ class RunnerModuleLoader(BaseModuleLoader):
         return func(*args, **kwargs) if post_call else func
 
 
-class StateModuleLoader(BaseModuleLoader):
+class SimpleModuleLoader(BaseModuleLoader):
     """
-    States module loader.
+    Loader for simple architecture modules that has
+    no interface and has no multiple implementations.
     """
-
     def _build_uri_map(self) -> None:
         """
         Build URI map.
@@ -262,9 +263,14 @@ class CustomModuleLoader:
     """
     Custom user modules. They are very simple functions,
     just like Ansible or Salt modules.
+
+    Custom modules can be both simple and virtual,
+    if they are multi-platform implemented.
+
     """
     def __init__(self, *paths):
         self.paths = paths
+        # Here for each path should be VirtualModuleLoader and SimpleModuleLoader
 
 
 class SugarModuleLoader:
@@ -272,7 +278,7 @@ class SugarModuleLoader:
     Sugar module loader.
     """
     def __init__(self, *paths):
-        self.runners = RunnerModuleLoader(sugar.modules.runners)
-        self.states = StateModuleLoader(sugar.modules.states)
+        self.runners = VirtualModuleLoader(sugar.modules.runners, filter_type=sugar.utils.absmod.BaseRunnerModule)
+        self.states = SimpleModuleLoader(sugar.modules.states, filter_type=sugar.utils.absmod.BaseStateModule)
         self.custom = CustomModuleLoader(*paths)
 
