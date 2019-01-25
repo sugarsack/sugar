@@ -12,6 +12,30 @@ import types
 import importlib
 from sugar.lib.logger.manager import get_logger
 import sugar.lib.exceptions
+import sugar.modules.runners
+import sugar.modules.states
+import sugar.utils.absmod
+
+
+def guard(func):
+    """
+    Guard call.
+
+    :param func: method or function to be
+    guarded by the result object.
+
+    :return: wrapper function
+    """
+    def caller(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+        except Exception as exc:
+            result = sugar.utils.absmod.ActionResult()
+            result.error = str(exc)
+            result.errcode = sugar.lib.exceptions.SugarException.get_errcode(exc)
+        return result
+
+    return caller
 
 
 class RunnerModuleLoader:
