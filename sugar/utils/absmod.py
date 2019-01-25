@@ -5,6 +5,7 @@ Abstract module bases
 from sugar.lib.traits import Traits
 from sugar.lib.loader import RunnerModuleLoader
 import sugar.modules.runners
+import sugar.lib.exceptions
 
 
 class ActionResult(dict):
@@ -35,7 +36,10 @@ class ActionResult(dict):
         :param obj: an object for an info.
         :return: None
         """
-        self.__inf.append(obj)
+        if isinstance(obj, str):
+            self.__inf.extend(self.pop(obj))
+        else:
+            self.__inf.append(obj)
 
     @property
     def warn(self) -> list:
@@ -54,7 +58,10 @@ class ActionResult(dict):
         :param obj: an object for a warning
         :return: None
         """
-        self.__wrn.append(obj)
+        if isinstance(obj, str):
+            self.__wrn.extend(self.pop(obj))
+        else:
+            self.__wrn.append(obj)
 
     @property
     def error(self) -> list:
@@ -69,11 +76,16 @@ class ActionResult(dict):
     def error(self, obj) -> None:
         """
         Add an error.
+        If obj is a string, then it is a key of the self
+        that will be transferred to the error stack.
 
         :param obj: Object for error
         :return: None
         """
-        self.__err.append(obj)
+        if isinstance(obj, str):
+            self.__err.extend(self.pop(obj))
+        else:
+            self.__err.append(obj)
 
 
 class BaseModule:
@@ -90,6 +102,11 @@ class BaseModule:
         """
         return self.__traits
 
+
+class BaseRunnerModule(BaseModule):
+    """
+    Common class for runner modules.
+    """
     @staticmethod
     def new_result():
         """
@@ -97,12 +114,6 @@ class BaseModule:
         :return:
         """
         return ActionResult()
-
-
-class BaseRunnerModule(BaseModule):
-    """
-    Common class for runner modules.
-    """
 
 
 class BaseStateModule(BaseModule):
