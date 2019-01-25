@@ -196,3 +196,30 @@ class RunnerModuleLoader:
 
         return result
 
+
+class StateModuleLoader:
+    """
+    States module loader.
+    """
+    def __init__(self, entrymod: types.ModuleType = None):
+        self.entrymod = entrymod
+
+
+class CustomModuleLoader:
+    """
+    Custom user modules. They are very simple functions,
+    just like Ansible or Salt modules.
+    """
+    def __init__(self, *paths):
+        self.paths = paths
+
+
+class SugarModuleLoader:
+    """
+    Sugar module loader.
+    """
+    def __init__(self, *paths):
+        self.runners = RunnerModuleLoader(sugar.modules.runners)
+        self.states = StateModuleLoader(sugar.modules.states)
+        self.custom = CustomModuleLoader(*paths)
+
