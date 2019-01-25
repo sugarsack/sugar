@@ -38,11 +38,10 @@ def guard(func):
     return caller
 
 
-class RunnerModuleLoader:
+class BaseModuleLoader(abc.ABC):
     """
-    Lazy loader class.
+    Lazy loader class base.
     """
-
     def __init__(self, entrymod: types.ModuleType = None):
         self.log = get_logger(self)
         self._id = "."
@@ -62,6 +61,77 @@ class RunnerModuleLoader:
         :return: uri
         """
         return ".".join([item for item in path[len(self._root_path):].split(os.path.sep) if item])
+
+    def _traverse_access_uri(self, top=None, uri=None) -> list:
+        """
+        Traverse to URI what function is actually called.
+
+        :return:
+        """
+        if uri is None:
+            uri = []
+        if top is None:
+            top = self
+
+        if top._parent is not None:
+            self._traverse_access_uri(top._parent, uri)
+        if top._id != ".":
+            uri.append(top._id)
+
+        return uri
+
+    def __getattr__(self, item):
+        obj = self.__class__()
+        obj._parent = self
+        obj._id = item
+
+        # reference pointers from parent
+        obj._uri_map = self._uri_map
+        obj._entrymod = self._entrymod
+
+        return obj
+
+    @guard
+    def __getitem__(self, item):
+        return self._get_function(item)
+
+    def __call__(self, *args, **kwargs):
+        """
+        Get arbitrary function of any module.
+
+
+        :param args: generic arguments for the function
+        :param kwargs: generic keywords for the function
+        :return: content of the loaded function
+        """
+        result = None
+
+        try:
+            result = self._get_function(None, *args, **kwargs)
+        except Exception as exc:
+            result.errcode = sugar.lib.exceptions.SugarException.get_errcode(exc=exc)
+            result.errors.append(str(exc))
+
+        return result
+
+    @abc.abstractmethod
+    def _build_uri_map(self):
+        """
+        Build URI map.
+
+        :return: None
+        """
+
+    @abc.abstractmethod
+    def _get_function(self, uri, *args, **kwargs):
+        """
+        Get function of the module.
+
+        :param uri:
+        :param args:
+        :param kwargs:
+        :return:
+        """
 
     def _build_uri_map(self) -> None:
         """
