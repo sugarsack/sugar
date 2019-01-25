@@ -133,6 +133,11 @@ class BaseModuleLoader(abc.ABC):
         :return:
         """
 
+
+class RunnerModuleLoader(BaseModuleLoader):
+    """
+    Runner lazy loader class.
+    """
     def _build_uri_map(self) -> None:
         """
         Build map.
@@ -202,9 +207,11 @@ class BaseModuleLoader(abc.ABC):
             ifce, cls = self._get_impl_class(mod)
             if func in cls.__class__.__dict__:
                 if func not in ifce.__dict__:
-                    raise sugar.lib.exceptions.SugarLoaderException("Access denied to function '{}'".format(func))
+                    raise sugar.lib.exceptions.SugarLoaderException(
+                        "Access denied to function '{}'".format(func))
             else:
-                raise sugar.lib.exceptions.SugarLoaderException("Function '{}' not found in module '{}'".format(func, mod))
+                raise sugar.lib.exceptions.SugarLoaderException(
+                    "Function '{}' not found in module '{}'".format(func, mod))
             self._uri_map[mod] = cls
         func = getattr(cls, func)
 
