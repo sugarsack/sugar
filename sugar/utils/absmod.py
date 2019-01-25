@@ -4,9 +4,76 @@ Abstract module bases
 """
 from sugar.lib.traits import Traits
 from sugar.lib.loader import RunnerModuleLoader
-from sugar.transport import RunnerModulesMsgFactory, StateModulesMsgFactory
-
 import sugar.modules.runners
+
+
+class ActionResult(dict):
+    """
+    Task status collector.
+    """
+    def __init__(self, **kwargs):
+        dict.__init__(self, **kwargs)
+        self.__inf = []
+        self.__wrn = []
+        self.__err = []
+        self.errcode = 0
+
+    @property
+    def info(self) -> list:
+        """
+        Return infos stream
+
+        :return: list
+        """
+        return self.__inf
+
+    @info.setter
+    def info(self, obj) -> None:
+        """
+        Collect an info.
+
+        :param obj: an object for an info.
+        :return: None
+        """
+        self.__inf.append(obj)
+
+    @property
+    def warn(self) -> list:
+        """
+        Return list of warnings.
+
+        :return: list
+        """
+        return self.__wrn
+
+    @warn.setter
+    def warn(self, obj) -> None:
+        """
+        Collect a warning.
+
+        :param obj: an object for a warning
+        :return: None
+        """
+        self.__wrn.append(obj)
+
+    @property
+    def error(self) -> list:
+        """
+        Return list of errors.
+
+        :return: list
+        """
+        return self.__err
+
+    @error.setter
+    def error(self, obj) -> None:
+        """
+        Add an error.
+
+        :param obj: Object for error
+        :return: None
+        """
+        self.__err.append(obj)
 
 
 class BaseModule:
@@ -24,21 +91,18 @@ class BaseModule:
         return self.__traits
 
     @staticmethod
-    def get_return():
-        raise NotImplementedError("Not implemented")
+    def new_result():
+        """
+        Create a new action status
+        :return:
+        """
+        return ActionResult()
 
 
 class BaseRunnerModule(BaseModule):
     """
     Common class for runner modules.
     """
-
-    @staticmethod
-    def get_return():
-        """
-        Create a return object instance
-        """
-        return RunnerModulesMsgFactory.create()
 
 
 class BaseStateModule(BaseModule):
@@ -49,13 +113,6 @@ class BaseStateModule(BaseModule):
     def __init__(self):
         BaseModule.__init__(self)
         self.__modules = RunnerModuleLoader(sugar.modules.runners)  # Map should be sigleton, so no rescan happens
-
-    @staticmethod
-    def get_return():
-        """
-        Create a return object instance
-        """
-        return StateModulesMsgFactory.create()
 
     @property
     def modules(self):
