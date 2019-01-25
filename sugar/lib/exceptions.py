@@ -5,6 +5,7 @@ from __future__ import absolute_import, unicode_literals
 
 import time
 from sugar.lib import six
+import sugar.utils.exitcodes
 
 
 class SugarException(Exception):
@@ -13,16 +14,29 @@ class SugarException(Exception):
     All Sugar exceptions should be subclassed from here.
     """
     __prefix__ = "General error"
+    errcode = sugar.utils.exitcodes.EX_GENERIC
 
-    def __init__(self, msg=""):
+    def __init__(self, msg="", errcode=None):
         if not isinstance(msg, six.string_types):
             msg = six.text_type(msg)
         msg = "{}: {}".format(self.__prefix__, msg)
         super(SugarException, self).__init__(msg)
         self.message = self.strerror = msg
+        if errcode is not None:
+            self.errcode = errcode
 
     def __unicode__(self):
         return self.strerror
+
+    @staticmethod
+    def get_errcode(exc) -> int:
+        """
+        Get an error code from the exception.
+
+        :param exc: Exception object
+        :return: an error code. Default: EX_GENERIC
+        """
+        return getattr(exc, "errcode", sugar.utils.exitcodes.EX_GENERIC)
 
     def pack(self):
         """
