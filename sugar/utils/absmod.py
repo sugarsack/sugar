@@ -120,3 +120,37 @@ class BaseStateModule(BaseModule):
         Modules loader.
         """
         return self.__modules
+
+    def to_return(self, **data):
+        """
+        Format data for changes.
+
+        changes:
+          Changes diff
+
+        comment:
+          Message to the result
+
+        warnings:
+          List of warnings
+
+        :return:
+        """
+        missing = []
+        for arg in ["changes", "comment", "warnings"]:
+            if arg not in data:
+                if arg == "warnings":
+                    data.setdefault(arg, [])
+                elif arg == "comment":
+                    data.setdefault(arg, "Success")
+                else:
+                    missing.append(arg)
+
+        if missing:
+            raise sugar.lib.exceptions.SugarRuntimeException(
+                "Missing arguments for the result object: {}".format(", ".join(missing)))
+
+        data = ActionResult(**data)
+        data.warn = "warnings"
+
+        return data
