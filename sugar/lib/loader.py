@@ -217,69 +217,45 @@ class RunnerModuleLoader(BaseModuleLoader):
 
         return func(*args, **kwargs) if post_call else func
 
-    def _traverse_access_uri(self, top=None, uri=None) -> list:
-        """
-        Traverse to URI what function is actually called.
 
-        :return:
-        """
-        if uri is None:
-            uri = []
-        if top is None:
-            top = self
-
-        if top._parent is not None:
-            self._traverse_access_uri(top._parent, uri)
-        if top._id != ".":
-            uri.append(top._id)
-
-        return uri
-
-    def __getattr__(self, item):
-        obj = self.__class__()
-        obj._parent = self
-        obj._id = item
-
-        # reference pointers from parent
-        obj._uri_map = self._uri_map
-        obj._entrymod = self._entrymod
-
-        return obj
-
-    @guard
-    def __getitem__(self, item):
-        return self._get_function(item)
-
-    def __call__(self, *args, **kwargs):
-        """
-        Get arbitrary function of any module.
-
-        Accepts named parameter "uri" or first positional value
-        is an uri, if this object is called at root. In this case
-        it will resolve module and target by an uri.
-
-        :param args: generic arguments for the function
-        :param kwargs: generic keywords for the function
-        :raises
-        :return: content of the loaded function
-        """
-        result = None
-
-        try:
-            result = self._get_function(None, *args, **kwargs)
-        except Exception as exc:
-            result.errcode = sugar.lib.exceptions.SugarException.get_errcode(exc=exc)
-            result.errors.append(str(exc))
-
-        return result
-
-
-class StateModuleLoader:
+class StateModuleLoader(BaseModuleLoader):
     """
     States module loader.
     """
-    def __init__(self, entrymod: types.ModuleType = None):
-        self.entrymod = entrymod
+
+    def _build_uri_map(self) -> None:
+        """
+        Build URI map.
+
+        :return:
+        """
+        self._uri_map = {}
+        for w_pth, w_dirs, w_files in os.walk(self._root_path):
+            if all([fname in w_files for fname in ["doc.yaml", "examples.yaml", "__init__.py"]]):
+                uri = self._get_module_uri(w_pth)
+                self._uri_map[uri] = None
+
+    def _get_function(self, uri, *args, **kwargs):
+        """
+        Import module with the given function.
+
+        :param uri:
+        :return:
+        """
+        uri = uri or ".".join(self._traverse_access_uri())
+        mod, func = uri.rsplit(".", 1)
+        if mod not in self._uri_map:
+            raise sugar.lib.exceptions.SugarLoaderException("Task {} not found".format(uri))
+
+        cls = self._uri_map[mod]
+        if cls is None:
+            cls = getattr(importlib.import_module("{}.{}".format(self._entrymod.__name__, mod)), "__init__", None)
+            assert cls is not None, ("Implementation class was not found. "
+                                     "Module '{}' should export it as '__init__'".format(mod))
+            self._uri_map[mod] = cls()
+        assert func in self._uri_map[mod].__class__.__dict__, "Function '{}' not found in module '{}'".format(func, mod)
+
+        return getattr(self._uri_map[mod], func)
 
 
 class CustomModuleLoader:
