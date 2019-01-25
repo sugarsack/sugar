@@ -115,25 +115,30 @@ class RunnerModuleLoader:
 
         return ifce, cls
 
-    def _get_function(self, *args, **kwargs):
+    def _get_function(self, uri, *args, **kwargs):
         """
         Import module with the given function.
 
         :param uri:
         :return:
         """
-        uri = ".".join(self._traverse_access_uri())
+        post_call = not bool(uri)
+        uri = uri or ".".join(self._traverse_access_uri())
         mod, func = uri.rsplit(".", 1)
         if mod not in self._uri_map:
             raise sugar.lib.exceptions.SugarLoaderException("Task {} not found".format(uri))
-        ifce, cls = self._get_impl_class(mod)
-        if func in cls.__class__.__dict__:
-            if func not in ifce.__dict__:
-                raise sugar.lib.exceptions.SugarLoaderException("Access denied to function '{}'".format(func))
-        else:
-            raise sugar.lib.exceptions.SugarLoaderException("Function '{}' not found in module '{}'".format(func, mod))
+        cls = self._uri_map[mod]
+        if cls is None:
+            ifce, cls = self._get_impl_class(mod)
+            if func in cls.__class__.__dict__:
+                if func not in ifce.__dict__:
+                    raise sugar.lib.exceptions.SugarLoaderException("Access denied to function '{}'".format(func))
+            else:
+                raise sugar.lib.exceptions.SugarLoaderException("Function '{}' not found in module '{}'".format(func, mod))
+            self._uri_map[mod] = cls
+        func = getattr(cls, func)
 
-        return getattr(cls, func)(*args, **kwargs)
+        return func(*args, **kwargs) if post_call else func
 
     def _traverse_access_uri(self, top=None, uri=None) -> list:
         """
@@ -164,13 +169,30 @@ class RunnerModuleLoader:
 
         return obj
 
+    @guard
+    def __getitem__(self, item):
+        return self._get_function(item)
+
     def __call__(self, *args, **kwargs):
         """
         Get arbitrary function of any module.
+
+        Accepts named parameter "uri" or first positional value
+        is an uri, if this object is called at root. In this case
+        it will resolve module and target by an uri.
 
         :param args: generic arguments for the function
         :param kwargs: generic keywords for the function
         :raises
         :return: content of the loaded function
         """
-        return self._get_function(*args, **kwargs)
+        result = None
+
+        try:
+            result = self._get_function(None, *args, **kwargs)
+        except Exception as exc:
+            result.errcode = sugar.lib.exceptions.SugarException.get_errcode(exc=exc)
+            result.errors.append(str(exc))
+
+        return result
+
