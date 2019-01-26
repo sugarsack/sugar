@@ -20,11 +20,10 @@ class VirtualModuleLoader(BaseModuleLoader):
 
         :return:
         """
-        self._uri_map = {}
-        for w_pth, w_dirs, w_files in os.walk(self._root_path):
+        for w_pth, w_dirs, w_files in os.walk(self.modmap.root_path):
             if "_impl" in w_dirs:
                 uri = self._get_module_uri(w_pth)
-                self._uri_map[uri] = None
+                self.modmap.map[uri] = None
 
     def _get_impl_class(self, mod):
         """
@@ -36,7 +35,7 @@ class VirtualModuleLoader(BaseModuleLoader):
         # Interface and Implementation classes
         ifce = cls = None
 
-        mod = importlib.import_module(".".join([self._entrymod.__name__, mod]))
+        mod = importlib.import_module(".".join([self.modmap._entrymod.__name__, mod]))
         ifaces_cnt = 0
 
         for c_name, c_obj in importlib.import_module(".".join([mod.__name__, "interface"])).__dict__.items():
@@ -76,9 +75,9 @@ class VirtualModuleLoader(BaseModuleLoader):
         post_call = not bool(uri)
         uri = uri or ".".join(self._traverse_access_uri())
         mod, func = uri.rsplit(".", 1)
-        if mod not in self._uri_map:
+        if mod not in self.modmap.map:
             raise sugar.lib.exceptions.SugarLoaderException("Task {} not found".format(uri))
-        cls = self._uri_map[mod]
+        cls = self.modmap.map[mod]
         if cls is None:
             ifce, cls = self._get_impl_class(mod)
             if func in cls.__class__.__dict__:
@@ -88,7 +87,7 @@ class VirtualModuleLoader(BaseModuleLoader):
             else:
                 raise sugar.lib.exceptions.SugarLoaderException(
                     "Function '{}' not found in module '{}'".format(func, mod))
-            self._uri_map[mod] = cls
+            self.modmap.map[mod] = cls
         func = getattr(cls, func)
 
         return func(*args, **kwargs) if post_call else func

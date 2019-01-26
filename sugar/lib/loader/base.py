@@ -11,6 +11,34 @@ from sugar.lib.logger.manager import get_logger
 from sugar.lib.loader.util import guard
 
 
+class ModuleMap:
+    """
+    Map scanner.
+    """
+    def __init__(self, entrymod: types.ModuleType = None):
+        self.root_path = os.path.dirname(entrymod.__file__)
+        self._entrymod = entrymod
+        self._uri_map = {}
+
+    @property
+    def map(self) -> dict:
+        """
+        URI map
+
+        :return: dict of the uri map
+        """
+        return self._uri_map
+
+    @property
+    def build(self) -> bool:
+        """
+        Return True if modmap needs to be built
+
+        :return: bool
+        """
+        return bool(self._uri_map)
+
+
 class BaseModuleLoader(abc.ABC):
     """
     Lazy loader class base.
@@ -22,9 +50,8 @@ class BaseModuleLoader(abc.ABC):
         self.__type__ = filter_type
 
         if entrymod:
-            self._root_path = os.path.dirname(entrymod.__file__)
-            self._entrymod = entrymod
-            self._uri_map = None
+            self.modmap = ModuleMap(entrymod=entrymod)
+            #if self._modmap.build:
             self._build_uri_map()
 
     def _get_module_uri(self, path):
@@ -34,7 +61,7 @@ class BaseModuleLoader(abc.ABC):
         :param path: current module path.
         :return: uri
         """
-        return ".".join([item for item in path[len(self._root_path):].split(os.path.sep) if item])
+        return ".".join([item for item in path[len(self.modmap.root_path):].split(os.path.sep) if item])
 
     def _traverse_access_uri(self, top=None, uri=None) -> list:
         """
@@ -58,10 +85,7 @@ class BaseModuleLoader(abc.ABC):
         obj = self.__class__()
         obj._parent = self
         obj._id = item
-
-        # reference pointers from parent
-        obj._uri_map = self._uri_map
-        obj._entrymod = self._entrymod
+        obj.modmap = self.modmap
 
         return obj
 
