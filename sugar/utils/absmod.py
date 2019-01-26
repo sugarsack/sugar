@@ -3,7 +3,7 @@
 Abstract module bases
 """
 from sugar.lib.traits import Traits
-from sugar.lib.loader import VirtualModuleLoader
+from sugar.lib.loader.virtual import VirtualModuleLoader
 import sugar.modules.runners
 import sugar.lib.exceptions
 
