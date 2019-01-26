@@ -1,0 +1,11 @@
+system.ping:
+  description:
+    - Data about this example.
+    - Each item in this list is a sentence in the documentation.
+
+  commandline: >-
+    sugar \* system.test.ping
+    sugar \* system.test.ping text='Hello, world!'
+
+  states: >-
+    N/A
