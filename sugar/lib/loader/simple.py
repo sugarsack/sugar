@@ -34,10 +34,10 @@ class SimpleModuleLoader(BaseModuleLoader):
         """
         uri = uri or ".".join(self._traverse_access_uri())
         mod, func = uri.rsplit(".", 1)
-        if mod not in self._uri_map:
+        if mod not in self.modmap.map:
             raise sugar.lib.exceptions.SugarLoaderException("Task {} not found".format(uri))
 
-        cls = self._uri_map[mod]
+        cls = self.modmap.map[mod]
         if cls is None:
             cls = getattr(importlib.import_module("{}.{}".format(self.modmap._entrymod.__name__, mod)), "__init__", None)
             assert cls is not None, ("Implementation class was not found. "

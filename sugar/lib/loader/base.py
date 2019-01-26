@@ -36,7 +36,7 @@ class ModuleMap:
 
         :return: bool
         """
-        return bool(self._uri_map)
+        return not bool(len(self._uri_map))
 
 
 class BaseModuleLoader(abc.ABC):
@@ -51,7 +51,6 @@ class BaseModuleLoader(abc.ABC):
 
         if entrymod:
             self.modmap = ModuleMap(entrymod=entrymod)
-            #if self._modmap.build:
             self._build_uri_map()
 
     def _get_module_uri(self, path):
