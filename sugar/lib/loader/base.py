@@ -9,25 +9,30 @@ import types
 import sugar.lib.exceptions
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.loader.util import guard
+from sugar.utils.objects import Singleton
 
 
+@Singleton
 class ModuleMap:
     """
     Map scanner.
     """
-    def __init__(self, entrymod: types.ModuleType = None):
-        self.root_path = os.path.dirname(entrymod.__file__)
-        self._entrymod = entrymod
+    def __init__(self):
         self._uri_map = {}
 
-    @property
-    def map(self) -> dict:
+    def map(self, id) -> dict:
         """
         URI map
 
         :return: dict of the uri map
         """
-        return self._uri_map
+        try:
+            _map = self._uri_map[id]
+        except KeyError:
+            _map = None
+            self._uri_map.setdefault(id, {})
+
+        return _map or self._uri_map[id]
 
     @property
     def build(self) -> bool:
@@ -48,10 +53,19 @@ class BaseModuleLoader(abc.ABC):
         self._id = "."
         self._parent = None
         self.__type__ = filter_type
+        self._entrymod = entrymod
+        self.root_path = self._entrymod and os.path.dirname(entrymod.__file__) or None
 
-        if entrymod:
-            self.modmap = ModuleMap(entrymod=entrymod)
+        if self._entrymod:
+            self._modmap = ModuleMap()
             self._build_uri_map()
+
+    def map(self):
+        """
+        Get map for the particular instance
+        :return:
+        """
+        return self._modmap.map(self._entrymod.__name__)
 
     def _get_module_uri(self, path):
         """
@@ -60,7 +74,7 @@ class BaseModuleLoader(abc.ABC):
         :param path: current module path.
         :return: uri
         """
-        return ".".join([item for item in path[len(self.modmap.root_path):].split(os.path.sep) if item])
+        return ".".join([item for item in path[len(self.root_path):].split(os.path.sep) if item])
 
     def _traverse_access_uri(self, top=None, uri=None) -> list:
         """
@@ -84,7 +98,8 @@ class BaseModuleLoader(abc.ABC):
         obj = self.__class__()
         obj._parent = self
         obj._id = item
-        obj.modmap = self.modmap
+        obj._entrymod = self._entrymod
+        obj._modmap = self._modmap
 
         return obj
 
