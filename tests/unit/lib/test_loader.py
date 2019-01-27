@@ -24,3 +24,10 @@ class TestSugarModuleLoader:
         assert isinstance(out, dict)
         assert "text" in out
         assert out["text"] == "Hello, world!"
+
+        out = sml.states.system.test.pinged(None)
+        assert "changes" in out
+        assert "comment" in out
+        assert out["comment"] == "Success"
+        assert "text" in out["changes"]
+        assert out == sml.states["system.test.pinged"](None)
