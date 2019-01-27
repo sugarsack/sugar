@@ -26,8 +26,8 @@ class TestSugarModuleLoader:
         assert out["text"] == "Hello, world!"
 
         out = sml.states.system.test.pinged(None)
-        assert "changes" in out
-        assert "comment" in out
+        for section in ["changes", "result", "comment"]:
+            assert section in out
         assert out["comment"] == "Success"
-        assert "text" in out["changes"]
+        assert "text" in out["result"]
         assert out == sml.states["system.test.pinged"](None)
