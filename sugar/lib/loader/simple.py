@@ -3,6 +3,7 @@
 Module loader for simple objects
 """
 import os
+import types
 import importlib
 
 import sugar.lib.exceptions
@@ -14,6 +15,10 @@ class SimpleModuleLoader(BaseModuleLoader):
     Loader for simple architecture modules that has
     no interface and has no multiple implementations.
     """
+    def __init__(self, entrymod: types.ModuleType = None, runner_loader=None, filter_type=None):
+        self._runner_loader = runner_loader  # This is injected into every state module
+        BaseModuleLoader.__init__(self, entrymod=entrymod, filter_type=filter_type)
+
     def _build_uri_map(self) -> None:
         """
         Build URI map.
@@ -37,15 +42,15 @@ m
         mod, func = uri.rsplit(".", 1)
         if mod not in self.map():
             raise sugar.lib.exceptions.SugarLoaderException("Task {} not found".format(uri))
-
         cls = self.map()[mod]
         if cls is None:
             uri = "{}.{}".format(self._entrymod.__name__, mod)
             cls = getattr(importlib.import_module(uri), "__init__", None)
             assert cls is not None, ("Implementation class was not found. "
                                      "Module '{}' should export it as '__init__'".format(mod))
-
-            self.map()[mod] = cls()
+            cls = cls()
+            cls.modules = self._runner_loader
+            self.map()[mod] = cls
         assert func in self.map()[mod].__class__.__dict__, "Function '{}' not found in module '{}'".format(func, mod)
         func = getattr(self.map()[mod], func)
 

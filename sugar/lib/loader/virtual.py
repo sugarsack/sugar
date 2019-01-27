@@ -80,6 +80,8 @@ class VirtualModuleLoader(BaseModuleLoader):
         cls = self.map()[mod]
         if cls is None:
             ifce, cls = self._get_impl_class(mod)
+            cls.modules = self
+            self.map()[mod] = cls
             if func in cls.__class__.__dict__:
                 if func not in ifce.__dict__:
                     raise sugar.lib.exceptions.SugarLoaderException(
@@ -87,7 +89,6 @@ class VirtualModuleLoader(BaseModuleLoader):
             else:
                 raise sugar.lib.exceptions.SugarLoaderException(
                     "Function '{}' not found in module '{}'".format(func, mod))
-            self.map()[mod] = cls
         func = getattr(cls, func)
 
         return func(*args, **kwargs) if post_call else func

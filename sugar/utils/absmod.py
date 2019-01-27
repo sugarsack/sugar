@@ -3,7 +3,6 @@
 Abstract module bases
 """
 from sugar.lib.traits import Traits
-from sugar.lib.loader.virtual import VirtualModuleLoader
 import sugar.modules.runners
 import sugar.lib.exceptions
 
@@ -94,6 +93,19 @@ class BaseModule:
     """
     def __init__(self):
         self.__traits = Traits()
+        self.__modules = None  # virtual module lazy loader is injected on module load
+
+    @property
+    def modules(self):
+        """
+        Modules loader.
+        """
+        return self.__modules
+
+    @modules.setter
+    def modules(self, value):
+        assert self.__modules is None, "Cannot reset module loader anymore"
+        self.__modules = value
 
     @property
     def traits(self):
@@ -120,17 +132,6 @@ class BaseStateModule(BaseModule):
     """
     Common class for state modules.
     """
-
-    def __init__(self):
-        BaseModule.__init__(self)
-        self.__modules = VirtualModuleLoader(sugar.modules.runners)  # Map should be sigleton, so no rescan happens
-
-    @property
-    def modules(self):
-        """
-        Modules loader.
-        """
-        return self.__modules
 
     def to_return(self, **data):
         """
