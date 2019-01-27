@@ -2,13 +2,39 @@
 """
 Lazy loader unit tests
 """
+import os
+import pytest
 from sugar.lib.loader import SugarModuleLoader
+import tests.integration
+
+
+@pytest.fixture
+def custmods_path():
+    return os.path.join(os.path.dirname(tests.integration.__file__),
+                        "root", "custmods")
 
 
 class TestSugarModuleLoader:
     """
     Sugar module loader test case.
     """
+    def test_custom_module_loader(self, custmods_path):
+        """
+        Custom modules.
+
+        :return:
+        """
+        sml = SugarModuleLoader(*[custmods_path])
+        for out in [sml.custom.example_module.hello("World"),
+                    sml.custom["example_module.hello"]("World")]:
+            assert "text" in out
+            assert out["text"] == "Hello, World"
+
+        for out in [sml.custom.custping.other_example.ping(),
+                    sml.custom["custping.other_example.ping"]()]:
+            assert "text" in out
+            assert out["text"] == "pong"
+
     def test_systemtest_ping(self):
         """
         Test system.test ping module.
