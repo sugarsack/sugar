@@ -14,7 +14,7 @@ class CustomModuleLoader(BaseModuleLoader):
     """
     def __init__(self, *paths, filter_type=None):
         self.paths = paths
-        BaseModuleLoader.__init__(self, entrymod=self.__class__.__name__, filter_type=filter_type)
+        BaseModuleLoader.__init__(self, entrymod="sugar.modules.custom", filter_type=filter_type)
 
     def _build_uri_map(self):
         """
