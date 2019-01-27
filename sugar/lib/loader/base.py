@@ -105,6 +105,11 @@ class BaseModuleLoader(abc.ABC):
         obj._entrymod = self._entrymod
         obj._modmap = self._modmap
 
+        # This required only in state modules
+        runner_loader = self.__dict__.get("_runner_loader")
+        if runner_loader is not None:
+            obj._runner_loader = runner_loader
+
         return obj
 
     @guard
