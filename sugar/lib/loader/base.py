@@ -48,15 +48,19 @@ class BaseModuleLoader(abc.ABC):
     """
     Lazy loader class base.
     """
+
     def __init__(self, entrymod: types.ModuleType = None, filter_type=None):
         self.log = get_logger(self)
         self._id = "."
         self._parent = None
         self.__type__ = filter_type
         self._entrymod = entrymod
-        self.root_path = self._entrymod and os.path.dirname(entrymod.__file__) or None
+        if self._entrymod and not isinstance(self._entrymod, str):
+            self.root_path = os.path.dirname(entrymod.__file__)
+        else:
+            self.root_path = None
 
-        if self._entrymod:
+        if self._entrymod is not None:
             self._modmap = ModuleMap()
             self._build_uri_map()
 
@@ -65,7 +69,7 @@ class BaseModuleLoader(abc.ABC):
         Get map for the particular instance
         :return:
         """
-        return self._modmap.map(self._entrymod.__name__)
+        return self._modmap.map(getattr(self._entrymod, "__name__", self._entrymod))
 
     def _get_module_uri(self, path):
         """
