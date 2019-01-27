@@ -42,4 +42,4 @@ class SugarModuleLoader:
                 except KeyError:
                     pass
                 except Exception as ex:
-                   self.log.error("Unhandled exception raised while pre-loading module '{}'", _uri)
+                    self.log.error("Unhandled exception raised while pre-loading module '{}': {}", _uri, str(ex))

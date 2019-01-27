@@ -23,7 +23,7 @@ class CustomModuleLoader(BaseModuleLoader):
         :return: None
         """
         for path in self.paths:
-            for w_pth, w_dirs, w_files in os.walk(path):
+            for w_pth, w_dirs, w_files in os.walk(path):  # pylint:disable=W0612
                 mod = [item for item in (w_pth[len(path):] or '').split(os.path.sep) if item]
                 for w_file in w_files:
                     if w_file.endswith(".py"):
@@ -50,4 +50,4 @@ class CustomModuleLoader(BaseModuleLoader):
             src = self.map()[mod]
         func = getattr(src, func)
 
-        return call and func(*args, **kwargs) or func
+        return func(*args, **kwargs) if call else func

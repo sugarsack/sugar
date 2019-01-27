@@ -11,6 +11,7 @@ from sugar.lib.logger.manager import get_logger
 from sugar.lib.loader.util import guard
 from sugar.utils.objects import Singleton
 
+# pylint: disable=W0212
 
 @Singleton
 class ModuleMap:
@@ -20,19 +21,20 @@ class ModuleMap:
     def __init__(self):
         self._uri_map = {}
 
-    def map(self, id) -> dict:
+    def map(self, obj_id) -> dict:
         """
         URI map
 
+        :param obj_id: object id of the loader to create its own realm for it.
         :return: dict of the uri map
         """
         try:
-            _map = self._uri_map[id]
+            _map = self._uri_map[obj_id]
         except KeyError:
             _map = None
-            self._uri_map.setdefault(id, {})
+            self._uri_map.setdefault(obj_id, {})
 
-        return _map or self._uri_map[id]
+        return _map or self._uri_map[obj_id]
 
     @property
     def build(self) -> bool:
@@ -64,10 +66,11 @@ class BaseModuleLoader(abc.ABC):
             self._modmap = ModuleMap()
             self._build_uri_map()
 
-    def map(self):
+    def map(self) -> dict:
         """
         Get map for the particular instance
-        :return:
+
+        :return: dict
         """
         return self._modmap.map(getattr(self._entrymod, "__name__", self._entrymod))
 
@@ -108,7 +111,7 @@ class BaseModuleLoader(abc.ABC):
         # This required only in state modules
         runner_loader = self.__dict__.get("_runner_loader")
         if runner_loader is not None:
-            obj._runner_loader = runner_loader
+            obj._runner_loader = runner_loader  # pylint:disable=W0201
 
         return obj
 

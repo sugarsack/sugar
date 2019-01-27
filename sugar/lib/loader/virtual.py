@@ -20,7 +20,7 @@ class VirtualModuleLoader(BaseModuleLoader):
 
         :return:
         """
-        for w_pth, w_dirs, w_files in os.walk(self.root_path):
+        for w_pth, w_dirs, w_files in os.walk(self.root_path):  # pylint:disable=W0612
             if "_impl" in w_dirs:
                 uri = self._get_module_uri(w_pth)
                 self.map()[uri] = None
@@ -39,7 +39,7 @@ class VirtualModuleLoader(BaseModuleLoader):
         ifaces_cnt = 0
 
         for c_name, c_obj in importlib.import_module(".".join([mod.__name__, "interface"])).__dict__.items():
-            if isinstance(c_obj, abc.ABC) or isinstance(c_obj, abc.ABCMeta):
+            if isinstance(c_obj, (abc.ABC, abc.ABCMeta)):
                 ifaces_cnt += 1
                 ifce = c_obj
 
@@ -69,8 +69,10 @@ class VirtualModuleLoader(BaseModuleLoader):
         """
         Import module with the given function.
 
-        :param uri:
-        :return:
+        :param uri: URI of the function (or None)
+        :raises SugarLoaderException: if task was not found,
+                                      access denied to the function or function was not found
+        :return: function
         """
         post_call = not bool(uri)
         uri = uri or ".".join(self._traverse_access_uri())

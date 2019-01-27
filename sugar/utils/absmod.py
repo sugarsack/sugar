@@ -99,6 +99,8 @@ class BaseModule:
     def modules(self):
         """
         Modules loader.
+
+        :returns VirtualModuleLoader
         """
         return self.__modules
 
@@ -111,6 +113,8 @@ class BaseModule:
     def traits(self):
         """
         Traits map.
+
+        :returns traits data
         """
         return self.__traits
 
@@ -119,11 +123,13 @@ class BaseRunnerModule(BaseModule):
     """
     Common class for runner modules.
     """
+
     @staticmethod
     def new_result():
         """
         Create a new action status
-        :return:
+
+        :return: action result object
         """
         return ActionResult()
 
@@ -133,7 +139,8 @@ class BaseStateModule(BaseModule):
     Common class for state modules.
     """
 
-    def to_return(self, **data):
+    @staticmethod
+    def to_return(**data):
         """
         Format data for changes.
 
@@ -146,7 +153,9 @@ class BaseStateModule(BaseModule):
         warnings:
           List of warnings
 
-        :return:
+        :param data: data of the returning container
+        :raises SugarRuntimeException: if arguments has been missing found from the result object
+        :return: Sugar return structure
         """
         missing = []
         for arg in ["changes", "comment", "warnings", "result"]:

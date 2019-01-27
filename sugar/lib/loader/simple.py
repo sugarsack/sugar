@@ -22,10 +22,10 @@ class SimpleModuleLoader(BaseModuleLoader):
     def _build_uri_map(self) -> None:
         """
         Build URI map.
-m
+
         :return:
         """
-        for w_pth, w_dirs, w_files in os.walk(self.root_path):
+        for w_pth, w_dirs, w_files in os.walk(self.root_path):  # pylint:disable=W0612
             if all([fname in w_files for fname in ["doc.yaml", "examples.yaml", "__init__.py"]]):
                 uri = self._get_module_uri(w_pth)
                 self.map()[uri] = None
@@ -34,8 +34,9 @@ m
         """
         Import module with the given function.
 
-        :param uri:
-        :return:
+        :param uri: URI of the function (or None)
+        :raises SugarLoaderException: if task was not found
+        :return: function call
         """
         call = not bool(uri)
         uri = uri or ".".join(self._traverse_access_uri())

@@ -11,9 +11,7 @@ def guard(func):
     """
     Guard call.
 
-    :param func: method or function to be
-    guarded by the result object.
-
+    :param func: method or function to be guarded by the result object.
     :return: wrapper function
     """
     def caller(*args, **kwargs):
