@@ -1,0 +1,9 @@
+system.ping:
+  description:
+    - Examples of using this module in state.
+
+  states: >-
+    my_test:
+      system.test:
+        - pinged:
+
