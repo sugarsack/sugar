@@ -32,6 +32,7 @@ class SimpleModuleLoader(BaseModuleLoader):
         :param uri:
         :return:
         """
+        call = not bool(uri)
         uri = uri or ".".join(self._traverse_access_uri())
         mod, func = uri.rsplit(".", 1)
         if mod not in self.modmap.map:
@@ -44,5 +45,6 @@ class SimpleModuleLoader(BaseModuleLoader):
                                      "Module '{}' should export it as '__init__'".format(mod))
             self.modmap.map[mod] = cls()
         assert func in self.modmap.map[mod].__class__.__dict__, "Function '{}' not found in module '{}'".format(func, mod)
+        func = getattr(self.modmap.map[mod], func)
 
-        return getattr(self.modmap.map[mod], func)
+        return func(*args, **kwargs) if call else func
