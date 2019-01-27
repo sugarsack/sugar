@@ -9,20 +9,23 @@ Key features:
 
 import sugar.modules.runners
 import sugar.modules.states
-import sugar.utils.absmod
 
 from sugar.lib.loader.simple import SimpleModuleLoader
 from sugar.lib.loader.virtual import VirtualModuleLoader
 from sugar.lib.loader.custom import CustomModuleLoader
+from sugar.lib.logger.manager import get_logger
+from sugar.utils.objects import Singleton
 
 
+@Singleton
 class SugarModuleLoader:
     """
     Sugar module loader.
     """
     def __init__(self, *paths):
-        self.runners = VirtualModuleLoader(sugar.modules.runners, filter_type=sugar.utils.absmod.BaseRunnerModule)
-        self.states = SimpleModuleLoader(sugar.modules.states, filter_type=sugar.utils.absmod.BaseStateModule)
+        self.log = get_logger(self)
+        self.runners = VirtualModuleLoader(entrymod=sugar.modules.runners)
+        self.states = SimpleModuleLoader(entrymod=sugar.modules.states, runner_loader=self.runners)
         self.custom = CustomModuleLoader(*paths)
 
     def preload(self, *uri) -> None:
@@ -32,3 +35,11 @@ class SugarModuleLoader:
         :param uri: list of uri to be permanently pre-loaded.
         :return: None
         """
+        for _uri in uri:
+            for loader in [self.runners, self.states, self.custom]:
+                try:
+                    loader["{}._".format(_uri)]
+                except KeyError:
+                    pass
+                except Exception as ex:
+                   self.log.error("Unhandled exception raised while pre-loading module '{}'", _uri)
