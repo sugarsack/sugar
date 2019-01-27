@@ -15,19 +15,24 @@ class TestSugarModuleLoader:
         :return:
         """
         sml = SugarModuleLoader()
-        out = sml.runners.system.test.ping()
-        assert isinstance(out, dict)
-        assert "text" in out
-        assert out["text"] == "pong"
 
-        out = sml.runners.system.test.ping(text="Hello, world!")
-        assert isinstance(out, dict)
-        assert "text" in out
-        assert out["text"] == "Hello, world!"
+        for out in [sml.runners.system.test.ping(),
+                    sml.runners["system.test.ping"]()]:
+            assert isinstance(out, dict)
+            assert "text" in out
+            assert out["text"] == "pong"
 
-        out = sml.states.system.test.pinged(None)
-        for section in ["changes", "result", "comment"]:
-            assert section in out
-        assert out["comment"] == "Success"
-        assert "text" in out["result"]
-        assert out == sml.states["system.test.pinged"](None)
+        text = "Darth Wader"
+        for out in [sml.runners.system.test.ping(text=text),
+                    sml.runners["system.test.ping"](text=text)]:
+            assert isinstance(out, dict)
+            assert "text" in out
+            assert out["text"] == text
+
+        for out in [sml.states.system.test.pinged(None),
+                    sml.states["system.test.pinged"](None)]:
+            for section in ["changes", "result", "comment"]:
+                assert section in out
+            assert out["comment"] == "Success"
+            assert "text" in out["result"]
+            assert out == sml.states["system.test.pinged"](None)
