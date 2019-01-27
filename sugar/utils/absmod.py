@@ -148,12 +148,14 @@ class BaseStateModule(BaseModule):
         :return:
         """
         missing = []
-        for arg in ["changes", "comment", "warnings"]:
+        for arg in ["changes", "comment", "warnings", "result"]:
             if arg not in data:
                 if arg == "warnings":
                     data.setdefault(arg, [])
                 elif arg == "comment":
                     data.setdefault(arg, "Success")
+                elif arg == "changes":
+                    data.setdefault(arg, {})
                 else:
                     missing.append(arg)
 
