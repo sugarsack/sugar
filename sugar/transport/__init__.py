@@ -382,7 +382,6 @@ class StateModulesMsgFactory(_MessageFactory):
         return obj
 
 
-
 def any_binary(data):
     """
     Parse any known binary messages, detect where

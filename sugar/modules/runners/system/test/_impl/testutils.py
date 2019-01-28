@@ -14,6 +14,7 @@ class SysTestModule(SysTestInterface):
         """
         Return a text back to the system on ping.
 
+        :param text: text for the ping
         :returns: string text
         """
         result = self.new_result()
