@@ -13,6 +13,7 @@ from sugar.utils.objects import Singleton
 
 # pylint: disable=W0212
 
+
 @Singleton
 class ModuleMap:
     """
