@@ -100,6 +100,7 @@ class VirtualModuleLoader(BaseModuleLoader):
             result = _func_or_data(*args, **kwargs)
             cls.scheme[func].validate(result)
         else:
+
             def defer_to_call(*args, **kwargs):
                 """
                 Defer bound method for a post-call for validation.

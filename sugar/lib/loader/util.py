@@ -51,7 +51,7 @@ class RunnerDataValidator:
         """
         Classname of the scheme.
 
-        :return:
+        :return: Name of the class
         """
         return self.__for_class
 
