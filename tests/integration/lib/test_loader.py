@@ -99,7 +99,23 @@ class TestSugarModuleLoader:
         """
         Virtual module should have self.modules and refer to other siblings.
 
-        :return:
+        :return: None
         """
         # TODO: this require any other module, which we do not have yet.
         sys.stdout.write("**>>> POSTPONED TEST <<** ")  # Remove this mark after test implemented
+
+    def test_method_validation(self, loader_class):
+        """
+        Validate system.test.ping against its scheme.
+
+        :param loader_class:
+        :return: None
+        """
+        sml = loader_class()
+        ref_out = sml.runners.system.test.ping()
+        uri_out = sml.runners["system.test.ping"]()
+
+        # Get a scheme for the "system.test.ping" function
+        scheme = sml.runners.map()["system.test"].scheme["ping"]
+        for out in [ref_out, uri_out]:
+            assert scheme.validate(out) == {"text": "pong"}
