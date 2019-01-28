@@ -8,6 +8,7 @@ import importlib
 
 import sugar.lib.exceptions
 from sugar.lib.loader.base import BaseModuleLoader
+from sugar.lib.loader.util import RunnerDataValidator
 
 
 class VirtualModuleLoader(BaseModuleLoader):
@@ -45,6 +46,7 @@ class VirtualModuleLoader(BaseModuleLoader):
 
         assert ifaces_cnt == 1, "Only one interface per module allowed. Found {}.".format(ifaces_cnt)
 
+        rdv_obj = RunnerDataValidator(mod)
         impl = importlib.import_module(".".join([mod.__name__, "_impl"]))
         for implmod in os.listdir(os.path.dirname(impl.__file__)):
             implmod = implmod.split(".")[0]
@@ -63,6 +65,7 @@ class VirtualModuleLoader(BaseModuleLoader):
 
         assert cls is not None, "No valid implementations has been found"
 
+        cls.scheme = rdv_obj.scheme
         return ifce, cls
 
     def _get_function(self, uri, *args, **kwargs):
@@ -91,6 +94,23 @@ class VirtualModuleLoader(BaseModuleLoader):
             else:
                 raise sugar.lib.exceptions.SugarLoaderException(
                     "Function '{}' not found in module '{}'".format(func, mod))
-        func = getattr(cls, func)
+        _func_or_data = getattr(cls, func)
 
-        return func(*args, **kwargs) if post_call else func
+        if post_call:
+            result = _func_or_data(*args, **kwargs)
+            cls.scheme[func].validate(result)
+        else:
+            def defer_to_call(*args, **kwargs):
+                """
+                Defer bound method for a post-call for validation.
+
+                :param args: generic arguments
+                :param kwargs: generic keywords
+                :return: generic object
+                """
+                data = _func_or_data(*args, **kwargs)
+                cls.scheme[func].validate(data)
+                return data
+            result = defer_to_call
+
+        return result
