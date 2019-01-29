@@ -59,7 +59,7 @@ $ sugar-mkmod -n system.name -t runner
 ```
 
 The command above means that we've just created a module `name` in the
-namespace `system`. So it will be accesible something like this:
+namespace `system`. So it will be accessible something like this:
 
 ```
 $ sugar <host_name> system.name.<func_name>
@@ -78,7 +78,7 @@ The path above will be different in your case. The end of it is more important:
 ```
 
 Well, you've just created a fully functional module for Sugar, which is not
-just yet ready for you.
+just yet ready for what we want to achieve.
 
 ## Modify Your Scaffold Module
 
