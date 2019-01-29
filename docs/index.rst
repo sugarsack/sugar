@@ -22,27 +22,40 @@ About
 -----
 
 .. toctree::
+   :caption: About
    :maxdepth: 2
 
    about_sugar
    roadmap
 
 
-Developing
-----------
+Tutorials
+---------
 
 .. toctree::
+   :caption: Tutorials
+   :maxdepth: 2
+
+   tutor_runner_module
+   yaml_crashcourse
+
+
+Develop
+-------
+
+.. toctree::
+   :caption: Develop
    :maxdepth: 2
 
    hacking
    plugins_design
-   yaml_crashcourse
 
 
-Contributing
-------------
+How To Contribute
+-----------------
 
 .. toctree::
+   :caption: How To Contribute
    :maxdepth: 2
 
    contributing
