@@ -89,11 +89,20 @@ class ActionResult(dict):
 
 class BaseModule:
     """
-    Base module
+    Base module.
     """
     def __init__(self):
         self.__traits = Traits()
         self.__modules = None  # virtual module lazy loader is injected on module load
+        self.__validate__()
+
+    def __validate__(self):
+        """
+        Validate this module. Override this method
+        and raise an exception if the module is not valid.
+
+        :returns None
+        """
 
     @property
     def modules(self):
