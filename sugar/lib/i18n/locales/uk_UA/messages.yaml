@@ -52,7 +52,76 @@ show this help message and exit:
   \ from a remote Sugar Master\n    keys       Used to manage Sugar authentication\
   \ keys\n    local      Local orchestration"
 : none: "sugar [<target>] [<component>] [<args>]\n\n'Target' є іменем або шаблоном\
-    \ у стилі Unix shell\nсимвола узагальнення що відповідає іменам клієнтів.\n\nДоступні компоненти:\n\
-    \n     master   Використовується для контрою Sugar Client'ів\n     client   Отримує команди\
-    \ з віддаленого Sugar Master'а\n       keys   Управління ключами Sugar аутентифікацією\
-    \ \n      local   Локальне оркестрування"
+    \ у стилі Unix shell\nсимвола узагальнення що відповідає іменам клієнтів.\n\n\
+    Доступні компоненти:\n\n     master   Використовується для контрою Sugar Client'ів\n\
+    \     client   Отримує команди з віддаленого Sugar Master'а\n       keys   Управління\
+    \ ключами Sugar аутентифікацією \n      local   Локальне оркестрування"
+validation:
+  none: Валідація
+information:
+  none: Інформація
+warnings:
+  none: Застороги
+errors:
+  none: Помилки
+Validating '{}' module:
+  none: Провірка '{}' модуля
+'  ...get meta ({})':
+  none: '  ...отримання мета-даних ({})'
+'  ...get interface':
+  none: '  ...отримання інтерфейсу'
+'  ...get implementations ({})':
+  none: '  ...отримання виконавчого коду ({})'
+Verifying scheme:
+  none: Провірка схеми
+'  (unsupported yet)':
+  none: '  (не підтримується)'
+Verifying documentation:
+  none: Провірка документації
+Verifying examples:
+  none: Провірка прикладів
+Done verification.:
+  none: Провірку завершено.
+? 'Not so good: implicit arguments (varargs) are discouraged. Consider explicitly
+  defining your parameters instead, or make few more methods.'
+: none: Не найкраще рішення, адже неявні арґументи (varargs) не рекомендовані. Краще
+    обявити їх явно або-ж розділити функцію на окремі методи.
+? 'Not so good: implicit keyword arguments are discouraged. Consider explicitly defining
+  your keyword parameters or split to more methods.'
+: none: Не найкраще рішення, адже неявні ключові арґументи (keyword arguments) не
+    рекомендовані. Краще було-б обявити їх явно, або розділити функцію на окремі методи.
+Function '{}::{}::{}' has different usage parameter names ({}) than the interface ({}).:
+  none: Ф-ція '{}::{}::{}' має різні назви параметрів виконання ({}) аніж інтерфейс
+    ({}).
+Documentation of the {} module '{}' should explain what parameter '{}' in function '{}' is for.:
+  none: Документація {} модуля '{}' повинна пояснити навіщо параметр '{}' знаходиться
+    у ф-ції '{}'.
+Argument '{}' of the function '{}' in the {} module '{}' should be documented as optional.:
+  none: Арґумент '{}' ф-ції '{}' у {} модулі '{}' повинен бути описаний необов'язковим
+Function '{}' is not documented in {} module:
+  none: Ф-ція '{}' у модулі {} не описана
+Documentation of the {} module '{}' has no parameters section:
+  none: Опис {} модуля '{}' не містить розділу "parameters".
+Argument '{}' of the function '{}' in the {} module '{}' should be documented as required.:
+  none: Арґумент '{}' ф-ції '{}' у {} модулі '{}' повинен бути описаний обов'язковим.
+Example does not contain usage of function '{}'.:
+  none: Наведений приклад не містить опису використання ф-ції '{}'.
+Function '{}::{}::{}' is not implemented.:
+  none: Ф-цію '{}::{}::{}' не створено.
+? '
+
+  Please fix these issues.'
+: none: '
+
+    Будь-ласка підчистіть все це... :-)'
+'  (не підтримується)':
+  none: '  (не підтримується)'
+Ф-ція '{}::{}::{}' має різні назви параметрів виконання ({}) аніж інтерфейс ({}).:
+  none: Ф-ція '{}::{}::{}' має різні назви параметрів виконання ({}) аніж інтерфейс
+    ({}).
+? '
+
+  Будь-ласка підчистіть все це... :-)'
+: none: '
+
+    Будь-ласка підчистіть все це... :-)'
