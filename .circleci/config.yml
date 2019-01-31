@@ -58,6 +58,14 @@ jobs:
             pytest -vv tests/unit/
 
       - run:
+          name: Module validation
+          environment:
+            TERM: xterm-256color
+          command: |
+            . venv/bin/activate
+            sugar-valmod -t runner -a
+
+      - run:
           name: Test Coverage Report (info only)
           environment:
             TERM: xterm-256color
