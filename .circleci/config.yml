@@ -63,7 +63,8 @@ jobs:
             TERM: xterm-256color
           command: |
             . venv/bin/activate
-            sugar-valmod -t runner -a
+            pip install https://github.com/sugarsack/sugar-sdk/archive/0.0.7.tar.gz
+            PYTHONPATH="./sugar:$PYTHONPATH" sugar-valmod -t runner -a
 
       - run:
           name: Test Coverage Report (info only)
