@@ -9,18 +9,20 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+      #- restore_cache:
+      #    keys:
+      #    - v1-dependencies-{{ checksum "requirements.txt" }}
+      #    # fallback to using the latest cache if no exact match is found
+      #    - v1-dependencies-
 
       - run:
           name: Install Dependencies
           command: |
             python3 -m venv venv
             . venv/bin/activate
+            pip install --upgrade pip
             pip install -r requirements.txt
+            pip install https://github.com/sugarsack/sugar-sdk/archive/0.0.7.tar.gz
 
       - save_cache:
           paths:
@@ -33,7 +35,7 @@ jobs:
             TERM: xterm-256color
           command: |
             . venv/bin/activate
-            ./dev/py-lint --disable=R0401 sugar/
+            sugar-lint --disable=R0401 sugar/
 
       - run:
           name: PEP8 code style checks
@@ -41,7 +43,7 @@ jobs:
             TERM: xterm-256color
           command: |
             . venv/bin/activate
-            ./dev/py-flake
+            sugar-flake
 
       - run:
           name: Integration Tests
@@ -57,13 +59,13 @@ jobs:
             . venv/bin/activate
             pytest -vv tests/unit/
 
-      #- run:
-      #    name: Module validation
-      #    environment:
-      #      TERM: xterm-256color
-      #    command: |
-      #      . venv/bin/activate
-      #      sugar-valmod -t runner -a
+      - run:
+          name: Module validation
+          environment:
+            TERM: xterm-256color
+          command: |
+            . venv/bin/activate
+            PYTHONPATH="./sugar:$PYTHONPATH" sugar-valmod -t runner -a
 
       - run:
           name: Test Coverage Report (info only)
