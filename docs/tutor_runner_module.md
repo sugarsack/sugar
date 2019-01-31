@@ -356,6 +356,56 @@ We deliberately removed `description` as it is an optional field that describes
 the function use. We also do not use `states` as this modules does not have state
 module equivalent that would reuse it.
 
+## Verify Integrity
+
+Sugar SDK from version 0.0.7 contains `sugar-valmod` utility. It is invoked
+by the following command:
+
+```text
+$ sugar-valmod --help
+usage: sugar-valmod [-h] [-t {runner,state}] [-n NAME] [-a]
+
+Sugar Module Validator, 0.0.1 Alpha
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t {runner,state}, --type {runner,state}
+                        Type of the module.
+  -n NAME, --name NAME  Name of the module with the namespace. Example:
+                        'foo.bar.mymodule'.
+  -a, --all             Validate all modules (runners and state).
+```
+
+To verify our new runner module, issue this:
+
+```text
+$ sugar-valmod -n system.name -t runner
+```
+
+There should be the following output (might be different if the SDK version is other):
+
+```text
+ validation  >>>
+
+Validating 'system.name' module
+=======================================================================================================================================
+  ...get meta (scheme, doc, example)
+  ...get interface
+  ...get implementations (1)
+Verifying scheme
+  (unsupported yet)
+Verifying documentation
+Verifying examples
+Done verification.
+
+  All seems to be OK!
+
+```
+
+In case documentation does not reflect how the interface looks like, or examples
+aren't finished etc, this will give you a list of errors and warnings that you
+should fix accordingly.
+
 ## Summary
 
 Let's look back and see what we've already achieved with these very simple steps:
