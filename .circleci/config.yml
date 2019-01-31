@@ -33,7 +33,7 @@ jobs:
             TERM: xterm-256color
           command: |
             . venv/bin/activate
-            ./dev/py-lint --disable=R0401 sugar/
+            sugar-lint --disable=R0401 sugar/
 
       - run:
           name: PEP8 code style checks
@@ -41,7 +41,7 @@ jobs:
             TERM: xterm-256color
           command: |
             . venv/bin/activate
-            ./dev/py-flake
+            sugar-flake
 
       - run:
           name: Integration Tests
@@ -57,13 +57,13 @@ jobs:
             . venv/bin/activate
             pytest -vv tests/unit/
 
-      #- run:
-      #    name: Module validation
-      #    environment:
-      #      TERM: xterm-256color
-      #    command: |
-      #      . venv/bin/activate
-      #      sugar-valmod -t runner -a
+      - run:
+          name: Module validation
+          environment:
+            TERM: xterm-256color
+          command: |
+            . venv/bin/activate
+            sugar-valmod -t runner -a
 
       - run:
           name: Test Coverage Report (info only)
