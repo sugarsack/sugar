@@ -1,0 +1,15 @@
+module:
+  name: system.test
+  author: Bo Maryniuk <bo@maryniuk.net>
+  summary: Testing utilities
+  synopsis: >
+    System testing utilities for client health/heartbit: ping etc.
+  since_version: 0.0.0
+
+tasks:
+  ping:
+    description:
+      - This state is merely informative and returns a text "`pong from <hostname>`" as Success, if pong succeeded.
+      - Used to verify if client responds back to the master calls.
+    returns:
+      text: str

@@ -1,0 +1,22 @@
+module:
+  name: system.test
+  author: Bo Maryniuk <bo@maryniuk.net>
+  summary: Testing utilities
+  synopsis: >
+    System testing utilities for client health/heartbit: ping etc.
+  since_version: 0.0.0
+
+tasks:
+  ping:
+    description:
+      - This function returns a text "pong" or anything else if specified.
+      - Used to verify if client responds back to the master calls.
+    parameters:
+      text:
+        description:
+          - Specify alternative text to be returned by the `ping` function.
+        required: false
+        default: "pong"
+        type: str
+    returns:
+      text: str

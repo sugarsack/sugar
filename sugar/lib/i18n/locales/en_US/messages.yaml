@@ -62,3 +62,63 @@ show this help message and exit:
     \n    master     Used to control Sugar Clients\n    client     Receives commands\
     \ from a remote Sugar Master\n    keys       Used to manage Sugar authentication\
     \ keys\n    local      Local orchestration"
+validation:
+  none: validation
+information:
+  none: information
+warnings:
+  none: warnings
+errors:
+  none: errors
+Validating '{}' module:
+  none: Validating '{}' module
+'  ...get meta ({})':
+  none: '  ...get meta ({})'
+'  ...get interface':
+  none: '  ...get interface'
+'  ...get implementations ({})':
+  none: '  ...get implementations ({})'
+Verifying scheme:
+  none: Verifying scheme
+'  (unsupported yet)':
+  none: '  (unsupported yet)'
+Verifying documentation:
+  none: Verifying documentation
+Verifying examples:
+  none: Verifying examples
+Done verification.:
+  none: Done verification.
+? 'Not so good: implicit arguments (varargs) are discouraged. Consider explicitly
+  defining your parameters instead, or make few more methods.'
+: none: 'Not so good: implicit arguments (varargs) are discouraged. Consider explicitly
+    defining your parameters instead, or make few more methods.'
+? 'Not so good: implicit keyword arguments are discouraged. Consider explicitly defining
+  your keyword parameters or split to more methods.'
+: none: 'Not so good: implicit keyword arguments are discouraged. Consider explicitly
+    defining your keyword parameters or split to more methods.'
+Function '{}::{}::{}' has different usage parameter names ({}) than the interface ({}).:
+  none: Function '{}::{}::{}' has different usage parameter names ({}) than the interface
+    ({}).
+Documentation of the {} module '{}' should explain what parameter '{}' in function '{}' is for.:
+  none: Documentation of the {} module '{}' should explain what parameter '{}' in
+    function '{}' is for.
+Argument '{}' of the function '{}' in the {} module '{}' should be documented as optional.:
+  none: Argument '{}' of the function '{}' in the {} module '{}' should be documented
+    as optional.
+Function '{}' is not documented in {} module:
+  none: Function '{}' is not documented in {} module
+Documentation of the {} module '{}' has no parameters section:
+  none: Documentation of the {} module '{}' has no parameters section
+Argument '{}' of the function '{}' in the {} module '{}' should be documented as required.:
+  none: Argument '{}' of the function '{}' in the {} module '{}' should be documented
+    as required.
+Example does not contain usage of function '{}'.:
+  none: Example does not contain usage of function '{}'.
+Function '{}::{}::{}' is not implemented.:
+  none: Function '{}::{}::{}' is not implemented.
+? '
+
+  Please fix these issues.'
+: none: '
+
+    Please fix these issues.'

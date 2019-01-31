@@ -1,57 +1,57 @@
-'   No keys':
-  none: '   No keys'
-Accepted:
-  none: Accepted
-Action on known keys:
-  none: Action on known keys
-Alternative to default configuration directory:
-  none: Alternative to default configuration directory
-Component to run:
-  none: Component to run
-Denied:
-  none: Denied
+'Set destination of the logging. Default: as configured':
+  none: 'Set destination of the logging. Default: as configured'
 'Format of the listing. Default: short':
   none: 'Format of the listing. Default: short'
 List By Fingerprint:
   none: List By Fingerprint
-List By Host Name:
-  none: List By Host Name
 'List only with the following status. Default: all':
   none: 'List only with the following status. Default: all'
-New:
-  none: New
-Query:
-  none: Query
-Rejected:
-  none: Rejected
-'Set destination of the logging. Default: as configured':
-  none: 'Set destination of the logging. Default: as configured'
-'Set output log level. Default: info':
-  none: 'Set output log level. Default: info'
-Specify hostname of the key:
-  none: Specify hostname of the key
-Specify key fingerprint of the key:
-  none: Specify key fingerprint of the key
-Specify machine ID of the key:
-  none: Specify machine ID of the key
-Sugar Client, receives commands from a remote Sugar Master:
-  none: Sugar Client, receives commands from a remote Sugar Master
-Sugar Console, sends commants to a remote Sugar Master:
-  none: Sugar Console, sends commants to a remote Sugar Master
-Sugar Keys Manager, manages authentication keys:
-  none: Sugar Keys Manager, manages authentication keys
-Sugar Master, used to control Sugar Clients:
-  none: Sugar Master, used to control Sugar Clients
 ? Sugar allows for commands to be executed across a space of remote systems in parallel,
   so they can be both controlled and queried with ease.
 : none: Sugar allows for commands to be executed across a space of remote systems
     in parallel, so they can be both controlled and queried with ease.
+Rejected:
+  none: Rejected
+Sugar Console, sends commants to a remote Sugar Master:
+  none: Sugar Console, sends commants to a remote Sugar Master
+Sugar Keys Manager, manages authentication keys:
+  none: Sugar Keys Manager, manages authentication keys
+New:
+  none: New
+List By Host Name:
+  none: List By Host Name
+'   No keys':
+  none: '   No keys'
+Specify key fingerprint of the key:
+  none: Specify key fingerprint of the key
+Action on known keys:
+  none: Action on known keys
+Alternative to default configuration directory:
+  none: Alternative to default configuration directory
+'Set output log level. Default: info':
+  none: 'Set output log level. Default: info'
+Denied:
+  none: Denied
+Specify machine ID of the key:
+  none: Specify machine ID of the key
+'  - {}... (*{}*)':
+  none: '  - {}... (*{}*)'
+Query:
+  none: Query
+Component to run:
+  none: Component to run
 Take all keys for acceptance/rejection/deletion:
   none: Take all keys for acceptance/rejection/deletion
-Take all keys or acceptance/rejection/deletion:
-  none: Take all keys or acceptance/rejection/deletion
+Sugar Client, receives commands from a remote Sugar Master:
+  none: Sugar Client, receives commands from a remote Sugar Master
+Specify hostname of the key:
+  none: Specify hostname of the key
 show this help message and exit:
   none: show this help message and exit
+Sugar Master, used to control Sugar Clients:
+  none: Sugar Master, used to control Sugar Clients
+Accepted:
+  none: Accepted
 ? "sugar [<target>] [<component>] [<args>]\n\nTarget is a name or a pattern in Unix\
   \ shell-style\nwildcard that matches client names.\n\nAvailable components:\n\n\
   \    master     Used to control Sugar Clients\n    client     Receives commands\
@@ -62,3 +62,82 @@ show this help message and exit:
     \n    master     Used to control Sugar Clients\n    client     Receives commands\
     \ from a remote Sugar Master\n    keys       Used to manage Sugar authentication\
     \ keys\n    local      Local orchestration"
+Take all keys or acceptance/rejection/deletion:
+  none: Take all keys or acceptance/rejection/deletion
+'*{} {} key{}* ({}):':
+  none: '*{} {} key{}* ({}):'
+'*No keys* is matching your criteria.':
+  none: '*No keys* is matching your criteria.'
+validation:
+  none: validation
+information:
+  none: information
+warnings:
+  none: warnings
+errors:
+  none: errors
+Validating '{}' module:
+  none: Validating '{}' module
+'  ...get meta ({})':
+  none: '  ...get meta ({})'
+'  ...get interface':
+  none: '  ...get interface'
+'  ...get implementations ({})':
+  none: '  ...get implementations ({})'
+Verifying scheme:
+  none: Verifying scheme
+'  (unsupported yet)':
+  none: '  (unsupported yet)'
+Verifying documentation:
+  none: Verifying documentation
+Verifying examples:
+  none: Verifying examples
+Done verification.:
+  none: Done verification.
+? 'Not so good: implicit arguments (varargs) are discouraged. Consider explicitly
+  defining your parameters instead, or make few more methods.'
+: none: 'Not so good: implicit arguments (varargs) are discouraged. Consider explicitly
+    defining your parameters instead, or make few more methods.'
+? 'Not so good: implicit keyword arguments are discouraged. Consider explicitly defining
+  your keyword parameters or split to more methods.'
+: none: 'Not so good: implicit keyword arguments are discouraged. Consider explicitly
+    defining your keyword parameters or split to more methods.'
+Function '{}::{}::{}' has different usage parameter names ({}) than the interface ({}).:
+  none: Function '{}::{}::{}' has different usage parameter names ({}) than the interface
+    ({}).
+Documentation of the {} module '{}' should explain what parameter '{}' in function '{}' is for.:
+  none: Documentation of the {} module '{}' should explain what parameter '{}' in
+    function '{}' is for.
+Argument '{}' of the function '{}' in the {} module '{}' should be documented as optional.:
+  none: Argument '{}' of the function '{}' in the {} module '{}' should be documented
+    as optional.
+Function '{}' is not documented in {} module:
+  none: Function '{}' is not documented in {} module
+Documentation of the {} module '{}' has no parameters section:
+  none: Documentation of the {} module '{}' has no parameters section
+Argument '{}' of the function '{}' in the {} module '{}' should be documented as required.:
+  none: Argument '{}' of the function '{}' in the {} module '{}' should be documented
+    as required.
+Example does not contain usage of function '{}'.:
+  none: Example does not contain usage of function '{}'.
+Function '{}::{}::{}' is not implemented.:
+  none: Function '{}::{}::{}' is not implemented.
+? '
+
+  Please fix these issues.'
+: none: '
+
+    Please fix these issues.'
+Don't know what/how to validate for you...:
+  none: Don't know what/how to validate for you...
+Validation of {} is not yet implemented:
+  none: Validation of {} is not yet implemented
+? '  All seems to be OK!
+
+  '
+: none: '  All seems to be OK!
+
+    '
+Documentation in '{}' {} module contains superfluous data. The interface has less methods than the documentation describes:
+  none: Documentation in '{}' {} module contains superfluous data. The interface has
+    less methods than the documentation describes

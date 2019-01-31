@@ -5,28 +5,28 @@ As the project is in very early stage, there is not very much what to
 see yet. To keep you updated (or busy), there is a Roadmap of what is
 going to be done (and/or needs to be done).
 
-This is the current status as of mid-January 2019:
+This is the current status as of January 29, 2019:
 
 +----------------------+--------+----------------+-------+---------------+
 | Topic                | Design | Implementation | Tests | Documentation |
 +======================+========+================+=======+===============+
-| Multi-master network | ideas  | -              | -     | -             |
+| Multi-master network | Done   | -              | -     | -             |
 +----------------------+--------+----------------+-------+---------------+
-| Results storage      | TBD    | -              | -     | -             |
+| Results storage      | -      | -              | -     | -             |
 +----------------------+--------+----------------+-------+---------------+
-| Plugins design       | Done   | Done           | -     | In progress   |
+| Plugins design       | Done   | Done           | -     | Partially     |
 +----------------------+--------+----------------+-------+---------------+
 | Data pipeline        | ideas  | -              | -     | -             |
 +----------------------+--------+----------------+-------+---------------+
-| Plugin loader        | TBD    | -              | -     | -             |
+| Plugin loader        | Done   | Done           | Done  | -             |
 +----------------------+--------+----------------+-------+---------------+
 | State compiler       | Done   | Done           | Done  | In progress   |
 +----------------------+--------+----------------+-------+---------------+
-| Private client data  | TBD    | -              | -     | -             |
+| Private client data  | -      | -              | -     | -             |
 +----------------------+--------+----------------+-------+---------------+
-| Sugar SSH            | TBD    | -              | -     | -             |
+| Sugar SSH            | -      | -              | -     | -             |
 +----------------------+--------+----------------+-------+---------------+
-| Sugar SDK            | Done   | Done           | -     | -             |
+| Sugar SDK            | Done   | Done/Updates   | -     | -             |
 +----------------------+--------+----------------+-------+---------------+
 
 Once all that above turns to "Done", there will be first release. Before

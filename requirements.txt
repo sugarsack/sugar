@@ -1,5 +1,7 @@
 service_identity
-#pycryptodome
+terminaltables
+sugarsack-sdk
+# pycryptodome
 observable
 pipupgrade
 pytest-cov
@@ -7,6 +9,7 @@ pyOpenSSL
 pycrypto
 autobahn
 rstcheck
+queuelib
 colored
 twisted
 pyyaml

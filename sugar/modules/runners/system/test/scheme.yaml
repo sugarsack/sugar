@@ -1,0 +1,3 @@
+SysTestInterface:
+  ping:
+    r:text: str
