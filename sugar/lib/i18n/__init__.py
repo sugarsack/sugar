@@ -5,8 +5,10 @@ i18n, based on Zope 2 ideas.
 from __future__ import absolute_import, unicode_literals
 import os
 import locale
-import yaml
+
 import sugar.utils.files
+
+from sugar.lib.compat import yaml
 from sugar.lib.logger.manager import get_logger
 from sugar.utils.objects import Singleton
 
