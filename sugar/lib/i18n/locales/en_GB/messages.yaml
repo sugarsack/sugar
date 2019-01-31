@@ -128,3 +128,16 @@ Function '{}::{}::{}' is not implemented.:
 : none: '
 
     Please fix these issues.'
+Don't know what/how to validate for you...:
+  none: Don't know what/how to validate for you...
+Validation of {} is not yet implemented:
+  none: Validation of {} is not yet implemented
+? '  All seems to be OK!
+
+  '
+: none: '  All seems to be OK!
+
+    '
+Documentation in '{}' {} module contains superfluous data. The interface has less methods than the documentation describes:
+  none: Documentation in '{}' {} module contains superfluous data. The interface has
+    less methods than the documentation describes
