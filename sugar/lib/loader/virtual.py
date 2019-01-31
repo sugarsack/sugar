@@ -64,8 +64,8 @@ class VirtualModuleLoader(BaseModuleLoader):
                     self.log.debug("Skipping '{}.{}': {}", implmod.__name__, c_name, ex)
 
         assert cls is not None, "No valid implementations has been found"
-        assert (ifce.__name__ == rdv_obj.classname,
-                "Data output scheme '{}' is not for the module interface '{}'".format(rdv_obj.classname, ifce.__name__))
+        assert ifce.__name__ == rdv_obj.classname, ("Data output scheme '{}' is not for the "
+                                                    "module interface '{}'".format(rdv_obj.classname, ifce.__name__))
         cls.scheme = rdv_obj.scheme
         return ifce, cls
 
