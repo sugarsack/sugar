@@ -50,9 +50,8 @@ General error: Type expected either to be 'runner' or 'state'.
 ```
 
 Well, OK. It asks you to select module for being "runner" or "state".
-We will leave out the implementation to the default, since our the only
-implementation version will be "linux". In this Tutorial we are creating
-**runner module**.
+We will leave out the "implementation" option as the default. 
+In this Tutorial we are creating **runner module**.
 
 ```
 $ sugar-mkmod -n system.name -t runner
@@ -82,12 +81,12 @@ just yet ready for what we want to achieve.
 
 ## Modify Your Scaffold Module
 
-Let's turn our module into a real deal. First let's see what we've got and
+Let's turn our module into the real deal. First let's see what we've got and
 how its structure looks like.
 
 ### Explore what we've got
 
-Navigate to the path you've just seen above and explore what do we have there:
+Navigate to the path you've just seen above and explore what we have got here:
 
 ```text
 -rw-rw-r-- 1 sugar cfgmgmt 611 Jan 29 19:35 doc.yaml
@@ -97,7 +96,7 @@ drwxrwxr-x 2 sugar cfgmgmt  39 Jan 29 19:35 _impl
 -rw-rw-r-- 1 sugar cfgmgmt 467 Jan 29 19:35 interface.py
 ```
 
-The implementation directory `_impl` probably contains also something:
+The implementation directory `_impl` contains the following:
 
 ```text
 -rw-rw-r-- 1 sugar cfgmgmt  15 Jan 29 19:35 __init__.py
@@ -144,8 +143,8 @@ If you forgot to implement at least one of the abstract methods in this interfac
 module _implementation_ will not load (others theoretically might go in, if they implement
 everything correctly).
 
-We also annotated the interface that it returns a dictionary, which is in Sugar case _always_
-true.
+We also annotated the interface that it returns a dictionary, which is _always_ in case
+for Sugar.
 
 ### Defining Output Schema
 
@@ -172,7 +171,7 @@ So every field with the prefix `r:` makes it required.
 ``` important:: Every time you use **"r:"** prefix for some field, it will make it **required**.
 ```
 
-Additionally to that, _sometimes_ might be returned `cpu` as well. This means that the
+Additionally to that, _sometimes_ sometimes might return `cpu` value as well. This means that the
 implementation is not _obligated_ to return the following:
 
 ```json
@@ -234,10 +233,10 @@ Let's just walk-through what is happening in the above class:
 
 ### What is the Result Object?
 
-Your module is calling `new_result` method to create an instance of a module result container.   
-Essentially, result container object is just a regular Python dictionary but on steroids. It
-has additionally properties for carry an additional metadata, gathered during the function
-execution behind the scenes.
+Your module is calling `new_result` method to create an instance of a module result 
+container. Essentially, result container object is just a regular Python dictionary but on 
+steroids. It has additionally properties for carry an additional metadata, gathered during 
+the function execution behind the scenes.
 
 When your method is executed, Sugar connects to the logger channel and duplicates all the logging
 data. When you return your result, this data is attached to it without modification of the
@@ -252,12 +251,12 @@ The master will use this information for further reporting and results storing.
 What if we want to add another implementation, say for SunOS? While in _this_ particular case
 it is not really needed, but for the exercise sake we will add another implementation then.
 
-In a nutshell, we will add another implementation to the `_impl` directory and then override
-`__validate__` method, which is called every time your module is imported and raise an
-exception there, in case our module implementatoin does not belong to the environment.
-The `__validate__` method is _also_ available in the interface class. It is perfectly can
-be left alone, as it is by default doing nothing. We could reuse this so we will write _less_
-code to do _more_ here.
+In a nutshell, we should be able to add another implementation of the module for SunOS.
+To do that, we create a file in the `_impl` directory with pretty much the same content as
+for Linux platform. And then we override `__validate__` method, which would be called every
+time your module is imported and raise an exception there. Since the `__validate__` method
+is _also_ available in the interface class, we will use this to call it for all our platform-specific
+version of our module. We could reuse this so we will write _less_ code to do _more_ here.
 
 OK, let's just do this. 
 
@@ -301,10 +300,9 @@ class NameInterface(abc.ABC, BaseRunnerModule):
 This is it!
 
 What will happen now? Sugar will load each module implementation one after another. Every time
-it will trigger `__validate__` method. Since none of your implementation classes implements it,
-the very first in the interface will be triggered. However, the `__platform__` attribute will
-be set either to `Linux` or `Solaris` in other implementation. And then assertion will happen
-if the current implementation is not for the current platform!
+it will trigger `__validate__` method. The `__platform__` attribute will be set either to `Linux`
+or `Solaris` in other implementation. And then assertion will happen if the current implementation
+is not for the current platform.
 
 Easy, isn't it?
 
