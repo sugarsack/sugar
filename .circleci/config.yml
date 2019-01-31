@@ -9,18 +9,20 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+      #- restore_cache:
+      #    keys:
+      #    - v1-dependencies-{{ checksum "requirements.txt" }}
+      #    # fallback to using the latest cache if no exact match is found
+      #    - v1-dependencies-
 
       - run:
           name: Install Dependencies
           command: |
             python3 -m venv venv
             . venv/bin/activate
+            pip install --upgrade pip
             pip install -r requirements.txt
+            pip install https://github.com/sugarsack/sugar-sdk/archive/0.0.7.tar.gz
 
       - save_cache:
           paths:
@@ -63,7 +65,6 @@ jobs:
             TERM: xterm-256color
           command: |
             . venv/bin/activate
-            pip install https://github.com/sugarsack/sugar-sdk/archive/0.0.7.tar.gz
             PYTHONPATH="./sugar:$PYTHONPATH" sugar-valmod -t runner -a
 
       - run:
