@@ -2,14 +2,15 @@
 """
 Documentation manager and manuals.
 """
+import os
 import sys
 import sugar.lib.exceptions
-from textwrap import wrap
-from terminaltables import SingleTable
+import sugar.components.docman.gendoc
+import sugar.utils.path
 
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
-from sugar.lib.outputters.console import ConsoleMessages, MappingOutput, SystemOutput, TitleOutput
+from sugar.lib.outputters.console import ConsoleMessages, MappingOutput, TitleOutput, otty
 from sugar.components.docman.modules import ModuleLister
 
 
@@ -26,11 +27,11 @@ class DocumentationManager:
                                    encoding=self.config.terminal.encoding)
         self.args = args
         self.modlister = ModuleLister()
+        self.gendoc = sugar.components.docman.gendoc.DocMaker()
 
         self.map_output = MappingOutput(colors=self.config.terminal.colors, encoding=self.config.terminal.encoding)
         self.title_output = TitleOutput(colors=self.config.terminal.colors, encoding=self.config.terminal.encoding)
         self.title_output.add("Available modules")
-        self.out = SystemOutput(sys.stdout)
 
     def run(self):
         """
@@ -38,14 +39,19 @@ class DocumentationManager:
         :return:
         """
         if self.args.uri is None:
-            self.out.puts(self.title_output.paint("Available modules"))
+            otty.puts(self.title_output.paint("Available modules"))
             all_uris = self.modlister.get_all_module_uris()
             for section in sorted(all_uris):
-                self.out.puts(self.map_output.paint({section: all_uris[section]}, offset="  "))
-        elif self.modlister.is_module(self.args.uri):
-            self.out.puts("Get module manual")
-        elif self.modlister.is_function(self.args.uri):
-            self.out.puts("Get function manual")
-        else:
-            raise Exception("No module or function has been found for '{}'.".format(self.args.uri))
+                otty.puts(self.map_output.paint({section: all_uris[section]}, offset="  "))
 
+        loader = self.modlister.get_module_loader(self.args.uri)
+        if loader is not None:
+            otty.puts(self.gendoc.get_mod_man(self.args.uri))
+
+        if loader is None:
+            loader = self.modlister.get_function_loader(self.args.uri)
+            if loader is not None:
+                otty.puts(self.gendoc.get_func_man(self.args.uri))
+
+        if loader is None:
+            raise Exception("No module or function has been found for '{}'.".format(self.args.uri))
