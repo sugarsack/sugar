@@ -268,6 +268,12 @@ Other:
         self.component_cli_parser = argparse.ArgumentParser(
             description=__("Sugar Module Documentation, displays usage and manuals of the modules"),
             formatter_class=CapitalisedHelpFormatter)
+        self.component_cli_parser.add_argument("uri", nargs="?",
+                                               help=__("URI to the module or module and function. "
+                                                       "Leave empty to see all available modules."), default=None,
+                                               metavar="module[.function]")
+        self.component_cli_parser.add_argument("-s", "--search",
+                                               help=__("Search anything in the documentation"), default=None)
         SugarCLI.add_common_params(self.component_cli_parser)
         self.setup()
         from sugar.components.docman import DocumentationManager
