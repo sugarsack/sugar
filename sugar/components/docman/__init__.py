@@ -42,4 +42,10 @@ class DocumentationManager:
             all_uris = self.modlister.get_all_module_uris()
             for section in sorted(all_uris):
                 self.out.puts(self.map_output.paint({section: all_uris[section]}, offset="  "))
+        elif self.modlister.is_module(self.args.uri):
+            self.out.puts("Get module manual")
+        elif self.modlister.is_function(self.args.uri):
+            self.out.puts("Get function manual")
+        else:
+            raise Exception("No module or function has been found for '{}'.".format(self.args.uri))
 
