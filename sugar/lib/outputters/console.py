@@ -241,6 +241,11 @@ class TitleOutput(object):
 
     Then "foo" and "long one" will have the same length and style.
     """
+    STYLE_ALRT = "alert"
+    STYLE_WARN = "warning"
+    STYLE_SCCS = "success"
+    STYLE_INFO = "info"
+
     _suffix_ascii = " >>>"
     _suffix_utf = "\u2593\u2592\u2591"
 
@@ -309,7 +314,7 @@ class TitleOutput(object):
         """
         return self.__class__.__dict__.get("_suffix_{}".format(self._encoding), self._suffix_ascii)
 
-    def add(self, title, style):
+    def add(self, title, style=STYLE_INFO):
         """
         Add title.
 
