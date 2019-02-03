@@ -33,9 +33,19 @@ class ModDocBase(abc.ABC):
             with sugar.utils.files.fopen(os.path.join(self._mod_path, section), 'r') as dfh:
                 self._docmap[section.split(".")[0]] = yaml.load(dfh.read())
 
+    @abc.abstractmethod
     def to_doc(self) -> str:
         """
         Documentation result.
 
         :return: processible string
+        """
+
+    @abc.abstractmethod
+    def get_function_manual(self, f_name: str) -> str:
+        """
+        Generate function documentation.
+
+        :param f_name: Function name
+        :return: rendered string
         """
