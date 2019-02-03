@@ -18,13 +18,14 @@ class ModDocBase(abc.ABC):
     EXAMPLES = "examples.yaml"
     SCHEME = "scheme.yaml"
 
-    def __init__(self, mod_path, *functions):
+    def __init__(self, uri, mod_path, *functions):
         """
         Constructor.
 
         :param mod_path: Module physical path
         :param functions: List of functions to include (others will be removed).
         """
+        self._mod_uri = uri
         self._mod_path = mod_path
         self._functions = functions
         self._docmap = {}
