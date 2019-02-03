@@ -272,6 +272,8 @@ Other:
                                                help=__("URI to the module or module and function. "
                                                        "Leave empty to see all available modules."), default=None,
                                                metavar="module[.function]")
+        self.component_cli_parser.add_argument("-t", "--type", choices=["runner", "state", "custom"],
+                                               help=__("Search anything in the documentation"), default=None)
         self.component_cli_parser.add_argument("-s", "--search",
                                                help=__("Search anything in the documentation"), default=None)
         SugarCLI.add_common_params(self.component_cli_parser)

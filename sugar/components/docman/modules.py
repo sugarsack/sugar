@@ -26,35 +26,35 @@ class ModuleLister:
 
         return uris
 
-    def get_module_loader(self, uri: str) -> bool:
+    def is_module(self, uri: str) -> bool:
         """
         Return True if the URI is a module.
 
         :param uri: URI of the module or a function.
         :return: bool
         """
-        loader = None
+        ret = False
         for loader_name, uris in self.get_all_module_uris().items():
             if uri in uris:
-                loader = getattr(self.loader, loader_name)
+                ret = True
                 break
 
-        return loader
+        return ret
 
-    def get_function_loader(self, uri: str) -> bool:
+    def is_function(self, uri: str) -> bool:
         """
         Return True if the URI is a function in the module.
 
         :param uri: URI of the module or a function.
         :return: bool
         """
-        loader = None
+        ret = False
         for l_ref in [self.loader.states, self.loader.runners, self.loader.custom]:
             try:
-                if bool(l_ref[uri]):
-                    loader = l_ref
-                    break
+                ret = bool(l_ref[uri])
             except KeyError:
                 pass
+            if ret:
+                break
 
-        return loader
+        return ret
