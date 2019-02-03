@@ -1,0 +1,20 @@
+Module "{{ mod_doc.m_summary }}" (v {{ mod_doc.m_version }})
+
+{{ mod_doc.m_synopsis }}
+{{ mod_doc.m_added_version }}
+
+{% for f_doc in func_doc %}
+{{ func_docs.f_name }}
+{{ func_docs.f_synopsis }}
+
+PARAMETERS
+{{ func_docs.f_table }}
+
+EXAMPLES
+{{ func_docs.f_examples }}
+
+RETURN DATA
+{{ func_docs.f_return_data }}
+
+
+{% endfor %}
