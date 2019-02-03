@@ -45,10 +45,10 @@ class DocumentationManager:
                 otty.puts(self.map_output.paint({section: all_uris[section]}, offset="  "))
         elif self.args.type is None:
             raise Exception("Please specify module type (with -t). See help for more details.")
-
-        if self.modlister.is_module(self.args.uri):
-            otty.puts(self.gendoc.get_mod_man(self.args.type, self.args.uri))
-        elif self.modlister.is_function(self.args.uri):
-            otty.puts(self.gendoc.get_func_man(self.args.type, self.args.uri))
         else:
-            raise Exception("No module or function has been found for '{}'.".format(self.args.uri))
+            if self.modlister.is_module(self.args.uri):
+                otty.puts(self.gendoc.get_mod_man(self.args.type, self.args.uri))
+            elif self.modlister.is_function(self.args.uri):
+                otty.puts(self.gendoc.get_func_man(self.args.type, self.args.uri))
+            else:
+                raise Exception("No module or function has been found for '{}'.".format(self.args.uri))
