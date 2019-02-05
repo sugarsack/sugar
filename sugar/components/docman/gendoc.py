@@ -14,6 +14,28 @@ from sugar.components.docman import templates
 
 
 class JinjaCLIFilters:
+    """
+    CLI colorisers.
+    """
+
+    def state(self, data):
+        """
+        State code example.
+
+        :param data:
+        :return:
+        """
+        return "{f}{d}{r}".format(f=colored.fg(3), d=data, r=colored.attr("reset"))
+
+    def cli(self, data):
+        """
+        Command line code example.
+
+        :param data:
+        :return:
+        """
+        return "{f}{d}{r}".format(f=colored.fg(10), d=data, r=colored.attr("reset"))
+
     @staticmethod
     def req(data):
         """
@@ -63,13 +85,42 @@ class ModCLIDoc(ModDocBase):
 
     filters = JinjaCLIFilters()
 
+    def _add_ident(self, data, ident="  ", nostrip=False):
+        """
+        Add ident.
+
+        :param data:
+        :param ident:
+        :return:
+        """
+        out = []
+        for line in data.split(os.linesep):
+            if not nostrip:
+                line = line.strip()
+            out.append("  {}".format(line))
+        return os.linesep.join(out)
+
+    def get_object_examples(self, f_name: str) -> (str, str):
+        """
+        Get object example for the particular function
+
+        :param f_name:
+        :return: rendered examples schema
+        """
+        expl = self._docmap.get("examples", {}).get(f_name)
+        descr = ' '.join(expl.get("description", []))
+
+        return (descr, self.filters.cli(self._add_ident(expl.get("commandline", ""))),
+                self.filters.state(self._add_ident(expl.get("states", "N/A"), nostrip=True)))
+
     def get_function_manual(self, f_name: str) -> str:
         """
         Generate function documentation.
 
         :param f_name: Name of the function.
-        :return:
+        :return: rendered manual
         """
+
         class DocData:
             """
             Documentation data.
@@ -105,10 +156,18 @@ class ModCLIDoc(ModDocBase):
         f_doc.f_name = self.filters.marked(f_name)
         f_doc.f_description = func_descr
         f_doc.f_table = table.table
+        f_doc.f_example_descr, f_doc.f_example_cmdline, f_doc.f_example_states = self.get_object_examples(f_name)
 
         template = templates.get_template("cli_module")
 
         return jinja2.Template(template).render(m_doc=m_doc, f_doc=f_doc, fmt=self.filters)
+
+    def get_module_toc(self):
+        """
+        Get TOC of the module.
+
+        :return:
+        """
 
     def to_doc(self) -> str:
         """
