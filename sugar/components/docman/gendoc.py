@@ -13,6 +13,12 @@ from sugar.components.docman.docrnd import ModDocBase
 from sugar.components.docman import templates
 
 
+class DocData:
+    """
+    Documentation data.
+    """
+
+
 class JinjaCLIFilters:
     """
     CLI colorisers.
@@ -121,10 +127,6 @@ class ModCLIDoc(ModDocBase):
         :return: rendered manual
         """
 
-        class DocData:
-            """
-            Documentation data.
-            """
         table_data = [
             [self.filters.bold("Parameter"), self.filters.bold("Purpose")],
         ]
