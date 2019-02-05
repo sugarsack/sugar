@@ -2,8 +2,6 @@
 """
 Documentation manager and manuals.
 """
-import os
-import sys
 import sugar.lib.exceptions
 import sugar.components.docman.gendoc
 import sugar.utils.path
