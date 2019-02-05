@@ -42,6 +42,8 @@ class DocumentationManager:
             otty.puts(self.title_output.paint("Available modules"))
             all_uris = self.modlister.get_all_module_uris()
             for section in sorted(all_uris):
+                if self.args.type is not None and not section.startswith(self.args.type):
+                    continue
                 otty.puts(self.map_output.paint({section: all_uris[section]}, offset="  "))
         elif self.args.type is None:
             raise Exception("Please specify module type (with -t). See help for more details.")

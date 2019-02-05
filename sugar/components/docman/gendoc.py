@@ -233,7 +233,8 @@ class DocMaker:
         :return: ASCII data with escapes sequences.
         """
         if loader_name in ["runner", "state"]:
-            path = os.path.join(getattr(self.loader, loader_name + "s").root_path, os.path.sep.join(uri.split(".")))
+            path = os.path.join(getattr(self.loader, loader_name + "s").root_path,
+                                os.path.sep.join(uri.split(".")))
         else:
             raise SugarException("Custom modules documentation is not supported yet.")
 
@@ -248,11 +249,9 @@ class DocMaker:
 
         text = ''
         uri, func = uri.rsplit(".", 1)
-        if loader_name == "runner":
-            path = os.path.join(self.loader.runners.root_path, os.path.sep.join(uri.split(".")))
-            text = ModCLIDoc(uri, path, func, mod_type=loader_name).to_doc()
-        elif loader_name == "state":
-            path = os.path.join(self.loader.states.root_path, os.path.sep.join(uri.split(".")))
+        if loader_name in ["runner", "state"]:
+            path = os.path.join(getattr(self.loader, loader_name + "s").root_path,
+                                os.path.sep.join(uri.split(".")))
             text = ModCLIDoc(uri, path, func, mod_type=loader_name).to_doc()
 
         return text
