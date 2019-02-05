@@ -103,7 +103,7 @@ class ModCLIDoc(ModDocBase):
         for line in data.split(os.linesep):
             if not nostrip:
                 line = line.strip()
-            out.append("  {}".format(line))
+            out.append("{}{}".format(ident, line))
         return os.linesep.join(out)
 
     def get_object_examples(self, f_name: str) -> (str, str):
@@ -170,6 +170,35 @@ class ModCLIDoc(ModDocBase):
 
         :return:
         """
+        funcs = self._docmap.get("doc", {}).get("tasks", {})
+
+        table_data = [
+            [self.filters.bold("Function"), self.filters.bold("Purpose")],
+        ]
+
+        table = SingleTable(table_data)
+        table.inner_row_border = True
+        term_width = table.column_max_width(1)
+
+        f_last_name = None
+        for f_name, f_data in funcs.items():
+            f_last_name = f_name
+            table_data.append([self.filters.bold(f_name),
+                               os.linesep.join(wrap(" ".join(funcs.get(
+                                   f_name, {}).get("description", "N/A")), term_width))])
+
+        m_doc = DocData()
+        m_doc.m_uri = self._mod_uri
+        m_doc.m_summary = self._docmap.get("doc", {}).get("module", {}).get("summary", "N/A")
+        m_doc.m_synopsis = self._docmap.get("doc", {}).get("module", {}).get("synopsis", "N/A")
+        m_doc.m_version = self._docmap.get("doc", {}).get("module", {}).get("version", "N/A")
+        m_doc.m_added_version = self._docmap.get("doc", {}).get("module", {}).get("since_version", "N/A")
+        m_doc.m_toc = table.table
+        m_doc.m_type = self._mod_type
+        m_doc.m_f_name = f_last_name
+
+        template = templates.get_template("cli_mod_toc")
+        return jinja2.Template(template).render(m_doc=m_doc, fmt=self.filters)
 
     def to_doc(self) -> str:
         """
@@ -178,8 +207,12 @@ class ModCLIDoc(ModDocBase):
         :return: rtx string
         """
         out = []
-        for f_name in self._functions:
-            out.append(self.get_function_manual(f_name))
+        if self._functions:
+            for f_name in self._functions:
+                out.append(self.get_function_manual(f_name))
+        else:
+            self.get_module_toc()
+            out.append(self.get_module_toc())
 
         return os.linesep.join(out)
 
@@ -202,7 +235,7 @@ class DocMaker:
         text = ''
         if loader_name == "runner":
             path = os.path.join(self.loader.runners.root_path, os.path.sep.join(uri.split(".")))
-            text = ModCLIDoc(uri, path).to_doc()
+            text = ModCLIDoc(uri, path, mod_type=loader_name).to_doc()
 
         return text
 
@@ -217,7 +250,7 @@ class DocMaker:
         uri, func = uri.rsplit(".", 1)
         if loader_name == "runner":
             path = os.path.join(self.loader.runners.root_path, os.path.sep.join(uri.split(".")))
-            text = ModCLIDoc(uri, path, func).to_doc()
+            text = ModCLIDoc(uri, path, func, mod_type=loader_name).to_doc()
 
         return text
         # return "Function {} from {}".format(uri, loader_name)

@@ -1,0 +1,12 @@
+{{ fmt.bold('MODULE') }}
+  {{ fmt.marked(m_doc.m_uri) }} - "{{ m_doc.m_summary }}", added since {{ m_doc.m_added_version }} version.
+
+  {{ m_doc.m_synopsis }}
+
+{{ fmt.bold('AVAILABLE FUNCTIONS') }}
+{{ m_doc.m_toc}}
+
+To see a documentation on a function, e.g. {{ fmt.bold(m_doc.m_f_name) }}, please type the following:
+
+  {{ fmt.cli("sugar doc -t {t} {u}.{f}".format(t=m_doc.m_type, u=m_doc.m_uri, f=m_doc.m_f_name)) }}
+
