@@ -50,3 +50,11 @@ class ModDocBase(abc.ABC):
         :param f_name: Function name
         :return: rendered string
         """
+
+    @abc.abstractmethod
+    def get_module_toc(self):
+        """
+        Get TOC of the module.
+
+        :return: rendered string
+        """
