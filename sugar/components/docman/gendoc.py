@@ -8,6 +8,7 @@ import jinja2
 from textwrap import wrap
 from terminaltables import SingleTable
 
+from sugar.lib.exceptions import SugarException
 from sugar.lib.loader import SugarModuleLoader
 from sugar.components.docman.docrnd import ModDocBase
 from sugar.components.docman import templates
@@ -113,7 +114,7 @@ class ModCLIDoc(ModDocBase):
         :param f_name:
         :return: rendered examples schema
         """
-        expl = self._docmap.get("examples", {}).get(f_name)
+        expl = self._docmap.get("examples", {}).get(f_name, {})
         descr = ' '.join(expl.get("description", []))
 
         return (descr, self.filters.cli(self._add_ident(expl.get("commandline", ""))),
@@ -150,14 +151,14 @@ class ModCLIDoc(ModDocBase):
         m_doc = DocData()
         m_doc.m_uri = self._mod_uri
         m_doc.m_summary = self._docmap.get("doc", {}).get("module", {}).get("summary", "N/A")
-        m_doc.m_synopsis = self._docmap.get("doc", {}).get("module", {}).get("synopsis", "N/A")
+        m_doc.m_synopsis = self._docmap.get("doc", {}).get("module", {}).get("synopsis", "N/A").strip()
         m_doc.m_version = self._docmap.get("doc", {}).get("module", {}).get("version", "N/A")
         m_doc.m_added_version = self._docmap.get("doc", {}).get("module", {}).get("since_version", "N/A")
 
         f_doc = DocData()
         f_doc.f_name = self.filters.marked(f_name)
-        f_doc.f_description = func_descr
-        f_doc.f_table = table.table
+        f_doc.f_description = func_descr.strip()
+        f_doc.f_table = table.table if len(table_data) > 1 else None
         f_doc.f_example_descr, f_doc.f_example_cmdline, f_doc.f_example_states = self.get_object_examples(f_name)
 
         template = templates.get_template("cli_module")
@@ -193,9 +194,9 @@ class ModCLIDoc(ModDocBase):
         m_doc.m_synopsis = self._docmap.get("doc", {}).get("module", {}).get("synopsis", "N/A")
         m_doc.m_version = self._docmap.get("doc", {}).get("module", {}).get("version", "N/A")
         m_doc.m_added_version = self._docmap.get("doc", {}).get("module", {}).get("since_version", "N/A")
-        m_doc.m_toc = table.table
         m_doc.m_type = self._mod_type
         m_doc.m_f_name = f_last_name
+        m_doc.m_toc = table.table
 
         template = templates.get_template("cli_mod_toc")
         return jinja2.Template(template).render(m_doc=m_doc, fmt=self.filters)
@@ -232,12 +233,12 @@ class DocMaker:
 
         :return: ASCII data with escapes sequences.
         """
-        text = ''
-        if loader_name == "runner":
-            path = os.path.join(self.loader.runners.root_path, os.path.sep.join(uri.split(".")))
-            text = ModCLIDoc(uri, path, mod_type=loader_name).to_doc()
+        if loader_name in ["runner", "state"]:
+            path = os.path.join(getattr(self.loader, loader_name + "s").root_path, os.path.sep.join(uri.split(".")))
+        else:
+            raise SugarException("Custom modules documentation is not supported yet.")
 
-        return text
+        return ModCLIDoc(uri, path, mod_type=loader_name).to_doc()
 
     def get_func_man(self, loader_name, uri) -> str:
         """
@@ -250,6 +251,9 @@ class DocMaker:
         uri, func = uri.rsplit(".", 1)
         if loader_name == "runner":
             path = os.path.join(self.loader.runners.root_path, os.path.sep.join(uri.split(".")))
+            text = ModCLIDoc(uri, path, func, mod_type=loader_name).to_doc()
+        elif loader_name == "state":
+            path = os.path.join(self.loader.states.root_path, os.path.sep.join(uri.split(".")))
             text = ModCLIDoc(uri, path, func, mod_type=loader_name).to_doc()
 
         return text

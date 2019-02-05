@@ -1,4 +1,4 @@
-system.ping:
+ping:
   description:
     - Examples of using this module in state.
 

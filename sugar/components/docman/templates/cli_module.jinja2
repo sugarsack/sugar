@@ -10,9 +10,9 @@
 {{ fmt.bold('DESCRIPTION') }}
   {{ f_doc.f_description }}
 
-{{ fmt.bold('USAGE') }}
+{% if f_doc.f_table %}{{ fmt.bold('USAGE') }}
 {{ f_doc.f_table }}
-
+{% endif %}
 {% if f_doc.f_example_cmdline or f_doc.f_example_descr %}{{ fmt.bold('EXAMPLES') }}
   {{ f_doc.f_example_descr }}
 
