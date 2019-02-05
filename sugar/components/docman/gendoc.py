@@ -187,7 +187,6 @@ class ModCLIDoc(ModDocBase):
             table_data.append([self.filters.bold(f_name),
                                os.linesep.join(wrap(" ".join(funcs.get(
                                    f_name, {}).get("description", "N/A")), term_width))])
-
         m_doc = DocData()
         m_doc.m_uri = self._mod_uri
         m_doc.m_summary = self._docmap.get("doc", {}).get("module", {}).get("summary", "N/A")
