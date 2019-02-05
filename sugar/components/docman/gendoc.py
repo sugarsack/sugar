@@ -3,15 +3,18 @@
 Display or generate the documentation for the given module or function.
 """
 import os
+from textwrap import wrap
+
 import colored
 import jinja2
-from textwrap import wrap
 from terminaltables import SingleTable
 
 from sugar.lib.exceptions import SugarException
 from sugar.lib.loader import SugarModuleLoader
 from sugar.components.docman.docrnd import ModDocBase
 from sugar.components.docman import templates
+
+# pylint: disable=W0201
 
 
 class DocData:
@@ -25,61 +28,63 @@ class JinjaCLIFilters:
     CLI colorisers.
     """
 
-    def state(self, data):
+    @staticmethod
+    def state(data: str) -> str:
         """
         State code example.
 
-        :param data:
-        :return:
+        :param data: string to be colorised
+        :return: colorised string
         """
         return "{f}{d}{r}".format(f=colored.fg(3), d=data, r=colored.attr("reset"))
 
-    def cli(self, data):
+    @staticmethod
+    def cli(data: str) -> str:
         """
         Command line code example.
 
-        :param data:
-        :return:
+        :param data: string to be colorised
+        :return: colorised string
         """
         return "{f}{d}{r}".format(f=colored.fg(10), d=data, r=colored.attr("reset"))
 
     @staticmethod
-    def req(data):
+    def req(data: str) -> str:
         """
         Required.
 
-        :param data:
-        :return:
+        :param data: string to be colorised
+        :return: colorised string
         """
         return "{f}{d}{r}".format(f=colored.fg(9), d=data, r=colored.attr("reset"))
 
     @staticmethod
-    def opt(data):
+    def opt(data: str) -> str:
         """
         Optional.
 
-        :param data:
-        :return:
+        :param data: string to be colorised
+        :return: colorised string
         """
         return "{f}{d}{r}".format(f=colored.fg(12), d=data, r=colored.attr("reset"))
 
     @staticmethod
-    def bold(data):
+    def bold(data: str) -> str:
         """
         CLI bold (highlight text)
 
-        :param data:
-        :return:
+        :param data: string to be colorised
+        :return: colorised string
         """
         return "{b}{d}{r}".format(b=colored.attr("bold"), d=data, r=colored.attr("reset"))
 
     @staticmethod
-    def marked(data):
+    def marked(data: str) -> str:
         """
         CLI make marked test.
 
-        :param data:
-        :return:
+        :param data: string to be colorised
+        :return: colorised string
         """
         return "{bg} {b}{fg}{d} {r}".format(bg=colored.bg(8), fg=colored.fg(15), b=colored.attr("bold"),
                                             d=data, r=colored.attr("reset"))
@@ -92,26 +97,28 @@ class ModCLIDoc(ModDocBase):
 
     filters = JinjaCLIFilters()
 
-    def _add_ident(self, data, ident="  ", nostrip=False):
+    @staticmethod
+    def _add_ident(data: str, ident: str = "  ", nostrip: bool = False) -> str:
         """
-        Add ident.
+        Add ident to the each line.
 
-        :param data:
-        :param ident:
-        :return:
+        :param data: os.linesep containing data
+        :param ident: indent in spaces
+        :return: str
         """
         out = []
         for line in data.split(os.linesep):
             if not nostrip:
                 line = line.strip()
             out.append("{}{}".format(ident, line))
+
         return os.linesep.join(out)
 
     def get_object_examples(self, f_name: str) -> (str, str):
         """
         Get object example for the particular function
 
-        :param f_name:
+        :param f_name: the name of the function
         :return: rendered examples schema
         """
         expl = self._docmap.get("examples", {}).get(f_name, {})
@@ -165,11 +172,11 @@ class ModCLIDoc(ModDocBase):
 
         return jinja2.Template(template).render(m_doc=m_doc, f_doc=f_doc, fmt=self.filters)
 
-    def get_module_toc(self):
+    def get_module_toc(self) -> str:
         """
         Get TOC of the module.
 
-        :return:
+        :return: string
         """
         funcs = self._docmap.get("doc", {}).get("tasks", {})
 
@@ -182,7 +189,7 @@ class ModCLIDoc(ModDocBase):
         term_width = table.column_max_width(1)
 
         f_last_name = None
-        for f_name, f_data in funcs.items():
+        for f_name, f_data in funcs.items():  # pylint: disable=W0612
             f_last_name = f_name
             table_data.append([self.filters.bold(f_name),
                                os.linesep.join(wrap(" ".join(funcs.get(
@@ -226,10 +233,13 @@ class DocMaker:
     def __init__(self):
         self.loader = SugarModuleLoader()
 
-    def get_mod_man(self, loader_name, uri) -> str:
+    def get_mod_man(self, loader_name: str, uri: str) -> str:
         """
         Get module manual.
 
+        :param loader_name: the name of the loader (runner or state)
+        :param uri: URI
+        :raises SugarException: if custom modules documentation is not yet supported
         :return: ASCII data with escapes sequences.
         """
         if loader_name in ["runner", "state"]:
@@ -240,10 +250,12 @@ class DocMaker:
 
         return ModCLIDoc(uri, path, mod_type=loader_name).to_doc()
 
-    def get_func_man(self, loader_name, uri) -> str:
+    def get_func_man(self, loader_name: str, uri: str) -> str:
         """
         Get function manual.
 
+        :param loader_name: the name of the loader (runner or state)
+        :param uri: URI
         :return: ASCII data with escape sequences.
         """
 
@@ -255,4 +267,3 @@ class DocMaker:
             text = ModCLIDoc(uri, path, func, mod_type=loader_name).to_doc()
 
         return text
-        # return "Function {} from {}".format(uri, loader_name)

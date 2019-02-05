@@ -34,7 +34,9 @@ class DocumentationManager:
     def run(self):
         """
         Run documentation manager
-        :return:
+
+        :raises SugarException: when type is not specified or module or function wasn't found.
+        :return: None
         """
         if self.args.uri is None:
             otty.puts(self.title_output.paint("Available modules"))
@@ -44,11 +46,13 @@ class DocumentationManager:
                     continue
                 otty.puts(self.map_output.paint({section: all_uris[section]}, offset="  "))
         elif self.args.type is None:
-            raise Exception("Please specify module type (with -t). See help for more details.")
+            raise sugar.lib.exceptions.SugarException("Please specify module type (with -t). "
+                                                      "See help for more details.")
         else:
             if self.modlister.is_module(self.args.uri):
                 otty.puts(self.gendoc.get_mod_man(self.args.type, self.args.uri))
             elif self.modlister.is_function(self.args.uri):
                 otty.puts(self.gendoc.get_func_man(self.args.type, self.args.uri))
             else:
-                raise Exception("No module or function has been found for '{}'.".format(self.args.uri))
+                raise sugar.lib.exceptions.SugarException("No module or function has been found for "
+                                                          "'{}'.".format(self.args.uri))

@@ -34,7 +34,7 @@ class ModuleLister:
         :return: bool
         """
         ret = False
-        for loader_name, uris in self.get_all_module_uris().items():
+        for uris in self.get_all_module_uris().values():
             if uri in uris:
                 ret = True
                 break

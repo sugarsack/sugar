@@ -262,8 +262,9 @@ Other:
 
     def doc(self):
         """
+        Documentation render application.
 
-        :return:
+        :return: None
         """
         self.component_cli_parser = argparse.ArgumentParser(
             description=__("Sugar Module Documentation, displays usage and manuals of the modules"),
