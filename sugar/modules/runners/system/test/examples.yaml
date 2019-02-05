@@ -3,9 +3,9 @@ ping:
     - Data about this example.
     - Each item in this list is a sentence in the documentation.
 
-  commandline: >-
+  commandline: |
     sugar \* system.test.ping
     sugar \* system.test.ping text='Hello, world!'
 
-  states: >-
+  states: |
     N/A
