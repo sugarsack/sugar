@@ -4,7 +4,6 @@ Document render.
 """
 import os
 import abc
-import jinja2
 
 import sugar.utils.files
 from sugar.lib.compat import yaml
@@ -18,7 +17,7 @@ class ModDocBase(abc.ABC):
     EXAMPLES = "examples.yaml"
     SCHEME = "scheme.yaml"
 
-    def __init__(self, uri, mod_path, *functions):
+    def __init__(self, uri, mod_path, *functions, mod_type=None):
         """
         Constructor.
 
@@ -29,6 +28,7 @@ class ModDocBase(abc.ABC):
         self._mod_path = mod_path
         self._functions = functions
         self._docmap = {}
+        self._mod_type = mod_type
 
         for section in [self.DOC, self.EXAMPLES, self.SCHEME]:
             with sugar.utils.files.fopen(os.path.join(self._mod_path, section), 'r') as dfh:
