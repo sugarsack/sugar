@@ -13,13 +13,15 @@
 {{ fmt.bold('USAGE') }}
 {{ f_doc.f_table }}
 
-{% if f_doc.f_examples %}
-{{ fmt.bold('EXAMPLES') }}
-{{ f_doc.f_examples }}
+{% if f_doc.f_example_cmdline or f_doc.f_example_descr %}{{ fmt.bold('EXAMPLES') }}
+  {{ f_doc.f_example_descr }}
 
+Command line:
+{{ f_doc.f_example_cmdline }}
+Usage in the state:
+{{ f_doc.f_example_states }}
 {% endif %}
-{% if f_doc.f_return_data %}
-{{ fmt.bold('RETURN DATA') }}
+{% if f_doc.f_return_data %}{{ fmt.bold('RETURN DATA') }}
 {{ f_doc.f_return_data }}
-
 {% endif %}
+
