@@ -59,20 +59,20 @@ class _BaseOutput(object):
     Basic output.
     """
 
-    _ident = "   "
+    _ident = " "
 
     symbols_ascii = {
-        "leaf": "\\__",
+        "leaf": "\\_",
         "bullet": "*",
-        "list": "-",
+        "list": "  -",
         "n/a": " <N/A>",
     }
 
     symbols_utf = {
-        "leaf": "\u2514\u2500\u2500\u2510",
+        "leaf": "\u2514\u2510",
         "bullet": chr(0x25a0),
-        "list": chr(0x2509),
-        "n/a": " \u25a0N/A\u25a0",
+        "list": "\u2514\u2500",
+        "n/a": "N/A",
     }
 
     colors_16 = {
@@ -190,7 +190,7 @@ class MappingOutput(_BaseOutput):
             elif isinstance(value, (list, tuple)):
                 out.append(self.c_leaf(offset))
                 out.append(IterableOutput(colors=self._colors,
-                                          encoding=self._encoding).paint(value, offset=offset))
+                                          encoding=self._encoding).paint(value, offset=offset + self._ident))
             else:
                 out.append("{}{}{}{}".format(offset + self._ident, self.c_type(value), value, colored.attr("reset")))
         return '\n'.join(out)
