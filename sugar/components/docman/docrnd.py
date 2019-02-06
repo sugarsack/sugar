@@ -20,7 +20,7 @@ class ModDocBase(abc.ABC):
 
     filters = None
 
-    def __init__(self, uri, mod_path, *functions, mod_type=None):
+    def __init__(self, uri, functions=None, mod_path=None, mod_type=None):
         """
         Constructor.
 
@@ -29,7 +29,7 @@ class ModDocBase(abc.ABC):
         """
         self._mod_uri = uri
         self._mod_path = mod_path
-        self._functions = functions
+        self._functions = functions or []
         self._docmap = {}
         self._mod_type = mod_type
 

@@ -135,7 +135,7 @@ class DocMaker:
         else:
             raise SugarException("Custom modules documentation is not supported yet.")
 
-        return ModCLIDoc(uri, path, mod_type=loader_name).to_doc()
+        return ModCLIDoc(uri, mod_path=path, mod_type=loader_name).to_doc()
 
     def get_func_man(self, loader_name: str, uri: str) -> str:
         """
@@ -151,6 +151,6 @@ class DocMaker:
         if loader_name in ["runner", "state"]:
             path = os.path.join(getattr(self.loader, loader_name + "s").root_path,
                                 os.path.sep.join(uri.split(".")))
-            text = ModCLIDoc(uri, path, func, mod_type=loader_name).to_doc()
+            text = ModCLIDoc(uri, functions=[func], mod_path=path, mod_type=loader_name).to_doc()
 
         return text
