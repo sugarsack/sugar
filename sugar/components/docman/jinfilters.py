@@ -70,3 +70,68 @@ class JinjaCLIFilters:
         """
         return "{bg} {b}{fg}{d} {r}".format(bg=colored.bg(8), fg=colored.fg(15), b=colored.attr("bold"),
                                             d=data, r=colored.attr("reset"))
+
+
+class JinjaRstFilters:
+    """
+    Emphasizers for the rst.
+    """
+    @staticmethod
+    def state(data: str) -> str:
+        """
+        State code example for the rst
+
+        :param data: string to be wrapped
+        :return: wrapped string
+        """
+        return "*{d}*".format(d=data)
+
+    @staticmethod
+    def cli(data: str) -> str:
+        """
+        Command line code example, rst version
+
+        :param data: string to be wrapped
+        :return: wrapped string
+        """
+        return "*{d}*".format(d=data)
+
+    @staticmethod
+    def req(data: str) -> str:
+        """
+        Required text for rst
+
+        :param data: string to be wrapped
+        :return: wrapped string
+        """
+        return "*{d}*".format(d=data)
+
+    @staticmethod
+    def opt(data: str) -> str:
+        """
+        Optional text for rst
+
+        :param data: string to be wrapped
+        :return: wrapped string
+        """
+        return "*{d}*".format(d=data)
+
+    @staticmethod
+    def bold(data: str) -> str:
+        """
+        Make bold/highlight text for rst
+
+        :param data: string to be wrapped
+        :return: wrapped string
+        """
+        return "*{d}*".format(d=data)
+
+    @staticmethod
+    def marked(data: str) -> str:
+        """
+        Make marked text for rst
+
+        :param data: string to be wrapped
+        :return: wrapped string
+        """
+        return "*{d}*".format(d=data)
