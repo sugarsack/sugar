@@ -30,36 +30,6 @@ class ModCLIDoc(ModDocBase):
 
     filters = JinjaCLIFilters()
 
-    @staticmethod
-    def _add_ident(data: str, ident: str = "  ", nostrip: bool = False) -> str:
-        """
-        Add ident to the each line.
-
-        :param data: os.linesep containing data
-        :param ident: indent in spaces
-        :return: str
-        """
-        out = []
-        for line in data.split(os.linesep):
-            if not nostrip:
-                line = line.strip()
-            out.append("{}{}".format(ident, line))
-
-        return os.linesep.join(out)
-
-    def get_object_examples(self, f_name: str) -> (str, str):
-        """
-        Get object example for the particular function
-
-        :param f_name: the name of the function
-        :return: rendered examples schema
-        """
-        expl = self._docmap.get("examples", {}).get(f_name, {})
-        descr = ' '.join(expl.get("description", []))
-
-        return (descr, self.filters.cli(self._add_ident(expl.get("commandline", ""))),
-                self.filters.state(self._add_ident(expl.get("states", "N/A"), nostrip=True)))
-
     def get_function_manual(self, f_name: str) -> str:
         """
         Generate function documentation.
@@ -139,22 +109,6 @@ class ModCLIDoc(ModDocBase):
 
         template = templates.get_template("cli_mod_toc")
         return jinja2.Template(template).render(m_doc=m_doc, fmt=self.filters)
-
-    def to_doc(self) -> str:
-        """
-        Generate console rich text with escape sequences.
-
-        :return: rtx string
-        """
-        out = []
-        if self._functions:
-            for f_name in self._functions:
-                out.append(self.get_function_manual(f_name))
-        else:
-            self.get_module_toc()
-            out.append(self.get_module_toc())
-
-        return os.linesep.join(out)
 
 
 class DocMaker:
