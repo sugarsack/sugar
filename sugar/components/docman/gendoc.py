@@ -30,6 +30,18 @@ class ModCLIDoc(ModDocBase):
 
     filters = JinjaCLIFilters()
 
+    def _to_rst_header_table(self, table:str) -> str:
+        """
+        Hack to quickly add header on Ascii table for rst.
+
+        :param table: table header
+        :return: table data with the header
+        """
+        data = table.split(os.linesep)
+        data[2] = data[2].replace("-", "=")
+
+        return os.linesep.join(data)
+
     def get_function_manual(self, f_name: str) -> str:
         """
         Generate function documentation.
