@@ -8,6 +8,7 @@ import abc
 import sugar.utils.files
 from sugar.lib.compat import yaml
 from sugar.lib.exceptions import SugarException
+from sugar.lib.loader import SugarModuleLoader
 
 
 class ModDocBase(abc.ABC):
@@ -24,15 +25,20 @@ class ModDocBase(abc.ABC):
         """
         Constructor.
 
-        :param mod_path: Module physical path
+        :param mod_path: Module physical path.
         :param functions: List of functions to include (others will be removed).
         """
+        assert bool(mod_type or mod_path), "Either module type or path should be specified"
+
         self._mod_uri = uri
         self._mod_path = mod_path
         self._functions = functions or []
         self._docmap = {}
         self._mod_type = mod_type
 
+        if self._mod_path is None:
+            self._mod_path = os.path.join(getattr(SugarModuleLoader(), mod_type + "s").root_path,
+                                          os.path.sep.join(uri.split(".")))
         doc_found = False
         for section in [self.DOC, self.EXAMPLES, self.SCHEME]:
             try:
