@@ -145,3 +145,17 @@ Documentation in '{}' {} module contains superfluous data. The interface has les
     \ documentation, manuals\n\n"
 Sugar Module Documentation, displays usage and manuals of the modules:
   none: Sugar Module Documentation, displays usage and manuals of the modules
+Generating documentation for {} modules:
+  none: Generating documentation for {} modules
+'  - collecting TOC':
+  none: '  - collecting TOC'
+'  - create module TOC for {}':
+  none: '  - create module TOC for {}'
+'  - write module TOC ({})':
+  none: '  - write module TOC ({})'
+'  - generating module function manuals':
+  none: '  - generating module function manuals'
+'  - writing function manual for {}':
+  none: '  - writing function manual for {}'
+Write reference TOC ({}):
+  none: Write reference TOC ({})
