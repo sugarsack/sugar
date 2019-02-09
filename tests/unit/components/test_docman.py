@@ -149,3 +149,24 @@ class TestSuiteForDocman:
         with patch("sugar.components.docman.gendoc.SugarModuleLoader", loader):
             dmk = DocMaker()
             assert not bool(dmk.get_func_man(mod_type, "foo.bar"))
+
+    @patch("sugar.components.docman.gendoc.SugarModuleLoader", get_fake_loader())
+    def test_dockmaker_get_func_man_runner(self):
+        """
+        Test get_func_man returns nothing if not runner or state mod type.
+
+        :return:
+        """
+        mod_type = "runner"
+        mod_cli_doc = MagicMock()
+        with patch("sugar.components.docman.gendoc.ModCLIDoc", mod_cli_doc):
+            dmk = DocMaker()
+            dmk.get_func_man(mod_type, "foo.bar")
+        params = list(mod_cli_doc.call_args_list[0])
+        assert len(params) == 2
+        assert params[0][0] == "foo"
+        for pkey in ["functions", "mod_type", "mod_path"]:
+            assert pkey in params[1]
+        assert params[1]["functions"] == ["bar"]
+        assert params[1]["mod_path"] == "/dev/null/runners/foo"
+        assert params[1]["mod_type"] == mod_type
