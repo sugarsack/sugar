@@ -21,5 +21,6 @@ def get_template(name) -> str:
             out = tpl_h.read()
     except Exception as exc:
         log.error("Failed getting template for '{}': {}", name, exc)
+        out = None
 
     return out
