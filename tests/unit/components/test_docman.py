@@ -2,8 +2,11 @@
 """
 Docman unit tests.
 """
+import pytest
+
 from mock import MagicMock, patch, mock_open
 from sugar.components.docman.gendoc import DocMaker
+import sugar.lib.exceptions
 from tests.unit.unit_utils import multi_mock_open
 
 
@@ -118,3 +121,19 @@ class TestSuiteForDocman:
             assert pkey in params[1]
         assert params[1]["mod_type"] == mod_type
         assert params[1]["mod_path"] == "/dev/null/states/foo/bar"
+
+    @patch("sugar.components.docman.docrnd.SugarModuleLoader", get_fake_loader())
+    @patch("sugar.components.docman.gendoc.ModCLIDoc", MagicMock())
+    def test_dockmaker_get_mod_man_other(self):
+        """
+        Test get_mod_man raises and exception if documentation is not for runners or state modules.
+
+        :return:
+        """
+        mod_type = "custom"
+        loader = get_fake_loader()
+        with patch("sugar.components.docman.gendoc.SugarModuleLoader", loader):
+            dmk = DocMaker()
+            with pytest.raises(sugar.lib.exceptions.SugarException) as exc:
+                dmk.get_mod_man(mod_type, "foo.bar")
+            assert "Custom modules documentation is not supported yet." in str(exc)
