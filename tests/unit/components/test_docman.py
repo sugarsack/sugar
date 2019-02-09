@@ -152,6 +152,20 @@ class TestSuiteForModCLIDocClass:
 
         assert "...one\n...two\n...tree" == data
 
+    @patch("sugar.utils.files.fopen", multi_mock_open(sample_doc, sample_example, sample_scheme), create=True)
+    def test_object_example(self):
+        """
+        Get object examples.
+
+        :return:
+        """
+        mcd = ModCLIDoc("foo.bar", mod_type="runner")
+        examples = mcd.get_object_examples("hello")
+        assert len(examples) == 3
+        assert examples[0].startswith("Data about this example.")
+        assert examples[1].startswith("\x1b[38;5;10m")
+        assert examples[1].endswith("\x1b[0m")
+
 
 class TestSuiteForDocman:
     """
