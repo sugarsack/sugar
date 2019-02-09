@@ -137,3 +137,15 @@ class TestSuiteForDocman:
             with pytest.raises(sugar.lib.exceptions.SugarException) as exc:
                 dmk.get_mod_man(mod_type, "foo.bar")
             assert "Custom modules documentation is not supported yet." in str(exc)
+
+    def test_dockmaker_get_func_man_other(self):
+        """
+        Test get_func_man returns nothing if not runner or state mod type.
+
+        :return:
+        """
+        mod_type = "custom"
+        loader = get_fake_loader()
+        with patch("sugar.components.docman.gendoc.SugarModuleLoader", loader):
+            dmk = DocMaker()
+            assert not bool(dmk.get_func_man(mod_type, "foo.bar"))
