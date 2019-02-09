@@ -123,6 +123,24 @@ class TestSuiteForModCLIDocClass:
             assert mcd._mod_path.startswith(os.path.sep)
             assert mcd._mod_path.endswith("/sugar/modules/{}s/foo/bar".format(mod_type))
 
+    @patch("sugar.utils.files.fopen", multi_mock_open(sample_doc, sample_example, sample_scheme), create=True)
+    @patch("sugar.components.docman.docrnd.yaml.load", MagicMock(side_effect=[
+        {"doc": "documentation"}, IOError("Static from nylon underwear"), {"sch": "scheme"}]))
+    def test_docmap_resistance(self):
+        """
+        When constructing a docmap and a specific doc is missing,
+        it should still create a section with an empty dict.
+
+        :return:
+        """
+        mcd = ModCLIDoc("foo.bar", mod_type="runner")
+        for pkey in ["doc", "examples", "scheme"]:
+            assert pkey in mcd._docmap
+
+        assert mcd._docmap["examples"] == {}
+        assert mcd._docmap["doc"]["doc"] == "documentation"
+        assert mcd._docmap["scheme"]["sch"] == "scheme"
+
 
 class TestSuiteForDocman:
     """
