@@ -95,6 +95,7 @@ class TestSuiteForModCLIDocClass:
 
     def test_no_documentation_found(self):
         """
+        No documentation found should raise AssertionError.
 
         :return:
         """
@@ -102,12 +103,24 @@ class TestSuiteForModCLIDocClass:
             ModCLIDoc("foo.bar", mod_type="runner", mod_path="/tmp")
         assert "No documentation found for runner module 'foo.bar'" in str(exc)
 
+    @patch("sugar.utils.files.fopen", multi_mock_open(sample_doc, sample_example, sample_scheme), create=True)
+    def test_mcd_docmap(self):
+        """
+        Test documentation mapper.
+
+        :return:
+        """
+        mcd = ModCLIDoc("foo.bar", mod_type="runner")
+        assert len(mcd._docmap) == 3
+
+        for pkey in ["doc", "examples", "scheme"]:
+            assert pkey in mcd._docmap
+
 
 class TestSuiteForDocman:
     """
     Test suite for the docman component.
     """
-    #@patch("sugar.utils.files.fopen", multi_mock_open(sample_doc, sample_example, sample_scheme), create=True)
     @patch("sugar.components.docman.docrnd.SugarModuleLoader", get_fake_loader())
     def test_docmaker_runner_get_mod_man(self):
         """
