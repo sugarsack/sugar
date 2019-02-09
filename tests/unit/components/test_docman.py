@@ -85,12 +85,22 @@ class TestSuiteForModCLIDocClass:
 
     def test_mtype_or_mpath_expected(self):
         """
+        Check m_type or m_path has been specified (either).
 
         :return:
         """
         with pytest.raises(AssertionError) as exc:
             ModCLIDoc("foo.bar")
         assert "Either module type or path should be specified" in str(exc)
+
+    def test_no_documentation_found(self):
+        """
+
+        :return:
+        """
+        with pytest.raises(sugar.lib.exceptions.SugarException) as exc:
+            ModCLIDoc("foo.bar", mod_type="runner", mod_path="/tmp")
+        assert "No documentation found for runner module 'foo.bar'" in str(exc)
 
 
 class TestSuiteForDocman:
