@@ -38,7 +38,7 @@ class SugarCLI(object):
     """
     CLI for running Sugar components in Git style command line interface.
     """
-    COMPONENTS = ['master', 'client', 'local', 'keys']
+    COMPONENTS = ['master', 'client', 'local', 'keys', 'doc']
 
     def __init__(self):
         parser = argparse.ArgumentParser(
@@ -53,8 +53,13 @@ Available components:
 
     master     Used to control Sugar Clients
     client     Receives commands from a remote Sugar Master
-    keys       Used to manage Sugar authentication keys
-    local      Local orchestration"""), formatter_class=CapitalisedHelpFormatter)
+      keys     Used to manage Sugar authentication keys
+     local     Local orchestration
+
+Other:
+       doc     Built-in documentation, manuals
+
+"""), formatter_class=CapitalisedHelpFormatter)
         parser.add_argument('component', help=__("Component to run"))
         args = parser.parse_args(sys.argv[1:2])
         if SugarCLI.is_target(args.component):
@@ -254,3 +259,25 @@ Available components:
 
         :return: None
         """
+
+    def doc(self):
+        """
+        Documentation render application.
+
+        :return: None
+        """
+        self.component_cli_parser = argparse.ArgumentParser(
+            description=__("Sugar Module Documentation, displays usage and manuals of the modules"),
+            formatter_class=CapitalisedHelpFormatter)
+        self.component_cli_parser.add_argument("uri", nargs="?",
+                                               help=__("URI to the module or module and function. "
+                                                       "Leave empty to see all available modules."), default=None,
+                                               metavar="module[.function]")
+        self.component_cli_parser.add_argument("-t", "--type", choices=["runner", "state", "custom"],
+                                               help=__("Search anything in the documentation"), default=None)
+        self.component_cli_parser.add_argument("-s", "--search",
+                                               help=__("Search anything in the documentation"), default=None)
+        SugarCLI.add_common_params(self.component_cli_parser)
+        self.setup()
+        from sugar.components.docman import DocumentationManager
+        self.run(DocumentationManager)

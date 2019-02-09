@@ -17,20 +17,12 @@ Communication
 - `Mailing list at Google Groups <https://groups.google.com/forum/#!forum/sugarsack>`_
 - `Twitter <https://twitter.com/_sugarsack>`_
 
-  
-About
------
-
 .. toctree::
    :caption: About
    :maxdepth: 2
 
    about_sugar
    roadmap
-
-
-Tutorials
----------
 
 .. toctree::
    :caption: Tutorials
@@ -40,9 +32,6 @@ Tutorials
    yaml_crashcourse
 
 
-Develop
--------
-
 .. toctree::
    :caption: Develop
    :maxdepth: 2
@@ -50,12 +39,15 @@ Develop
    hacking
    plugins_design
 
+.. toctree::
+   :caption: Module Reference
+   :maxdepth: 2
 
-How To Contribute
------------------
+   doc_idx_modbook
+
 
 .. toctree::
-   :caption: How To Contribute
+   :caption: How to Contribute
    :maxdepth: 2
 
    contributing

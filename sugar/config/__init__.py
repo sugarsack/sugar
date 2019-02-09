@@ -10,8 +10,8 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import os
 import copy
-import yaml
 
+from sugar.lib.compat import yaml
 from sugar.utils.structs import merge_dicts, ImmutableDict, dict_to_object, merge_missing
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component

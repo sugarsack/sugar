@@ -52,16 +52,6 @@ Sugar Master, used to control Sugar Clients:
   none: Sugar Master, used to control Sugar Clients
 Accepted:
   none: Accepted
-? "sugar [<target>] [<component>] [<args>]\n\nTarget is a name or a pattern in Unix\
-  \ shell-style\nwildcard that matches client names.\n\nAvailable components:\n\n\
-  \    master     Used to control Sugar Clients\n    client     Receives commands\
-  \ from a remote Sugar Master\n    keys       Used to manage Sugar authentication\
-  \ keys\n    local      Local orchestration"
-: none: "sugar [<target>] [<component>] [<args>]\n\nTarget is a name or a pattern\
-    \ in Unix shell-style\nwildcard that matches client names.\n\nAvailable components:\n\
-    \n    master     Used to control Sugar Clients\n    client     Receives commands\
-    \ from a remote Sugar Master\n    keys       Used to manage Sugar authentication\
-    \ keys\n    local      Local orchestration"
 Take all keys or acceptance/rejection/deletion:
   none: Take all keys or acceptance/rejection/deletion
 '*{} {} key{}* ({}):':
@@ -141,3 +131,31 @@ Validation of {} is not yet implemented:
 Documentation in '{}' {} module contains superfluous data. The interface has less methods than the documentation describes:
   none: Documentation in '{}' {} module contains superfluous data. The interface has
     less methods than the documentation describes
+? "sugar [<target>] [<component>] [<args>]\n\nTarget is a name or a pattern in Unix\
+  \ shell-style\nwildcard that matches client names.\n\nAvailable components:\n\n\
+  \    master     Used to control Sugar Clients\n    client     Receives commands\
+  \ from a remote Sugar Master\n      keys     Used to manage Sugar authentication\
+  \ keys\n     local     Local orchestration\n\nOther:\n       doc     Built-in documentation,\
+  \ manuals\n\n"
+: none: "sugar [<target>] [<component>] [<args>]\n\nTarget is a name or a pattern\
+    \ in Unix shell-style\nwildcard that matches client names.\n\nAvailable components:\n\
+    \n    master     Used to control Sugar Clients\n    client     Receives commands\
+    \ from a remote Sugar Master\n      keys     Used to manage Sugar authentication\
+    \ keys\n     local     Local orchestration\n\nOther:\n       doc     Built-in\
+    \ documentation, manuals\n\n"
+Sugar Module Documentation, displays usage and manuals of the modules:
+  none: Sugar Module Documentation, displays usage and manuals of the modules
+Generating documentation for {} modules:
+  none: Generating documentation for {} modules
+'  - collecting TOC':
+  none: '  - collecting TOC'
+'  - create module TOC for {}':
+  none: '  - create module TOC for {}'
+'  - write module TOC ({})':
+  none: '  - write module TOC ({})'
+'  - generating module function manuals':
+  none: '  - generating module function manuals'
+'  - writing function manual for {}':
+  none: '  - writing function manual for {}'
+Write reference TOC ({}):
+  none: Write reference TOC ({})

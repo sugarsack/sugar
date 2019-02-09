@@ -1,0 +1,27 @@
+{{ fmt.bold('MODULE') }}
+  {{ m_doc.m_uri }} - "{{ m_doc.m_summary }}", added since {{ m_doc.m_added_version }} version.
+
+  {{ m_doc.m_synopsis }}
+
+{{ fmt.bold('FUNCTION') }}
+
+  {{ f_doc.f_name }}
+
+{{ fmt.bold('DESCRIPTION') }}
+  {{ f_doc.f_description }}
+
+{% if f_doc.f_table %}{{ fmt.bold('USAGE') }}
+{{ f_doc.f_table }}
+{% endif %}
+{% if f_doc.f_example_cmdline or f_doc.f_example_descr %}{{ fmt.bold('EXAMPLES') }}
+  {{ f_doc.f_example_descr }}
+
+Command line:
+{{ f_doc.f_example_cmdline }}
+Usage in the state:
+{{ f_doc.f_example_states }}
+{% endif %}
+{% if f_doc.f_return_data %}{{ fmt.bold('RETURN DATA') }}
+{{ f_doc.f_return_data }}
+{% endif %}
+

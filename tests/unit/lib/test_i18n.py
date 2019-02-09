@@ -65,7 +65,7 @@ apple:
         msg = "Homer Simpson"
         yaml_mock = MagicMock()
         with patch("sugar.utils.files.fopen", mock_open(read_data=""),
-                   create=True) as fhm, patch("yaml.dump", yaml_mock) as yml:
+                   create=True) as fhm, patch("sugar.lib.i18n.yaml.dump", yaml_mock) as yml:
             gtx = gettext_class()
             for count in [0, 1, 3, 4]:
                 gtx.gettext(msg, count=count)
