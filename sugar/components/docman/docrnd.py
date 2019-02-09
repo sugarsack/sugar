@@ -46,7 +46,7 @@ class ModDocBase(abc.ABC):
                     self._docmap[section.split(".")[0]] = yaml.load(dfh.read())
                     doc_found = True
             except IOError:
-                self._docmap[section] = {}
+                self._docmap[section.split(".")[0]] = {}
         if not doc_found:
             raise SugarException("No documentation found for {} module '{}'.".format(mod_type, self._mod_uri))
 
