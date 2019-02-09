@@ -141,6 +141,17 @@ class TestSuiteForModCLIDocClass:
         assert mcd._docmap["doc"]["doc"] == "documentation"
         assert mcd._docmap["scheme"]["sch"] == "scheme"
 
+    def test_add_ident(self):
+        """
+        Add ident to the multi-line text.
+
+        :return:
+        """
+        data = "one\ntwo\ntree"
+        data = ModCLIDoc._add_ident(data=data, ident="...")
+
+        assert "...one\n...two\n...tree" == data
+
 
 class TestSuiteForDocman:
     """
