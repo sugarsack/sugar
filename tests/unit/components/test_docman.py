@@ -95,3 +95,26 @@ class TestSuiteForDocman:
             assert pkey in params[1]
         assert params[1]["mod_type"] == mod_type
         assert params[1]["mod_path"] == "/dev/null/runners/foo/bar"
+
+    @patch("sugar.components.docman.docrnd.SugarModuleLoader", get_fake_loader())
+    def test_docmaker_state_get_mod_man(self):
+        """
+        Test get_mod_man function of the DocMaker on state.
+
+        :return:
+        """
+        mod_type = "state"
+        mod_cli_doc = MagicMock()
+        loader = get_fake_loader()
+        with patch("sugar.components.docman.gendoc.SugarModuleLoader", loader) as sml, \
+            patch("sugar.components.docman.gendoc.ModCLIDoc", mod_cli_doc) as mcd:
+            dmk = DocMaker()
+            dmk.get_mod_man(mod_type, "foo.bar")
+
+        params = list(mod_cli_doc.call_args_list[0])
+        assert len(params) == 2
+        assert params[0][0] == 'foo.bar'
+        for pkey in ["mod_path", "mod_type"]:
+            assert pkey in params[1]
+        assert params[1]["mod_type"] == mod_type
+        assert params[1]["mod_path"] == "/dev/null/states/foo/bar"
