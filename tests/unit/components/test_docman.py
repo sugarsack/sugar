@@ -2,6 +2,7 @@
 """
 Docman unit tests.
 """
+import os
 import pytest
 
 from mock import MagicMock, patch, mock_open
@@ -103,18 +104,24 @@ class TestSuiteForModCLIDocClass:
             ModCLIDoc("foo.bar", mod_type="runner", mod_path="/tmp")
         assert "No documentation found for runner module 'foo.bar'" in str(exc)
 
-    @patch("sugar.utils.files.fopen", multi_mock_open(sample_doc, sample_example, sample_scheme), create=True)
+    @patch("sugar.utils.files.fopen", multi_mock_open(sample_doc, sample_example, sample_scheme,
+                                                      sample_doc, sample_example, sample_scheme), create=True)
     def test_mcd_docmap(self):
         """
         Test documentation mapper.
 
         :return:
         """
-        mcd = ModCLIDoc("foo.bar", mod_type="runner")
-        assert len(mcd._docmap) == 3
+        for mod_type in ["runner", "state"]:
+            mcd = ModCLIDoc("foo.bar", mod_type=mod_type)
+            assert len(mcd._docmap) == 3
 
-        for pkey in ["doc", "examples", "scheme"]:
-            assert pkey in mcd._docmap
+            for pkey in ["doc", "examples", "scheme"]:
+                assert pkey in mcd._docmap
+
+            assert bool(mcd._mod_path)
+            assert mcd._mod_path.startswith(os.path.sep)
+            assert mcd._mod_path.endswith("/sugar/modules/{}s/foo/bar".format(mod_type))
 
 
 class TestSuiteForDocman:
