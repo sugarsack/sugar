@@ -5,7 +5,7 @@ Docman unit tests.
 import pytest
 
 from mock import MagicMock, patch, mock_open
-from sugar.components.docman.gendoc import DocMaker
+from sugar.components.docman.gendoc import DocMaker, ModCLIDoc
 import sugar.lib.exceptions
 from tests.unit.unit_utils import multi_mock_open
 
@@ -69,6 +69,19 @@ NameInterface:
   platform:
     r:name: str
 """
+
+
+class TestSuiteForModCLIDocClass:
+    """
+    Test suite for the docman component on module CLI documentation class.
+    """
+    def test_filters(self):
+        """
+        Check filters instance.
+
+        :return:
+        """
+        assert ModCLIDoc.filters.__class__.__name__ == "JinjaCLIFilters"
 
 
 class TestSuiteForDocman:
