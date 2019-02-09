@@ -83,6 +83,15 @@ class TestSuiteForModCLIDocClass:
         """
         assert ModCLIDoc.filters.__class__.__name__ == "JinjaCLIFilters"
 
+    def test_mtype_or_mpath_expected(self):
+        """
+
+        :return:
+        """
+        with pytest.raises(AssertionError) as exc:
+            ModCLIDoc("foo.bar")
+        assert "Either module type or path should be specified" in str(exc)
+
 
 class TestSuiteForDocman:
     """
