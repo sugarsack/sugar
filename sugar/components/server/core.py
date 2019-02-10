@@ -15,9 +15,12 @@ from sugar.utils.cli import get_current_component
 from sugar.transport import Serialisable, ServerMsgFactory, ObjectGate
 from sugar.lib.pki import Crypto
 from sugar.lib.pki.keystore import KeyStore
+from sugar.components.server.registry import RuntimeRegistry
+
 import sugar.transport
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
+
 from sugar.utils.tokens import MasterLocalToken
 
 
@@ -28,7 +31,7 @@ class ServerCore(object):
     """
     def __init__(self):
         """
-
+        Server core class.
         """
         self.log = get_logger(self)
         self.config = get_config()
@@ -38,7 +41,8 @@ class ServerCore(object):
         self.keymanager = KeyManagerEvents(self)
         self.keystore = KeyStore(os.path.abspath(self.config.config_path))
         self.master_local_token = MasterLocalToken()
-        self.__client_connection_protocols = {}  # Machine-ID to Client protocols mapping
+        self.peer_registry = RuntimeRegistry()
+        self.peer_registry.keystore = self.keystore
 
     def verify_local_token(self, token):
         """
@@ -67,9 +71,7 @@ class ServerCore(object):
         :param proto: current protocol instance
         :return: None
         """
-        if getattr(proto, "machine_id", None):
-            self.__client_connection_protocols.setdefault(machine_id, proto)
-            self.log.info("Registered client connection with the machine id: {}".format(machine_id))
+        self.peer_registry.register(machine_id=machine_id, peer=proto)
 
     def remove_client_protocol(self, proto):
         """
@@ -78,10 +80,7 @@ class ServerCore(object):
         :param proto: current protocol instance
         :return: None
         """
-        machine_id = proto.get_machine_id()
-        if machine_id in self.__client_connection_protocols:
-            del self.__client_connection_protocols[machine_id]
-            self.log.info("Removed client connection with the machine id: {}".format(machine_id))
+        self.peer_registry.unregister(proto.get_machine_id())
 
     def get_client_protocol(self, machine_id):
         """
@@ -90,7 +89,7 @@ class ServerCore(object):
         :param machine_id: string form of the machine ID
         :return: registered client protocol instance
         """
-        return self.__client_connection_protocols.get(machine_id)
+        return self.peer_registry.peers.get(machine_id)
 
     def console_request(self, evt):
         """
