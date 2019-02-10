@@ -88,6 +88,23 @@ class TestServerQueryBlock:
             assert qbl.target == r'.*\Z(?ms)'
             assert qbl.trait is None
             assert qbl.flags == ()
+
+    def test_partialquery_fullname(self):
+        """
+        Test partial query for full name.
+
+        :return:
+        """
+        qbl = QueryBlock(":-r:somehost")
+        assert qbl.target == r'somehost'
+        assert qbl.trait is None
+        assert qbl.flags == ('r',)
+
+        qbl = QueryBlock(":-rcx:somehost")
+        assert qbl.target == r"somehost"
+        assert qbl.trait is None
+        assert sorted(qbl.flags) == sorted(("r", "c", "x"))
+
     def test_short_query(self):
         """
         Test short query parsing:
