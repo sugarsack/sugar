@@ -110,6 +110,27 @@ class TestServerQueryBlock:
         assert qbl.trait is None
         assert sorted(qbl.flags) == sorted(("r", "c", "x"))
 
+    def test_partialquery_fullname_glob_case_sensitive(self):
+        """
+        Test partial query for full name with the globbing.
+
+        :return:
+        """
+        qbl = QueryBlock(":-x:SOMEHOST*")
+        assert qbl.target == r'somehost.*\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ('x',)
+
+        qbl = QueryBlock(":-c:*SOMEHOST")
+        assert qbl.target == r'.*SOMEHOST\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ('c',)
+
+        qbl = QueryBlock(":-c:Some*Host")
+        assert qbl.target == r'Some.*Host\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ('c',)
+
     def test_short_query(self):
         """
         Test short query parsing:
