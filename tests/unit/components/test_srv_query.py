@@ -77,6 +77,17 @@ class TestServerQueryBlock:
         assert qbl.trait is None
         assert qbl.flags == ()
 
+    def test_partialquery_all(self):
+        """
+        Test partial query for 'a' flag.
+
+        :return:
+        """
+        for query in [':a:', 'a:']:
+            qbl = QueryBlock(query)
+            assert qbl.target == r'.*\Z(?ms)'
+            assert qbl.trait is None
+            assert qbl.flags == ()
     def test_short_query(self):
         """
         Test short query parsing:
