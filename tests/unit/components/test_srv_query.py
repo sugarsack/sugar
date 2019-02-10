@@ -100,6 +100,11 @@ class TestServerQueryBlock:
         assert qbl.trait is None
         assert qbl.flags == ('r',)
 
+        qbl = QueryBlock(":-c:somehost")
+        assert qbl.target == r'somehost\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ('c',)
+
         qbl = QueryBlock(":-rcx:somehost")
         assert qbl.target == r"somehost"
         assert qbl.trait is None
