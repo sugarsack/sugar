@@ -20,7 +20,6 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("*")
-
         assert qbl.target == r'.*\Z(?ms)'
         assert qbl.trait is None
         assert qbl.flags == ()
@@ -35,7 +34,6 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("somehost")
-
         assert qbl.target == r'somehost\Z(?ms)'
         assert qbl.trait is None
         assert qbl.flags == ()
