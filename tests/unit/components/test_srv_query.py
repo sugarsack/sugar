@@ -2,7 +2,25 @@
 """
 Query parser test
 """
-from sugar.components.server.query import QueryBlock
+import pytest
+from sugar.components.server.query import QueryBlock, Query
+
+
+@pytest.fixture
+def hosts_list() -> list:
+    """
+    Get a list of hosts.
+
+    :return: list
+    """
+    hosts = [
+        "web1.example.org", "web2.example.org", "web3.example.org", "web4.example.org", "web5.example.org",
+        "zoo1", "zoo2", "zoo3", "zoo4", "zoo5",
+        "web1.sugarsack.org", "web2.sugarsack.org", "web3.sugarsack.org", "web4.sugarsack.org", "web5.sugarsack.org",
+        "zoo1.domain.com", "zoo2.domain.com", "zoo3.domain.com", "zoo4.domain.com", "zoo5.domain.com",
+    ]
+
+    return hosts
 
 
 class TestServerQueryBlock:
@@ -180,3 +198,18 @@ class TestServerQueryBlock:
         assert qbl.trait is None
         assert qbl.flags == ()
 
+
+class TestServerQueryMatcher:
+    """
+    Test suite for server query matcher.
+    """
+    def test_select_all_query(self, hosts_list):
+        """
+        Test query.
+
+        :return:
+        """
+        for query in ["*", ":a", "a:", ":-a:", ":a:"]:
+            qry = Query(query)
+            assert len(qry.filter(*hosts_list)) == len(hosts_list)
+            assert sorted(qry.filter(*hosts_list)) == sorted(hosts_list)
