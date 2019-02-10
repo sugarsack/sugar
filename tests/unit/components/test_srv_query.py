@@ -129,7 +129,7 @@ class TestServerQueryBlock:
         assert qbl.trait is None
         assert qbl.flags == ('c',)
 
-    def test_short_query(self):
+    def test_traits_query_basic(self):
         """
         Test short query parsing:
 
@@ -139,3 +139,23 @@ class TestServerQueryBlock:
 
         :return:
         """
+        qbl = QueryBlock("os-family:-c:Debian")
+        assert qbl.target == r'Debian\Z(?ms)'
+        assert qbl.trait == "os-family"
+        assert qbl.flags == ('c',)
+
+        qbl = QueryBlock("os-family:-x:DEBIAN")
+        assert qbl.target == r'debian\Z(?ms)'
+        assert qbl.trait == "os-family"
+        assert qbl.flags == ('x',)
+
+        qbl = QueryBlock("os-family:-x:DEBIAN*")
+        assert qbl.target == r'debian.*\Z(?ms)'
+        assert qbl.trait == "os-family"
+        assert qbl.flags == ('x',)
+
+        qbl = QueryBlock("os-family:-x:*DEBIAN*")
+        assert qbl.target == r'.*debian.*\Z(?ms)'
+        assert qbl.trait == "os-family"
+        assert qbl.flags == ('x',)
+
