@@ -170,3 +170,13 @@ class TestServerQueryBlock:
         assert qbl.trait == "os-family"
         assert qbl.flags == ('r',)
 
+    def test_traits_all_flag(self):
+        """
+        Test if 'a' flag invalidates everything (it should)
+        :return:
+        """
+        qbl = QueryBlock("os-family:-ar:(Debian|Ubuntu|SUSE|RedHat)")
+        assert qbl.target == r'.*\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ()
+
