@@ -159,3 +159,14 @@ class TestServerQueryBlock:
         assert qbl.trait == "os-family"
         assert qbl.flags == ('x',)
 
+    def test_traits_query_regex(self):
+        """
+        Test traits query regular expression.
+
+        :return:
+        """
+        qbl = QueryBlock("os-family:-r:(Debian|Ubuntu|SUSE|RedHat)")
+        assert qbl.target == r'(debian|ubuntu|suse|redhat)'
+        assert qbl.trait == "os-family"
+        assert qbl.flags == ('r',)
+
