@@ -21,7 +21,9 @@ Flags (all optional):
 
     x: Exclude (inversion)
 
-    a: All, an alias to escaped '\*' globbing
+    a: All, an alias to escaped '\*' globbing.
+       NOTE: this flag invalidates everything,
+       turning all query into just "*".
 
 Query may contain multiple blocks as above, separated
 by a comma which means "and".
@@ -97,8 +99,8 @@ class QueryBlock:
         :return: None
         """
         if "a" in flags:
-            if "r" not in flags:
-                self.target = fnmatch.translate(self.target or "*")
+            self.target = fnmatch.translate("*")
+            self.trait = None
             self.flags = ()
         else:
             assert flags.startswith("-"), "Flags must always start with '-', unless 'a' for 'all'"
@@ -134,7 +136,9 @@ class QueryBlock:
         :return: None
         """
         self.trait, self.target = raw.split(":")
-        if self.trait == "a":
+
+        # Handle ':a' and 'a:'
+        if self.trait == "a" and not self.target or not self.trait and self.target == "a":
             self.trait = None
             self._get_flags("a")
 
@@ -187,7 +191,7 @@ class Query:
         for clause in self.__blocks:
             regex = re.compile(clause.target)
             if "x" not in clause.flags:
-                hosts = filter(regex.search, hosts)
+                hosts = list(filter(regex.search, hosts))
             else:
                 _hosts = []
                 for host in hosts:
