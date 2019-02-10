@@ -40,6 +40,43 @@ class TestServerQueryBlock:
         assert qbl.trait is None
         assert qbl.flags == ()
 
+    def test_simplequery_fullname_asterisk(self):
+        """
+        Test simple query for fullname with asterisks.
+
+        :return:
+        """
+        qbl = QueryBlock("somehost*")
+        assert qbl.target == r'somehost.*\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ()
+
+        qbl = QueryBlock("*somehost")
+        assert qbl.target == r'.*somehost\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ()
+
+        qbl = QueryBlock("some*host")
+        assert qbl.target == r'some.*host\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ()
+
+    def test_simplequery_fullname_subnames(self):
+        """
+        Test simple query for full name with sub-names.
+
+        :return:
+        """
+        qbl = QueryBlock("web[1-3]")
+        assert qbl.target == r'web[1-3]\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ()
+
+        qbl = QueryBlock("web[1,3]")
+        assert qbl.target == r'web[1,3]\Z(?ms)'
+        assert qbl.trait is None
+        assert qbl.flags == ()
+
     def test_short_query(self):
         """
         Test short query parsing:
