@@ -15,9 +15,9 @@ def hosts_list() -> list:
     """
     hosts = [
         "web1.example.org", "web2.example.org", "web3.example.org", "web4.example.org", "web5.example.org",
-        "zoo1", "zoo2", "zoo3", "zoo4", "zoo5",
         "web1.sugarsack.org", "web2.sugarsack.org", "web3.sugarsack.org", "web4.sugarsack.org", "web5.sugarsack.org",
         "zoo1.domain.com", "zoo2.domain.com", "zoo3.domain.com", "zoo4.domain.com", "zoo5.domain.com",
+        "zoo1", "zoo2", "zoo3", "zoo4", "zoo5",
     ]
 
     return hosts
@@ -205,8 +205,9 @@ class TestServerQueryMatcher:
     """
     def test_select_all_query(self, hosts_list):
         """
-        Test query.
+        Test 'get all' query, both by globbing and flag-based.
 
+        :param hosts_list: list of hosts
         :return:
         """
         for query in ["*", ":a", "a:", ":-a:", ":a:"]:
@@ -216,3 +217,23 @@ class TestServerQueryMatcher:
 
         qry = Query("a")
         assert len(qry.filter(*hosts_list)) == 0
+
+    def test_select_list_hosts(self, hosts_list):
+        """
+        Test list of hosts by full names, such as: "web1,web2,web3"
+
+        :param hosts_list: list of hosts
+        :return:
+        """
+        qry = Query("zoo1,web2,web3")
+        assert sorted(qry.filter(*hosts_list)) == sorted(['web2.example.org', 'web3.example.org', 'web2.sugarsack.org',
+                                                          'web3.sugarsack.org', 'zoo1.domain.com', 'zoo1'])
+
+    def test_select_subselect(self, hosts_list):
+        """
+        Select from previous select.
+
+        :param hosts_list:
+        :return:
+        """
+        assert Query("zoo[1,3,4]/zoo[2,4]").filter(*hosts_list) == ["zoo4"]
