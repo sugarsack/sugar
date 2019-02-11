@@ -266,3 +266,6 @@ class TestServerQueryMatcher:
         :return:
         """
         assert len(Query("hostname::web*").filter(*hosts_list)) == len(hosts_list)
+
+        hosts = Query("::web*").filter(*hosts_list)
+        assert sorted(hosts) == sorted([host for host in hosts_list if host.startswith("web")])
