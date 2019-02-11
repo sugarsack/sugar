@@ -115,12 +115,15 @@ class QueryBlock:
             self.flags = ()
         else:
             assert flags.startswith("-"), "Flags must always start with '-', unless 'a' for 'all'"
-            self.flags = tuple(set(flags[1:]))
+            self.flags = set(flags[1:])
             for flag in self.flags:
                 assert flag in self.FLAGS, "Unknown flag: '{}'".format(flag)
 
             if "c" not in self.flags:
                 self.target = self.target.lower()
+            if "r" not in self.flags and "," in self.target:
+                self.target = "({})".format("|".join(self.target.split(",")))
+                self.flags.add("r")
             if "r" not in self.flags:
                 self.target = fnmatch.translate(self.target)
 
@@ -128,6 +131,7 @@ class QueryBlock:
             self.trait = None
         if not self.target:
             self.target = None
+        self.flags = tuple(self.flags)
 
     def _full(self, raw: str) -> None:
         """
@@ -160,7 +164,11 @@ class QueryBlock:
         :param raw: query block
         :return: None
         """
-        self.target = fnmatch.translate(raw)
+        if "," in raw and "[" not in raw and "]" not in raw:
+            self.target = "({})".format("|".join(raw.split(",")))
+            self.flags = ("r",)
+        else:
+            self.target = fnmatch.translate(raw)
 
 
 class Query:
@@ -181,10 +189,11 @@ class Query:
         """
         Set query blocks.
 
-        :param raw: query string with possibly multuple blocks.
+        :param raw: query string with possibly multuple blocks, delimited by "/" (slash).
         :return: None
         """
-        for qstr in raw.split(","):
+        temp_delim = "--{}=D={}".format(*str(time.time()).split("."))
+        for qstr in [q_block.replace(temp_delim, "/") for q_block in raw.replace("\\/", temp_delim).split("/")]:
             qstr = qstr.strip()
             self.__blocks.append(QueryBlock(qstr))
 
