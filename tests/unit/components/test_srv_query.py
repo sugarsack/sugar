@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Query parser test
+Query parser test.
 """
 import pytest
 from sugar.components.server.query import QueryBlock, Query
@@ -213,3 +213,6 @@ class TestServerQueryMatcher:
             qry = Query(query)
             assert len(qry.filter(*hosts_list)) == len(hosts_list)
             assert sorted(qry.filter(*hosts_list)) == sorted(hosts_list)
+
+        qry = Query("a")
+        assert len(qry.filter(*hosts_list)) == 0
