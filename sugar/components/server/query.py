@@ -241,6 +241,8 @@ class Query:
 
         # Filter hostnames
         for clause in self.__blocks:
+            if clause.trait:  # skip traits selector for now
+                continue
             regex = re.compile(clause.target)
             if "x" not in clause.flags:
                 hosts = list(filter(regex.search, hosts))
