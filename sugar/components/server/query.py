@@ -120,7 +120,8 @@ class QueryBlock:
             self.trait = None
             self.flags = ()
         else:
-            assert flags.startswith("-"), "Flags must always start with '-', unless 'a' for 'all'"
+            if flags:
+                assert flags.startswith("-"), "Flags must always start with '-', unless 'a' for 'all'"
             self.flags = set(flags[1:])
             for flag in self.flags:
                 assert flag in self.FLAGS, "Unknown flag: '{}'".format(flag)
