@@ -26,16 +26,27 @@ Flags (all optional):
        turning all query into just "*".
 
 Query may contain multiple blocks as above, separated
-by a comma which means "and".
+by a slash (/). Comma separates lists in values.
+
+Single slash (/) means "substract". Subsequent query will
+select from the set of items of previous result.
+
+Double slash (//) means "union".Subsequent query will
+select from all items.
 
 Examples:
 
-    os-family:-rc:(Debian|RedHat),hostname:web[1,3]
-    ip-addr:*123,os-family:debian,:-r:web-(dev|uat)
-    os-family:-r:(debian|ubuntu),ip-addr:-x:192*
+    os-family:-rc:(Debian|RedHat)/hostname:web[1,3]
+
+    ip-addr:*123/os-family:debian/:-r:web-(dev|uat)
+
+    os-family:-r:(debian|ubuntu)/ip-addr:-x:192*
+
+    hostname:web1,web2,web3//os-family:debian
 """
 
 import re
+import time
 import fnmatch
 
 import sugar.lib.exceptions
