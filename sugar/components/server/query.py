@@ -77,6 +77,7 @@ class QueryBlock:
         self.flags = ()
         self.trait = None
         self.target = None
+        self.op = self.OPERANDS["/"]  # for now
 
         raw = raw.strip() if raw is not None else None
         if raw:
