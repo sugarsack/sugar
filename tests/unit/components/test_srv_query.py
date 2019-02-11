@@ -258,3 +258,11 @@ class TestServerQueryMatcher:
         assert sorted(qry.filter(*hosts_list)) == sorted(['zoo1.domain.com', 'zoo2.domain.com', 'zoo3.domain.com',
                                                           'zoo4.domain.com', 'zoo5.domain.com',
                                                           'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'])
+
+    def test_no_flags(self, hosts_list):
+        """
+        Test empty flags should not raise an exception (if there are just :: syntax).
+
+        :return:
+        """
+        assert len(Query("hostname::web*").filter(*hosts_list)) == len(hosts_list)
