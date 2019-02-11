@@ -57,10 +57,15 @@ class QueryBlock:
     Query block.
     """
     FLAGS = {
-        "r": "Following is a regular expression",
-        "c": "Case-sensitive of the following",
-        "x": "Inverse of the following",
-        "a": "All items",
+        "r": "reg-exp",
+        "c": "case-sensitive",
+        "x": "inversion",
+        "a": "everything",
+    }
+
+    OPERANDS = {
+        "/": "and",
+        "//": "or",
     }
 
     def __init__(self, raw: str):
