@@ -204,6 +204,31 @@ class Query:
             qstr = qstr.strip()
             self.__blocks.append(QueryBlock(qstr))
 
+    def explain(self):
+        """
+        Explain query.
+
+        :return: explanation str
+        """
+        out = ["match hosts"]
+        first = True
+        for block in self.__blocks:
+            if not first:
+                out.append(block.op)
+            out.append("where")
+            if block.trait:
+                out.append("trait '{}'".format(block.trait))
+            if block.target:
+                out.append("target is")
+                if not block.flags:
+                    out.append("globbing of")
+                else:
+                    for flag in block.flags:
+                        out.append(QueryBlock.FLAGS[flag])
+                out.append("'{}'".format(block.target))
+            first = False
+        return " ".join(out)
+
     def filter(self, *hosts):
         """
         Filter hosts.
