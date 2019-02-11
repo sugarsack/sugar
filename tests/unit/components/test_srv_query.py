@@ -237,3 +237,24 @@ class TestServerQueryMatcher:
         :return:
         """
         assert Query("zoo[1,3,4]/zoo[2,4]").filter(*hosts_list) == ["zoo4"]
+
+    def test_select_subsequent_after_trait(self, hosts_list):
+        """
+
+        :param host_list:
+        :return:
+        """
+        qry = Query("os-name:debian/web[1,3]*")
+        assert sorted(qry.filter(*hosts_list)) == sorted(['web1.example.org', 'web3.example.org',
+                                                          'web1.sugarsack.org', 'web3.sugarsack.org'])
+
+    def test_select_inversion_flag(self, hosts_list):
+        """
+        Test inverse query.
+
+        :return:
+        """
+        qry = Query(":-x:web*")
+        assert sorted(qry.filter(*hosts_list)) == sorted(['zoo1.domain.com', 'zoo2.domain.com', 'zoo3.domain.com',
+                                                          'zoo4.domain.com', 'zoo5.domain.com',
+                                                          'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'])
