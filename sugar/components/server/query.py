@@ -215,7 +215,7 @@ class Query:
 
         :return: explanation str
         """
-        out = ["match hosts"]
+        out = ["Match clients"]
         first = True
         for block in self.__blocks:
             if not first:
@@ -230,7 +230,7 @@ class Query:
                 else:
                     for flag in block.flags:
                         out.append(QueryBlock.FLAGS[flag])
-                out.append("'{}'".format(block.target))
+                out.append("'{}'".format(block._orig_target if "r" not in block.flags else block.target))
             first = False
         return " ".join(out)
 
