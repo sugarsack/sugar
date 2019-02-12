@@ -289,8 +289,14 @@ class TestServerQueryMatcher:
         """
         assert len(Query("hostname::web*").filter(*hosts_list)) == len(hosts_list)
 
-        hosts = Query("::web*").filter(*hosts_list)
-        assert sorted(hosts) == sorted([host for host in hosts_list if host.startswith("web")])
+    def test_select_inversion_composite(self, hosts_list):
+        """
+        Test inversion composite query.
+
+        :param hosts_list: list of the hosts fixture
+        :return:
+        """
+        assert set(Query("zoo1,zoo2,zoo3/:-x:zoo2").filter(hosts_list)) == {"zoo1", "zoo3"}
 
     def test_union(self, hosts_list):
         """
