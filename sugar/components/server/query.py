@@ -195,6 +195,7 @@ class Query:
         :param raw: query string.
         """
         self.__blocks = []
+        self.__p_blocks = []
         self._set_blocks(raw)
 
     def _set_blocks(self, raw: str) -> None:
@@ -205,9 +206,17 @@ class Query:
         :return: None
         """
         temp_delim = "--{}=D={}".format(*str(time.time()).split("."))
-        for qstr in [q_block.replace(temp_delim, "/") for q_block in raw.replace("\\/", temp_delim).split("/")]:
-            qstr = qstr.strip()
-            self.__blocks.append(QueryBlock(qstr))
+        for p_block in raw.replace("\\/", temp_delim).split("//"):
+            op = QueryBlock.OPERANDS["//"]
+            q_block = []
+            for q_str in p_block.split("/"):
+                q_str = q_str.replace(temp_delim, "/").strip()
+                query = QueryBlock(q_str, operand=op)
+                self.__blocks.append(query)
+                q_block.append(query)
+                op = QueryBlock.OPERANDS["/"]
+            if q_block:
+                self.__p_blocks.append(q_block)
 
     def explain(self):
         """
