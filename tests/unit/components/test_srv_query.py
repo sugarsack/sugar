@@ -198,6 +198,16 @@ class TestServerQueryBlock:
         assert qbl.trait is None
         assert qbl.flags == ()
 
+    def test_simple_list(self):
+        """
+        Test simple query listing.
+
+        :return:
+        """
+        qbl = QueryBlock("foo,bar,fred")
+        assert qbl.target == r"(foo\Z(?ms)|bar\Z(?ms)|fred\Z(?ms))"
+        assert qbl.trait is None
+        assert qbl.flags == ("r",)
 
 class TestServerQueryMatcher:
     """
