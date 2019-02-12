@@ -118,6 +118,7 @@ class QueryBlock:
         """
         if "a" in flags:
             self.target = fnmatch.translate("*")
+            self._orig_target = "*"
             self.trait = None
             self.flags = ()
         else:
@@ -149,6 +150,7 @@ class QueryBlock:
         :return: None
         """
         self.trait, flags, self.target = raw.split(":")
+        self._orig_target = self.target
         self._get_flags(flags)
 
     def _partial(self, raw: str) -> None:
@@ -159,6 +161,7 @@ class QueryBlock:
         :return: None
         """
         self.trait, self.target = raw.split(":")
+        self._orig_target = self.target
 
         # Handle ':a' and 'a:'
         if self.trait == "a" and not self.target or not self.trait and self.target == "a":
@@ -172,6 +175,7 @@ class QueryBlock:
         :param raw: query block
         :return: None
         """
+        self._orig_target = raw
         if "," in raw and "[" not in raw and "]" not in raw:
             self.target = "({})".format("|".join(raw.split(",")))
             self.flags = ("r",)
