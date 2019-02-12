@@ -287,7 +287,10 @@ class TestServerQueryMatcher:
 
         :return:
         """
-        assert len(Query("hostname::web*").filter(*hosts_list)) == len(hosts_list)
+        assert len(Query("hostname::web*").filter(hosts_list)) == len(hosts_list)
+
+        hosts = Query("::web*").filter(hosts_list)
+        assert set(hosts) == set([host for host in hosts_list if host.startswith("web")])
 
     def test_select_inversion_composite(self, hosts_list):
         """
