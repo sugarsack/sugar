@@ -57,10 +57,10 @@ class QueryBlock:
     Query block.
     """
     FLAGS = {
-        "r": "reg-exp",
-        "c": "case-sensitive",
-        "x": "inversion",
-        "a": "everything",
+        "r": "a reg-exp",
+        "c": "is case-sensitive",
+        "x": "an inversion of",
+        "a": "matches everything",
     }
 
     OPERANDS = {
