@@ -291,3 +291,16 @@ class TestServerQueryMatcher:
 
         hosts = Query("::web*").filter(*hosts_list)
         assert sorted(hosts) == sorted([host for host in hosts_list if host.startswith("web")])
+
+    def test_union(self, hosts_list):
+        """
+
+        :return:
+        """
+        import textwrap
+        qry = Query("*.example.org,*.sugarsack.org,*.domain.com/:-x:*[1-3]*//zoo[1-3]/:-x:zoo[3]")
+        print()
+        print("\n".join(textwrap.wrap(qry.explain())))
+        assert set(qry.filter(hosts_list)) == {'web4.example.org', 'web4.sugarsack.org', 'web5.example.org',
+                                               'web5.sugarsack.org', 'zoo1', 'zoo2', 'zoo4.domain.com',
+                                               'zoo5.domain.com'}
