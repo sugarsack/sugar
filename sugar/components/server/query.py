@@ -232,31 +232,44 @@ class Query:
                         out.append(QueryBlock.FLAGS[flag])
                 out.append("'{}'".format(block._orig_target if "r" not in block.flags else block.target))
             first = False
+
         return " ".join(out)
 
-    def filter(self, *hosts):
+    @staticmethod
+    def __filter_within(queries, subset):
         """
-        Filter hosts.
+        Filter within the subset.
 
-        :param hosts: original hosts.
-        :return: filtered hosts
+        :param blocks:
+        :param hosts:
+        :return:
         """
-        # TODO: Here also filter traits
-        pass
-
         # Filter hostnames
-        for clause in self.__blocks:
+        for clause in queries:
             if clause.trait:  # skip traits selector for now
                 continue
             regex = re.compile(clause.target)
             if "x" not in clause.flags:
-                hosts = list(filter(regex.search, hosts))
+                subset = list(filter(regex.search, subset))
             else:
                 _hosts = []
-                for host in hosts:
+                for host in subset:
                     if not regex.search(host):
                         _hosts.append(host)
-                hosts = _hosts
+                subset = _hosts
                 del _hosts
 
-        return hosts
+        return subset
+
+    def filter(self, hosts: list) -> list:
+        """
+        Filter hosts.
+
+        :param hosts:
+        :return:
+        """
+        result = []
+        for seq_queries in self.__p_blocks:
+            result += self.__filter_within(seq_queries, hosts[::])
+
+        return list(set(result))
