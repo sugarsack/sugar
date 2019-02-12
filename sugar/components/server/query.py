@@ -68,7 +68,7 @@ class QueryBlock:
         "//": "or",
     }
 
-    def __init__(self, raw: str):
+    def __init__(self, raw: str, operand=None):
         """
         Parse raw query block.
 
@@ -77,7 +77,8 @@ class QueryBlock:
         self.flags = ()
         self.trait = None
         self.target = None
-        self.op = self.OPERANDS["/"]  # for now
+        self._orig_target = None
+        self.op = operand or self.OPERANDS["/"]
 
         raw = raw.strip() if raw is not None else None
         if raw:
