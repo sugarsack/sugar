@@ -209,6 +209,18 @@ class TestServerQueryBlock:
         assert qbl.trait is None
         assert qbl.flags == ("r",)
 
+    def test_simple_globbing_list(self):
+        """
+        Test simple globbing query listing.
+
+        :return:
+        """
+        qbl = QueryBlock("foo*,*bar,fr*ed")
+        assert qbl.target == r"(foo.*\Z(?ms)|.*bar\Z(?ms)|fr.*ed\Z(?ms))"
+        assert qbl.trait is None
+        assert qbl.flags == ("r",)
+
+
 class TestServerQueryMatcher:
     """
     Test suite for server query matcher.
