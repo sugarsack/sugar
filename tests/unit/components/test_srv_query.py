@@ -234,11 +234,11 @@ class TestServerQueryMatcher:
         """
         for query in ["*", ":a", "a:", ":-a:", ":a:"]:
             qry = Query(query)
-            assert len(qry.filter(*hosts_list)) == len(hosts_list)
-            assert sorted(qry.filter(*hosts_list)) == sorted(hosts_list)
+            assert len(qry.filter(hosts_list)) == len(hosts_list)
+            assert sorted(qry.filter(hosts_list)) == sorted(hosts_list)
 
         qry = Query("a")
-        assert len(qry.filter(*hosts_list)) == 0
+        assert len(qry.filter(hosts_list)) == 0
 
     def test_select_list_hosts(self, hosts_list):
         """
@@ -247,9 +247,8 @@ class TestServerQueryMatcher:
         :param hosts_list: list of hosts
         :return:
         """
-        qry = Query("zoo1,web2,web3")
-        assert sorted(qry.filter(*hosts_list)) == sorted(['web2.example.org', 'web3.example.org', 'web2.sugarsack.org',
-                                                          'web3.sugarsack.org', 'zoo1.domain.com', 'zoo1'])
+        qry = Query("zoo1,web2*,web3.sugarsack.org")
+        assert set(qry.filter(hosts_list)) == {"web3.sugarsack.org", "web2.sugarsack.org", "web2.example.org", "zoo1"}
 
     def test_select_subselect(self, hosts_list):
         """
@@ -258,17 +257,17 @@ class TestServerQueryMatcher:
         :param hosts_list:
         :return:
         """
-        assert Query("zoo[1,3,4]/zoo[2,4]").filter(*hosts_list) == ["zoo4"]
+        assert Query("zoo[1,3,4]/zoo[2,4]").filter(hosts_list) == ["zoo4"]
 
     def test_select_subsequent_after_trait(self, hosts_list):
         """
 
-        :param host_list:
+        :param hosts_list:
         :return:
         """
         qry = Query("os-name:debian/web[1,3]*")
-        assert sorted(qry.filter(*hosts_list)) == sorted(['web1.example.org', 'web3.example.org',
-                                                          'web1.sugarsack.org', 'web3.sugarsack.org'])
+        assert sorted(qry.filter(hosts_list)) == sorted(['web1.example.org', 'web3.example.org',
+                                                         'web1.sugarsack.org', 'web3.sugarsack.org'])
 
     def test_select_inversion_flag(self, hosts_list):
         """
@@ -277,9 +276,9 @@ class TestServerQueryMatcher:
         :return:
         """
         qry = Query(":-x:web*")
-        assert sorted(qry.filter(*hosts_list)) == sorted(['zoo1.domain.com', 'zoo2.domain.com', 'zoo3.domain.com',
-                                                          'zoo4.domain.com', 'zoo5.domain.com',
-                                                          'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'])
+        assert sorted(qry.filter(hosts_list)) == sorted(['zoo1.domain.com', 'zoo2.domain.com', 'zoo3.domain.com',
+                                                         'zoo4.domain.com', 'zoo5.domain.com',
+                                                         'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'])
 
     def test_no_flags(self, hosts_list):
         """
@@ -306,10 +305,7 @@ class TestServerQueryMatcher:
 
         :return:
         """
-        import textwrap
         qry = Query("*.example.org,*.sugarsack.org,*.domain.com/:-x:*[1-3]*//zoo[1-3]/:-x:zoo[3]")
-        print()
-        print("\n".join(textwrap.wrap(qry.explain())))
         assert set(qry.filter(hosts_list)) == {'web4.example.org', 'web4.sugarsack.org', 'web5.example.org',
                                                'web5.sugarsack.org', 'zoo1', 'zoo2', 'zoo4.domain.com',
                                                'zoo5.domain.com'}
