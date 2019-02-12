@@ -177,7 +177,7 @@ class QueryBlock:
         """
         self._orig_target = raw
         if "," in raw and "[" not in raw and "]" not in raw:
-            self.target = "({})".format("|".join(raw.split(",")))
+            self.target = "({})".format("|".join([fnmatch.translate(item) for item in raw.split(",")]))
             self.flags = ("r",)
         else:
             self.target = fnmatch.translate(raw)
