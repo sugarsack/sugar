@@ -29,6 +29,7 @@ Communication
    :maxdepth: 2
    
    targeting_query_syntax
+   targeting_query_syntax_combinations
 
 .. toctree::
    :caption: Tutorials
