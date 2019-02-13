@@ -60,13 +60,13 @@ clients in the `example.net` domain (`web1.example.net`,
 `web2.example.net`, ... , `webN.example.net`):
 
 ```bash
-sugar web?.example.net system.test.ping
+sugar 'web?.example.net' system.test.ping
 ```
 
 Match the `web1` through `web5` clients:
 
 ```bash
-sugar web[1-5] system.test.ping
+sugar 'web[1-5]' system.test.ping
 ```
 
 Match only `web1` and `web5` clients:
@@ -78,7 +78,7 @@ sugar web[1,5] system.test.ping
 Match the `web-x`, `web-y`, and `web-z` clients:
 
 ```bash
-sugar web-[x-z] system.test.ping
+sugar 'web-[x-z]' system.test.ping
 ```
 
 ## List Pattern
@@ -94,7 +94,7 @@ sugar web1,web2,web3 system.test.ping
 You can also be more specific:
 
 ```bash
-sugar web[1-3],zoo[1-5],db[1,2] system.test.ping
+sugar 'web[1-3],zoo[1-5],db[1,2]' system.test.ping
 ```
 
 ## Regular Expression
@@ -104,7 +104,7 @@ globbing is too mainstream to you. For example, match both `web1-prod`
 and `web1-devel` machines:
 
 ```bash
-sugar :-r:web1-(prod|devel) system.test.ping
+sugar ':-r:web1-(prod|devel)' system.test.ping
 ```
 
 The flag `-r` (must start with the hyphen) indicates that the
