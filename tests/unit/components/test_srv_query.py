@@ -111,17 +111,17 @@ class TestServerQueryBlock:
 
         :return:
         """
-        qbl = QueryBlock(":-r:somehost")
+        qbl = QueryBlock(":r:somehost")
         assert qbl.target == r'somehost'
         assert qbl.trait is None
         assert qbl.flags == ('r',)
 
-        qbl = QueryBlock(":-c:somehost")
+        qbl = QueryBlock(":c:somehost")
         assert qbl.target == r'somehost\Z(?ms)'
         assert qbl.trait is None
         assert qbl.flags == ('c',)
 
-        qbl = QueryBlock(":-rcx:somehost")
+        qbl = QueryBlock(":rcx:somehost")
         assert qbl.target == r"somehost"
         assert qbl.trait is None
         assert sorted(qbl.flags) == sorted(("r", "c", "x"))
@@ -132,17 +132,17 @@ class TestServerQueryBlock:
 
         :return:
         """
-        qbl = QueryBlock(":-x:SOMEHOST*")
+        qbl = QueryBlock(":x:SOMEHOST*")
         assert qbl.target == r'somehost.*\Z(?ms)'
         assert qbl.trait is None
         assert qbl.flags == ('x',)
 
-        qbl = QueryBlock(":-c:*SOMEHOST")
+        qbl = QueryBlock(":c:*SOMEHOST")
         assert qbl.target == r'.*SOMEHOST\Z(?ms)'
         assert qbl.trait is None
         assert qbl.flags == ('c',)
 
-        qbl = QueryBlock(":-c:Some*Host")
+        qbl = QueryBlock(":c:Some*Host")
         assert qbl.target == r'Some.*Host\Z(?ms)'
         assert qbl.trait is None
         assert qbl.flags == ('c',)
@@ -157,22 +157,22 @@ class TestServerQueryBlock:
 
         :return:
         """
-        qbl = QueryBlock("os-family:-c:Debian")
+        qbl = QueryBlock("os-family:c:Debian")
         assert qbl.target == r'Debian\Z(?ms)'
         assert qbl.trait == "os-family"
         assert qbl.flags == ('c',)
 
-        qbl = QueryBlock("os-family:-x:DEBIAN")
+        qbl = QueryBlock("os-family:x:DEBIAN")
         assert qbl.target == r'debian\Z(?ms)'
         assert qbl.trait == "os-family"
         assert qbl.flags == ('x',)
 
-        qbl = QueryBlock("os-family:-x:DEBIAN*")
+        qbl = QueryBlock("os-family:x:DEBIAN*")
         assert qbl.target == r'debian.*\Z(?ms)'
         assert qbl.trait == "os-family"
         assert qbl.flags == ('x',)
 
-        qbl = QueryBlock("os-family:-x:*DEBIAN*")
+        qbl = QueryBlock("os-family:x:*DEBIAN*")
         assert qbl.target == r'.*debian.*\Z(?ms)'
         assert qbl.trait == "os-family"
         assert qbl.flags == ('x',)
@@ -183,7 +183,7 @@ class TestServerQueryBlock:
 
         :return:
         """
-        qbl = QueryBlock("os-family:-r:(Debian|Ubuntu|SUSE|RedHat)")
+        qbl = QueryBlock("os-family:r:(Debian|Ubuntu|SUSE|RedHat)")
         assert qbl.target == r'(debian|ubuntu|suse|redhat)'
         assert qbl.trait == "os-family"
         assert qbl.flags == ('r',)
@@ -193,7 +193,7 @@ class TestServerQueryBlock:
         Test if 'a' flag invalidates everything (it should)
         :return:
         """
-        qbl = QueryBlock("os-family:-ar:(Debian|Ubuntu|SUSE|RedHat)")
+        qbl = QueryBlock("os-family:ar:(Debian|Ubuntu|SUSE|RedHat)")
         assert qbl.target == r'.*\Z(?ms)'
         assert qbl.trait is None
         assert qbl.flags == ()
@@ -232,13 +232,12 @@ class TestServerQueryMatcher:
         :param hosts_list: list of hosts
         :return:
         """
-        for query in ["*", ":a", "a:", ":-a:", ":a:"]:
+        for query in ["*", ":a", "a:", ":a:"]:
             qry = Query(query)
             assert len(qry.filter(hosts_list)) == len(hosts_list)
-            assert sorted(qry.filter(hosts_list)) == sorted(hosts_list)
+            assert set(qry.filter(hosts_list)) == set(hosts_list)
 
-        qry = Query("a")
-        assert len(qry.filter(hosts_list)) == 0
+        assert Query("a").filter(hosts_list) == []
 
     def test_select_list_hosts(self, hosts_list):
         """
@@ -257,7 +256,8 @@ class TestServerQueryMatcher:
         :param hosts_list:
         :return:
         """
-        assert Query("zoo[1,3,4]/zoo[2,4]").filter(hosts_list) == ["zoo4"]
+        for op in ["/", "&&", " and "]:
+            assert Query("zoo[1,3,4]{op}zoo[2,4]".format(op=op)).filter(hosts_list) == ["zoo4"]
 
     def test_select_subsequent_after_trait(self, hosts_list):
         """
@@ -265,9 +265,10 @@ class TestServerQueryMatcher:
         :param hosts_list:
         :return:
         """
-        qry = Query("os-name:debian/web[1,3]*")
-        assert sorted(qry.filter(hosts_list)) == sorted(['web1.example.org', 'web3.example.org',
-                                                         'web1.sugarsack.org', 'web3.sugarsack.org'])
+        for op in ["/", "&&", " and "]:
+            qry = Query("os-name:debian{op}web[1,3]*".format(op=op))
+            assert set(qry.filter(hosts_list)) == {'web1.example.org', 'web3.example.org',
+                                                   'web1.sugarsack.org', 'web3.sugarsack.org'}
 
     def test_select_inversion_flag(self, hosts_list):
         """
@@ -275,10 +276,10 @@ class TestServerQueryMatcher:
 
         :return:
         """
-        qry = Query(":-x:web*")
-        assert sorted(qry.filter(hosts_list)) == sorted(['zoo1.domain.com', 'zoo2.domain.com', 'zoo3.domain.com',
-                                                         'zoo4.domain.com', 'zoo5.domain.com',
-                                                         'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'])
+        qry = Query(":x:web*")
+        assert set(qry.filter(hosts_list)) == {'zoo1.domain.com', 'zoo2.domain.com', 'zoo3.domain.com',
+                                               'zoo4.domain.com', 'zoo5.domain.com',
+                                               'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'}
 
     def test_no_flags(self, hosts_list):
         """
@@ -286,7 +287,7 @@ class TestServerQueryMatcher:
 
         :return:
         """
-        assert len(Query("hostname::web*").filter(hosts_list)) == len(hosts_list)
+        assert set(Query("hostname::web*").filter(hosts_list)) == set(hosts_list)
 
         hosts = Query("::web*").filter(hosts_list)
         assert set(hosts) == set([host for host in hosts_list if host.startswith("web")])
@@ -298,14 +299,18 @@ class TestServerQueryMatcher:
         :param hosts_list: list of the hosts fixture
         :return:
         """
-        assert set(Query("zoo1,zoo2,zoo3/:-x:zoo2").filter(hosts_list)) == {"zoo1", "zoo3"}
+        for op in ["/", "&&", " and "]:
+            assert set(Query("zoo1,zoo2,zoo3{op}:x:zoo2".format(op=op)).filter(hosts_list)) == {"zoo1", "zoo3"}
 
     def test_union(self, hosts_list):
         """
+        Test union query.
 
         :return:
         """
-        qry = Query("*.example.org,*.sugarsack.org,*.domain.com/:-x:*[1-3]*//zoo[1-3]/:-x:zoo[3]")
-        assert set(qry.filter(hosts_list)) == {'web4.example.org', 'web4.sugarsack.org', 'web5.example.org',
-                                               'web5.sugarsack.org', 'zoo1', 'zoo2', 'zoo4.domain.com',
-                                               'zoo5.domain.com'}
+        for aop, oop in [("/", "//"), ("&&", "||"), (" and ", " or ")]:
+            qry = Query("*.example.org,*.sugarsack.org,*.domain.com{a}:x:*[1-3]*{o}zoo[1-3]{a}:x:zoo[3]".format(
+                a=aop, o=oop))
+            assert set(qry.filter(hosts_list)) == {'web4.example.org', 'web4.sugarsack.org', 'web5.example.org',
+                                                   'web5.sugarsack.org', 'zoo1', 'zoo2', 'zoo4.domain.com',
+                                                   'zoo5.domain.com'}
