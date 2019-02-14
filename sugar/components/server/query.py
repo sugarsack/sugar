@@ -21,7 +21,7 @@ Flags (all optional):
 
     x: Exclude (inversion)
 
-    a: All, an alias to escaped '\*' globbing.
+    a: All, an alias to escaped '*' globbing.
        NOTE: this flag invalidates everything,
        turning all query into just "*".
 
@@ -78,7 +78,7 @@ class QueryBlock:
         self.trait = None
         self.target = None
         self._orig_target = None
-        self.op = operand or self.OPERANDS["/"]
+        self.op = operand or self.OPERANDS["/"]  # pylint: disable=C0103
 
         raw = raw.strip() if raw is not None else None
         if raw:
@@ -196,7 +196,8 @@ class Query:
         self.__p_blocks = []
         self._set_blocks(raw)
 
-    def _or(self, raw: str, temp_delimeter: str) -> list:
+    @staticmethod
+    def _or(raw: str, temp_delimeter: str) -> list:
         """
         Get parallel blocks by OR operator.
         Supported syntax: //, ||, " or ".
@@ -215,7 +216,8 @@ class Query:
 
         return p_blocks
 
-    def _and(self, raw: str, temp_delimeter: str) -> list:
+    @staticmethod
+    def _and(raw: str, temp_delimeter: str) -> list:
         """
         Get serial blocks by AND operator.
         Supported syntax: /, &&, " and ".
@@ -241,13 +243,13 @@ class Query:
         """
         temp_delim = "--{}=D={}".format(*str(time.time()).split("."))
         for p_block in self._or(raw, temp_delimeter=temp_delim):
-            op = QueryBlock.OPERANDS["//"]
+            op = QueryBlock.OPERANDS["//"]     # pylint: disable=C0103
             q_block = []
             for q_str in self._and(p_block, temp_delimeter=temp_delim):
                 query = QueryBlock(q_str, operand=op)
                 self.__blocks.append(query)
                 q_block.append(query)
-                op = QueryBlock.OPERANDS["/"]
+                op = QueryBlock.OPERANDS["/"]  # pylint: disable=C0103
             if q_block:
                 self.__p_blocks.append(q_block)
 
@@ -272,7 +274,8 @@ class Query:
                 else:
                     for flag in block.flags:
                         out.append(QueryBlock.FLAGS[flag])
-                out.append("'{}'".format(block._orig_target if "r" not in block.flags else block.target))
+                out.append("'{}'".format(block._orig_target if "r" not in block.flags  # pylint: disable=W0212
+                                         else block.target))
             first = False
 
         return " ".join(out)
@@ -282,9 +285,9 @@ class Query:
         """
         Filter within the subset.
 
-        :param blocks:
-        :param hosts:
-        :return:
+        :param blocks: queries
+        :param hosts: subset of hosts
+        :return: list of hosts
         """
         # Filter hostnames
         for clause in queries:
@@ -307,8 +310,8 @@ class Query:
         """
         Filter hosts.
 
-        :param hosts:
-        :return:
+        :param hosts: lists of hosts
+        :return: filtered out list of hosts
         """
         result = []
         for seq_queries in self.__p_blocks:
