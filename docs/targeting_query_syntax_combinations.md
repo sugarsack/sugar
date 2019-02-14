@@ -27,11 +27,14 @@ to `or not ...`.
 ### Joining with `AND` operator
 
 To join any subsequent matcher into one chain with `and` operator, use
-`/` (slash):
+`/` (slash) or `&&` or just ` and ` with spaces around. The following
+examples are equally same:
 
 <div class="highlight">
 <pre>
 <span class="c1">&lt;first&gt;</span><b class="s1">/</b><span class="c1">&lt;second&gt;</span>
+<span class="c1">&lt;first&gt;</span><b class="s1">&&</b><span class="c1">&lt;second&gt;</span>
+<span class="c1">&lt;first&gt;</span><b class="s1"> and </b><span class="c1">&lt;second&gt;</span>
 </pre>
 </div>
 
@@ -43,16 +46,47 @@ use.
 
 The `or` operator works between blocks over the entire set of known
 machines. To join set of `and`-joined matchers or standalone matchers
-with `or` operator, use `//` (double-slash):
+with `or` operator, use `//` (double-slash), `||` or just ` or ` with
+spaces around. The following examples are equally same:
 
 <div class="highlight">
 <pre>
 <span class="c1">&lt;first&gt;</span><b class="s1">//</b><span class="c1">&lt;second&gt;</span>
+<span class="c1">&lt;first&gt;</span><b class="s1">||</b><span class="c1">&lt;second&gt;</span>
+<span class="c1">&lt;first&gt;</span><b class="s1"> or </b><span class="c1">&lt;second&gt;</span>
 </pre>
 </div>
 
 Here _"second"_ expression will be picking from the same original
 source as _"first"_, and then both results will be combined together.
+
+``` important:: Spaces are required around only "and" and "or" operators. Otherwise they are optional for just better readability.
+```
+
+### Ugh... Slashes are odd here!
+
+Yes. But they are also _easier to type_. So for exactly the same
+reasons as you would write on of the following (possibly mistyping `*`
+as `&` or `(` accidentally or pressing ENTER key instead of `'` on
+English standard keyboard):
+
+```bash
+sugar \* ....
+sugar '*' ....
+```
+
+Instead of above, you can also write the same this way:
+
+
+```bash
+sugar :a ....
+```
+
+It just only feels more handy and safe to type. The same happens with
+slashes versus `||` and `&&` (requires Shift involved): slash is just
+right there!
+
+In any case, all this is optional, you can choose any syntax you like.
 
 ### Invert results with `NOT` operator
 
@@ -81,15 +115,24 @@ property name `x` and target `foo` where flags are undefined.
 
 ## Examples
 
+This example is using all three ways of writing logical operators. All
+further examples will use slashes-based syntax.
+
 The following string matches all Debian clients with a hostname that
 begins with `webserv`, as well as any machines that have a hostname
 which matches the regular expression `web-dc1-srv.*`:
 
 ```bash
-sugar 'webserv*/os:debian//web-dc1-srv.*' system.test.ping
+sugar 'webserv* / os:debian // web-dc1-srv.*' system.test.ping
+sugar 'webserv* && os:debian || web-dc1-srv.*' system.test.ping
+sugar 'webserv* and os:debian or web-dc1-srv.*' system.test.ping
 ```
 
-Excluding a client hostname (ping all machines, except `web-dc1-srv`):
+Spaces between logical operators might be omitted, except `and` and
+`or` ones.
+
+Inversion works through the flag `x`. So in order to exclude a client
+hostname (ping all machines, except `web-dc1-srv`):
 
 ```bash
 sugar :x:web-dc1-srv system.test.ping
