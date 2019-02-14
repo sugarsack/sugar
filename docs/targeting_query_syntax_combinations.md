@@ -145,7 +145,7 @@ you are trying to target. For example this very long query can be
 explained by Sugar for you:
 
 ```bash
-sugar '*.example.org,*.sugarsack.org,*.domain.com/:-x:*[1-3]*//zoo[1-3]/:-x:zoo[3]' --explain
+sugar '*.example.org,*.sugarsack.org,*.domain.com/:x:*[1-3]*//zoo[1-3]/:x:zoo[3]' --explain
 ```
 
 This prints the following message:

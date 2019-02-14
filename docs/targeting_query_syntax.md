@@ -50,7 +50,7 @@ to the above:
 ```bash
 sugar :a system.test.ping
 sugar a: system.test.ping
-sugar :-a: system.test.ping
+sugar :a: system.test.ping
 ```
 
 ## Globbing Patterns
@@ -104,11 +104,11 @@ globbing is too mainstream to you. For example, match both `web1-prod`
 and `web1-devel` machines:
 
 ```bash
-sugar ':-r:web1-(prod|devel)' system.test.ping
+sugar ':r:web1-(prod|devel)' system.test.ping
 ```
 
-The flag `-r` (must start with the hyphen) indicates that the
+The flag `r` (must start with the colon) indicates that the
 following target expression is a regular expression.
 
-``` important:: Flags must start with the hyphen. Except "a" flag.
+``` important:: Flags must start with the colon, or they will be interpreted as properties.
 ```
