@@ -25,22 +25,22 @@ class PeerMatcher:
         self.__host_to_mid = {}
         self.log = get_logger(self)
 
-    def add(self, host, machine_id):
+    def add(self, host: str, machine_id: str) -> None:
         """
         Add host to the map.
 
-        :param host:
-        :param machine_id:
-        :return:
+        :param host: hostname string
+        :param machine_id: machine ID string
+        :return: None
         """
         self.__host_to_mid.setdefault(host, machine_id)
 
-    def remove(self, host):
+    def remove(self, host: str) -> None:
         """
         Remove host from the map.
 
-        :param host:
-        :return:
+        :param host: hostname string
+        :return: None
         """
         try:
             del self.__host_to_mid[host]
@@ -51,16 +51,6 @@ class PeerMatcher:
         """
         Match hostname by Sugar query.
         This does not include traits.
-
-        Query supports globbing:
-
-          - '*': Match all hostnames.
-          - '*.example.org': match all hosts in the "example.org" domain
-          - 'web?.example.org': match all 'webN' hosts in
-            the "example.org" domain: "web1.example.org", "web2.example.org"...
-          - 'web[1-5].example.org': match all 'web1' through 'web5' hostnames.
-          - 'web[1,3].example.org': match only 'web1' and 'web3' hostnames.
-          - 'web[x-z].example.org': match 'webx', 'weby' and 'webz' hostnames.
 
         :param query: query pattern
         :param regex: flag if query is a regular expression, otherwise UNIX pattern match
@@ -108,7 +98,7 @@ class RuntimeRegistry:
         """
         Return read-only peers.
 
-        :return:
+        :return: dictionary of peers (read-only)
         """
         return ImmutableDict(self.__peers)
 
@@ -131,7 +121,7 @@ class RuntimeRegistry:
         """
         Unregister peer.
 
-        :param machine_id:
+        :param machine_id: Machine ID string
         :return: None
         """
         try:
@@ -145,7 +135,7 @@ class RuntimeRegistry:
         """
         Get hostname by the machine ID.
 
-        :param machine_id:
+        :param machine_id: Machine ID string
         :return: hostname
         """
         keyobj = self.keystore.get_key_by_machine_id(machine_id)
