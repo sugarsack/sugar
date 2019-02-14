@@ -196,6 +196,42 @@ class Query:
         self.__p_blocks = []
         self._set_blocks(raw)
 
+    def _or(self, raw: str, temp_delimeter: str) -> list:
+        """
+        Get parallel blocks by OR operator.
+        Supported syntax: //, ||, " or ".
+
+        :param raw: query parallel block
+        :param temp_delimeter: temporary delimeter to stash escaped slashes in case "//" is used.
+        :return: parallel blocks
+        """
+        raw = raw.replace("\\/", temp_delimeter)
+        if " or " in raw:
+            p_blocks = re.sub(r"\s+", " ", raw).split(" or ")
+        elif "||" in raw:
+            p_blocks = re.split(r"\s+\|\|\s+|\s+\|\||\|\|\s+|\|\|", raw)
+        else:
+            p_blocks = re.split(r"\s+//\s+|\s+//|//\s+|//", raw)
+
+        return p_blocks
+
+    def _and(self, raw: str, temp_delimeter: str) -> list:
+        """
+        Get serial blocks by AND operator.
+        Supported syntax: /, &&, " and ".
+
+        :param raw: query serial block
+        :return: serial blocks
+        """
+        if " and " in raw:
+            s_blocks = re.sub(r"\s+", " ", raw).split(" and ")
+        elif "&&" in raw:
+            s_blocks = re.split(r"\s+&&\s+|\s+&&|&&\s+|&&", raw)
+        else:
+            s_blocks = re.split(r"\s+/\s+|\s+/|/\s+|/", raw)
+
+        return [qstr.replace(temp_delimeter, "/") for qstr in s_blocks]
+
     def _set_blocks(self, raw: str) -> None:
         """
         Set query blocks.
@@ -204,11 +240,10 @@ class Query:
         :return: None
         """
         temp_delim = "--{}=D={}".format(*str(time.time()).split("."))
-        for p_block in raw.replace("\\/", temp_delim).split("//"):
+        for p_block in self._or(raw, temp_delimeter=temp_delim):
             op = QueryBlock.OPERANDS["//"]
             q_block = []
-            for q_str in p_block.split("/"):
-                q_str = q_str.replace(temp_delim, "/").strip()
+            for q_str in self._and(p_block, temp_delimeter=temp_delim):
                 query = QueryBlock(q_str, operand=op)
                 self.__blocks.append(query)
                 q_block.append(query)
