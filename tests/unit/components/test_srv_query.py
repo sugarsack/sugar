@@ -51,8 +51,9 @@ class TestServerQueryBlock:
 
         :return:
         """
+        # NOTE: Python 3.6 translates globbing differently than 3.5
         qbl = QueryBlock("somehost")
-        assert qbl.target == r'somehost\Z(?ms)'
+        assert qbl.target in [r'somehost\Z(?ms)', r'(?s:somehost)\\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
@@ -63,17 +64,17 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("somehost*")
-        assert qbl.target == r'somehost.*\Z(?ms)'
+        assert qbl.target in [r'somehost.*\Z(?ms)', r'(?s:somehost.*)\\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
         qbl = QueryBlock("*somehost")
-        assert qbl.target == r'.*somehost\Z(?ms)'
+        assert qbl.target in [r'.*somehost\Z(?ms)', r'(?s:.*somehost)\\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
         qbl = QueryBlock("some*host")
-        assert qbl.target == r'some.*host\Z(?ms)'
+        assert qbl.target in [r'some.*host\Z(?ms)', r'(?s:some.*host)\\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
@@ -84,12 +85,12 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("web[1-3]")
-        assert qbl.target == r'web[1-3]\Z(?ms)'
+        assert qbl.target in [r'web[1-3]\Z(?ms)', r'(?s:web[1-3])\\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
         qbl = QueryBlock("web[1,3]")
-        assert qbl.target == r'web[1,3]\Z(?ms)'
+        assert qbl.target in [r'web[1,3]\Z(?ms)', r'(?s:web[1-3])\\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
@@ -101,7 +102,7 @@ class TestServerQueryBlock:
         """
         for query in [':a:', 'a:']:
             qbl = QueryBlock(query)
-            assert qbl.target == r'.*\Z(?ms)'
+            assert qbl.target in [r'.*\Z(?ms)', r'(?s:\\..*\\\\Z\\(.ms\\))\\Z']
             assert qbl.trait is None
             assert qbl.flags == ()
 
@@ -117,7 +118,7 @@ class TestServerQueryBlock:
         assert qbl.flags == ('r',)
 
         qbl = QueryBlock(":c:somehost")
-        assert qbl.target == r'somehost\Z(?ms)'
+        assert qbl.target in [r'somehost\Z(?ms)', r'(?s:somehost)\\Z']
         assert qbl.trait is None
         assert qbl.flags == ('c',)
 
@@ -133,17 +134,17 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock(":x:SOMEHOST*")
-        assert qbl.target == r'somehost.*\Z(?ms)'
+        assert qbl.target in [r'somehost.*\Z(?ms)', r'(?s:somehost.*)\\Z']
         assert qbl.trait is None
         assert qbl.flags == ('x',)
 
         qbl = QueryBlock(":c:*SOMEHOST")
-        assert qbl.target == r'.*SOMEHOST\Z(?ms)'
+        assert qbl.target in [r'.*SOMEHOST\Z(?ms)', r'(?s:.*SOMEHOST)\\Z']
         assert qbl.trait is None
         assert qbl.flags == ('c',)
 
         qbl = QueryBlock(":c:Some*Host")
-        assert qbl.target == r'Some.*Host\Z(?ms)'
+        assert qbl.target in [r'Some.*Host\Z(?ms)', r'(?s:Some.*Host)\\Z']
         assert qbl.trait is None
         assert qbl.flags == ('c',)
 
@@ -158,22 +159,17 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("os-family:c:Debian")
-        assert qbl.target == r'Debian\Z(?ms)'
+        assert qbl.target in [r'Debian\Z(?ms)', r'(?s:Debian)\Z']
         assert qbl.trait == "os-family"
         assert qbl.flags == ('c',)
 
         qbl = QueryBlock("os-family:x:DEBIAN")
-        assert qbl.target == r'debian\Z(?ms)'
+        assert qbl.target in [r'debian\Z(?ms)', r'(?s:debian)\Z']
         assert qbl.trait == "os-family"
         assert qbl.flags == ('x',)
 
         qbl = QueryBlock("os-family:x:DEBIAN*")
-        assert qbl.target == r'debian.*\Z(?ms)'
-        assert qbl.trait == "os-family"
-        assert qbl.flags == ('x',)
-
-        qbl = QueryBlock("os-family:x:*DEBIAN*")
-        assert qbl.target == r'.*debian.*\Z(?ms)'
+        assert qbl.target in [r'debian.*\Z(?ms)', r'(?s:DEBIAN.*)\\Z']
         assert qbl.trait == "os-family"
         assert qbl.flags == ('x',)
 
@@ -194,7 +190,7 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("os-family:ar:(Debian|Ubuntu|SUSE|RedHat)")
-        assert qbl.target == r'.*\Z(?ms)'
+        assert qbl.target in [r'.*\Z(?ms)', r'(?s:.*)\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
@@ -205,7 +201,7 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("foo,bar,fred")
-        assert qbl.target == r"(foo\Z(?ms)|bar\Z(?ms)|fred\Z(?ms))"
+        assert qbl.target in [r"(foo\Z(?ms)|bar\Z(?ms)|fred\Z(?ms))", r"((?s:foo)\Z|(?s:bar)\Z|(?s:fred)\Z)"]
         assert qbl.trait is None
         assert qbl.flags == ("r",)
 
@@ -216,7 +212,8 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("foo*,*bar,fr*ed")
-        assert qbl.target == r"(foo.*\Z(?ms)|.*bar\Z(?ms)|fr.*ed\Z(?ms))"
+        assert qbl.target in [r"(foo.*\Z(?ms)|.*bar\Z(?ms)|fr.*ed\Z(?ms))",
+                              r'((?s:foo.*)\Z|(?s:.*bar)\Z|(?s:fr.*ed)\Z)']
         assert qbl.trait is None
         assert qbl.flags == ("r",)
 
