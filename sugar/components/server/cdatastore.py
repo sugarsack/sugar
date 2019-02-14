@@ -71,3 +71,13 @@ class CDataStore:
                 yield pickle.load(nph)
 
 
+if __name__ == "__main__":
+    c = CDataContainer("blet")
+    c.inherencies.update({"foo": "bar"})
+    c.traits.update({"os-family": "Linux"})
+
+    store = CDataStore("here")
+    store.add(c)
+
+    for foo in store.clients():
+        print(foo)
