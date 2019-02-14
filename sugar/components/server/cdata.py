@@ -5,18 +5,11 @@ and UCS algorithm implementation to search over it.
 """
 import os
 import errno
-import shutil
 import pickle
 import collections
 
-from sugar.lib.logger.manager import get_logger
 import sugar.utils.files
-
-
-class GraphMatch:
-    """
-    Graph data element and UCS search.
-    """
+from sugar.lib.logger.manager import get_logger
 
 
 class CDataContainer:
@@ -78,5 +71,3 @@ class CDataStore:
                 yield pickle.load(nph)
 
 
-    def __init__(self, path):
-        self.path = path
