@@ -38,7 +38,7 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("*")
-        assert qbl.target == r'.*\Z(?ms)'
+        assert qbl.target in [r'.*\Z(?ms)', r'(?s:.*)\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
@@ -53,7 +53,7 @@ class TestServerQueryBlock:
         """
         # NOTE: Python 3.6 translates globbing differently than 3.5
         qbl = QueryBlock("somehost")
-        assert qbl.target in [r'somehost\Z(?ms)', r'(?s:somehost)\\Z']
+        assert qbl.target in [r'somehost\Z(?ms)', r'(?s:somehost)\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
@@ -64,17 +64,17 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("somehost*")
-        assert qbl.target in [r'somehost.*\Z(?ms)', r'(?s:somehost.*)\\Z']
+        assert qbl.target in [r'somehost.*\Z(?ms)', r'(?s:somehost.*)\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
         qbl = QueryBlock("*somehost")
-        assert qbl.target in [r'.*somehost\Z(?ms)', r'(?s:.*somehost)\\Z']
+        assert qbl.target in [r'.*somehost\Z(?ms)', r'(?s:.*somehost)\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
         qbl = QueryBlock("some*host")
-        assert qbl.target in [r'some.*host\Z(?ms)', r'(?s:some.*host)\\Z']
+        assert qbl.target in [r'some.*host\Z(?ms)', r'(?s:some.*host)\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
@@ -85,12 +85,12 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock("web[1-3]")
-        assert qbl.target in [r'web[1-3]\Z(?ms)', r'(?s:web[1-3])\\Z']
+        assert qbl.target in [r'web[1-3]\Z(?ms)', r'(?s:web[1-3])\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
         qbl = QueryBlock("web[1,3]")
-        assert qbl.target in [r'web[1,3]\Z(?ms)', r'(?s:web[1-3])\\Z']
+        assert qbl.target in [r'web[1,3]\Z(?ms)', r'(?s:web[1,3])\Z']
         assert qbl.trait is None
         assert qbl.flags == ()
 
@@ -102,7 +102,7 @@ class TestServerQueryBlock:
         """
         for query in [':a:', 'a:']:
             qbl = QueryBlock(query)
-            assert qbl.target in [r'.*\Z(?ms)', r'(?s:\\..*\\\\Z\\(.ms\\))\\Z']
+            assert qbl.target in [r'.*\Z(?ms)', r'(?s:.*)\Z']
             assert qbl.trait is None
             assert qbl.flags == ()
 
@@ -118,7 +118,7 @@ class TestServerQueryBlock:
         assert qbl.flags == ('r',)
 
         qbl = QueryBlock(":c:somehost")
-        assert qbl.target in [r'somehost\Z(?ms)', r'(?s:somehost)\\Z']
+        assert qbl.target in [r'somehost\Z(?ms)', r'(?s:somehost)\Z']
         assert qbl.trait is None
         assert qbl.flags == ('c',)
 
@@ -134,17 +134,17 @@ class TestServerQueryBlock:
         :return:
         """
         qbl = QueryBlock(":x:SOMEHOST*")
-        assert qbl.target in [r'somehost.*\Z(?ms)', r'(?s:somehost.*)\\Z']
+        assert qbl.target in [r'somehost.*\Z(?ms)', r'(?s:somehost.*)\Z']
         assert qbl.trait is None
         assert qbl.flags == ('x',)
 
         qbl = QueryBlock(":c:*SOMEHOST")
-        assert qbl.target in [r'.*SOMEHOST\Z(?ms)', r'(?s:.*SOMEHOST)\\Z']
+        assert qbl.target in [r'.*SOMEHOST\Z(?ms)', r'(?s:.*SOMEHOST)\Z']
         assert qbl.trait is None
         assert qbl.flags == ('c',)
 
         qbl = QueryBlock(":c:Some*Host")
-        assert qbl.target in [r'Some.*Host\Z(?ms)', r'(?s:Some.*Host)\\Z']
+        assert qbl.target in [r'Some.*Host\Z(?ms)', r'(?s:Some.*Host)\Z']
         assert qbl.trait is None
         assert qbl.flags == ('c',)
 
@@ -169,7 +169,7 @@ class TestServerQueryBlock:
         assert qbl.flags == ('x',)
 
         qbl = QueryBlock("os-family:x:DEBIAN*")
-        assert qbl.target in [r'debian.*\Z(?ms)', r'(?s:DEBIAN.*)\\Z']
+        assert qbl.target in [r'debian.*\Z(?ms)', r'(?s:debian.*)\Z']
         assert qbl.trait == "os-family"
         assert qbl.flags == ('x',)
 
