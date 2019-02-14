@@ -33,7 +33,7 @@ function setup_virt_env () {
 }
 
 #
-# Check python version. Minimun 3.6 is required
+# Check python version. Minimun 3.5 is required
 #
 function check_python_version () {
     if ! hash $PY_EXE; then

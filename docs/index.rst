@@ -25,6 +25,13 @@ Communication
    roadmap
 
 .. toctree::
+   :caption: Usage
+   :maxdepth: 2
+   
+   targeting_query_syntax
+   targeting_query_syntax_combinations
+
+.. toctree::
    :caption: Tutorials
    :maxdepth: 2
 
