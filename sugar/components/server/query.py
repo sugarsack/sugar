@@ -61,6 +61,7 @@ class QueryBlock:
         "c": "is case-sensitive",
         "x": "an inversion of",
         "a": "matches everything",
+        "d": "client data",
     }
 
     OPERANDS = {
