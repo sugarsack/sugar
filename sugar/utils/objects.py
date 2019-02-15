@@ -4,6 +4,8 @@
 Object utils
 """
 import re
+import typing
+
 from sugar.lib import six
 
 
@@ -25,12 +27,12 @@ class Singleton(object):
         return self.__ref__
 
 
-def str_to_type(val):
+def str_to_type(val: str) -> typing.Any:
     """
     Determine type of the value from the string expression.
 
-    :param val:
-    :return:
+    :param val: string value to be parsed from
+    :return: a type object
     """
     val = six.text_type(val)
     if ',' in val:
