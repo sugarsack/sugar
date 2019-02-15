@@ -4,6 +4,8 @@ Structs utility.
 """
 
 from __future__ import absolute_import, print_function, unicode_literals
+
+import typing
 import collections
 import copy
 
@@ -195,3 +197,21 @@ def update(dest, upd, recursive_update=True, merge_lists=False):
 
     return dest
 # pylint: enable=R0911
+
+
+def path_slice(data: dict, *path: str) -> typing.Any:
+    """
+    Get data by path key sequence.
+    Example, if data is {a: {b: c: {d}}}, then to get d, path should be [a, b, c].
+
+    :param data:
+    :param graph:
+    :return:
+    """
+    _slice = None
+    for pkey in path:
+        ref = data if _slice is None else _slice
+        if pkey in ref:
+            _slice = copy.deepcopy(ref)[pkey]
+
+    return _slice
