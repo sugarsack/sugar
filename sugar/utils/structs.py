@@ -5,7 +5,6 @@ Structs utility.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-import typing
 import collections
 import copy
 
@@ -203,24 +202,25 @@ def path_slice(data: dict, *path: str) -> dict:
     """
     Get data by path key sequence.
     Example, if data is {a: {b: c: {d}}}, then to get {c: {d}}, path should be [a, b, c].
-    Notes:
-    1. This filtering out on the way non-dict elements!
-    2. No dot can be in the path element (this is a delimeter)
-    3. Dots on target keys are hyphens in the path.
-       That is if the key is "foo.bar: spam", then the selector is "foo-bar: spam".
 
-    :param data:
-    :param graph:
-    :return:
+    Notes:
+      1. This filtering out on the way non-dict elements!
+      2. No dot can be in the path element (this is a delimeter)
+      3. Dots on target keys are hyphens in the path.
+         That is if the key is "foo.bar: spam", then the selector is "foo-bar: spam".
+
+    :param data: dictionary original data to slice from
+    :param path: path elements
+    :return: dictionary of the ending slice
     """
 
-    def in_dicts(data) -> list:
+    def in_dicts(data: collections.Iterable) -> list:
         """
         Return a list of at least one element
         but guarantee that each element is a dict.
 
-        :param data:
-        :return:
+        :param data: iterable
+        :return: list of the dictionaries
         """
         _set = []
         if isinstance(data, dict):
@@ -243,10 +243,10 @@ def path_slice(data: dict, *path: str) -> dict:
         for ref in slice_chunks:
 
             updated = False
-            for k, v in ref.items():
-                if pkey == k.replace(".", "-"):
+            for ref_key, ref_val in ref.items():
+                if pkey == ref_key.replace(".", "-"):
                     last_key = pkey
-                    _slice = copy.deepcopy(v)
+                    _slice = copy.deepcopy(ref_val)
                     updated = True
                     break
             if not updated:
