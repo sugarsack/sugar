@@ -42,3 +42,25 @@ class TestStructObjects:
             "b": [1, 2],
         }
         assert sugar.utils.structs.path_slice(data, "a", "b", "c") == "bingo!"
+
+    def test_path_slice_wrong_path(self):
+        """
+        Wrong path should not crash but return a None.
+
+        :return:
+        """
+        data = {
+            "a": {
+                "b": {
+                    "c": "bingo!",
+                },
+                "c": "wrong",
+            },
+            "b": [1, 2],
+        }
+        assert sugar.utils.structs.path_slice(data, "a", "b", "missing") is None
+        assert sugar.utils.structs.path_slice(data, "a", "b", "c", "d") is None
+        assert sugar.utils.structs.path_slice(data, "b", "c", "d", "e") is None
+        assert sugar.utils.structs.path_slice(data, "b", "c") is None
+        assert sugar.utils.structs.path_slice(data, "a", "b", "c") is not None
+        assert sugar.utils.structs.path_slice(data, "a", "c") is not None
