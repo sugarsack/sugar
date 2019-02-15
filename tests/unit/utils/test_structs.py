@@ -64,3 +64,25 @@ class TestStructObjects:
         assert sugar.utils.structs.path_slice(data, "b", "c") is None
         assert sugar.utils.structs.path_slice(data, "a", "b", "c") is not None
         assert sugar.utils.structs.path_slice(data, "a", "c") is not None
+
+    def test_path_slice_reversed_path(self):
+        """
+        Slicer should stick exactly to the path order in the nesting.
+        If path is different, ordering should revert the result.
+
+        :return:
+        """
+        data = {
+            "a": {
+                "b": {
+                    "c": {
+                        "d": "bingo!",
+                    }
+                }
+            }
+        }
+        assert sugar.utils.structs.path_slice(data, "b", "c", "a", "d") is None
+        assert sugar.utils.structs.path_slice(data, "d", "c", "b", "a") is None
+        assert sugar.utils.structs.path_slice(data, "a", "c", "b", "d") is None
+        assert sugar.utils.structs.path_slice(data, "a", "b", "d", "c") is None
+        assert sugar.utils.structs.path_slice(data, "a", "b", "c", "d") is not None
