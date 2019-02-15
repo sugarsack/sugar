@@ -174,12 +174,15 @@ class QueryBlock:
         :return: None
         """
         self.trait, self.target = raw.split(":")
+        self.flags = ""
         self._orig_target = self.target
 
         # Handle ':a' and 'a:'
         if self.trait == "a" and not self.target or not self.trait and self.target == "a":
             self.trait = None
             self._get_flags("a")
+        else:
+            self._get_flags(self.flags)
 
     def _simple(self, raw: str) -> None:
         """
