@@ -48,3 +48,5 @@ class TestUniformMatcher:
         :return:
         """
         assert matcher.match(QueryBlock(":d:one"))
+        assert matcher.match(QueryBlock(":d:o*"))
+        assert not matcher.match(QueryBlock(":d:three"))
