@@ -203,7 +203,11 @@ def path_slice(data: dict, *path: str) -> dict:
     """
     Get data by path key sequence.
     Example, if data is {a: {b: c: {d}}}, then to get {c: {d}}, path should be [a, b, c].
-    Note, this filtering out on the way non-dict elements!
+    Notes:
+    1. This filtering out on the way non-dict elements!
+    2. No dot can be in the path element (this is a delimeter)
+    3. Dots on target keys are hyphens in the path.
+       That is if the key is "foo.bar: spam", then the selector is "foo-bar: spam".
 
     :param data:
     :param graph:
@@ -237,11 +241,17 @@ def path_slice(data: dict, *path: str) -> dict:
         if not slice_chunks:
             _slice = None
         for ref in slice_chunks:
-            if pkey in ref:
-                last_key = pkey
-                _slice = copy.deepcopy(ref)[pkey]
-                break
-            else:
+
+            updated = False
+            for k, v in ref.items():
+                if pkey == k.replace(".", "-"):
+                    last_key = pkey
+                    _slice = copy.deepcopy(v)
+                    updated = True
+                    break
+            if not updated:
                 _slice = None
+            else:
+                break
 
     return {last_key: _slice} if _slice is not None else _slice
