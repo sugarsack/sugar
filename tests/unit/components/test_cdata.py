@@ -26,7 +26,12 @@ def matcher():
     - innerkey:
         - innervalue
         - otherinnerkey: somevalue
+- some.key: value
+- complex.path:
+    - with.nested:
+      - keys.here.there: value
     """
+
     cnt = CDataContainer("han-solo")
     cnt.traits = {
         "os-family": "Linux",
@@ -120,6 +125,16 @@ class TestUniformMatcher:
         """
         assert matcher.match(QueryBlock("key.innerkey.otherinnerkey:d:somevalue"))
         assert not matcher.match(QueryBlock("key.innerkey:d:somevalue"))
+
+    def test_basic_dotted_key(self, matcher):
+        """
+        Test handling dotted keys.
+
+        :param matcher:
+        :return:
+        """
+        assert matcher.match(QueryBlock("some-key:d:value"))
+        assert matcher.match(QueryBlock("complex-path.with-nested.keys-here-there:d:value"))
 
     def test_list_data_by_multikey(self, matcher):
         """
