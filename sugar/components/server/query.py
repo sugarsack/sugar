@@ -129,9 +129,11 @@ class QueryBlock:
 
             if "c" not in self.flags:
                 self.target = self.target.lower()
-            if "r" not in self.flags and "," in self.target:
-                self.target = "({})".format("|".join(self.target.split(",")))
-                self.flags.add("r")
+            if "r" not in self.flags:
+                target = self._list_to_regex(self.target)
+                if target != self.target:
+                    self.target = target
+                    self.flags.add("r")
             if "r" not in self.flags:
                 self.target = fnmatch.translate(self.target)
 
@@ -140,6 +142,18 @@ class QueryBlock:
         if not self.target:
             self.target = None
         self.flags = tuple(self.flags)
+
+    def _list_to_regex(self, raw: str) -> str:
+        """
+        Convert list of items to a regex.
+
+        :param raw: query data
+        :return: regex
+        """
+        if "," in raw and "[" not in raw and "]" not in raw:
+            raw = "({})".format("|".join([fnmatch.translate(item) for item in raw.split(",")]))
+
+        return raw
 
     def _full(self, raw: str) -> None:
         """
@@ -175,8 +189,8 @@ class QueryBlock:
         :return: None
         """
         self._orig_target = raw
-        if "," in raw and "[" not in raw and "]" not in raw:
-            self.target = "({})".format("|".join([fnmatch.translate(item) for item in raw.split(",")]))
+        self.target = self._list_to_regex(raw)
+        if self.target != raw:
             self.flags = ("r",)
         else:
             self.target = fnmatch.translate(raw)
