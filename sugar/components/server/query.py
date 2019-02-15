@@ -77,6 +77,7 @@ class QueryBlock:
         """
         self.flags = ()
         self.trait = None
+        self.path = []  # Slicer path (see "sugar.utils.structs.path_slice")
         self.target = None
         self._orig_target = None
         self.op = operand or self.OPERANDS["/"]  # pylint: disable=C0103
@@ -84,6 +85,8 @@ class QueryBlock:
         raw = raw.strip() if raw is not None else None
         if raw:
             self.__classify(raw)
+        if self.trait:
+            self.path = self.trait.split(".")
 
     @property
     def by_trait(self) -> bool:

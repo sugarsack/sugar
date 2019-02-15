@@ -40,19 +40,6 @@ class UniformMatch:
     def __init__(self, cdata: CDataContainer):
         self.cdata = cdata
 
-    def _get_slice_path(self, qblock):
-        """
-        Get slice path from the qblock.
-
-        :param qblock:
-        :return:
-        """
-        path = []
-        if "d" not in qblock.flags and qblock.trait:
-            path = qblock.trait.split(".")
-
-        return path
-
     def match(self, qblock: QueryBlock) -> bool:
         """
         Match structure for the query property.
@@ -61,10 +48,15 @@ class UniformMatch:
         :return: boolean
         """
         ret = False
-        sections = [self.cdata.inherencies]
+        sections = []
         if qblock.trait:
-            sections.append(sugar.utils.structs.path_slice(self.cdata.traits,
-                                                           *self._get_slice_path(qblock)) or {})
+            sections.append(sugar.utils.structs.path_slice(self.cdata.inherencies, *qblock.path) or {})
+        else:
+            sections.append(self.cdata.inherencies)
+
+        if qblock.trait:
+            sections.append(sugar.utils.structs.path_slice(self.cdata.traits, *qblock.path) or {})
+
         for data in sections:
             ret = self._match(data=data, qblock=qblock)
             if ret:
