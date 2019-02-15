@@ -175,3 +175,17 @@ class TestUniformMatcher:
         assert matcher.match(QueryBlock("key:d:value"))
         assert matcher.match(QueryBlock("key:d:othervalue"))
         assert matcher.match(QueryBlock("key.innerkey:d:innervalue"))
+
+    def test_list_traits(self, matcher):
+        """
+        Test find if element is in the list.
+
+        :param matcher:
+        :return:
+        """
+        assert matcher.match(QueryBlock("items:1"))
+        assert matcher.match(QueryBlock("items:2"))
+        assert matcher.match(QueryBlock("items:3"))
+        assert matcher.match(QueryBlock("items:4"))
+        assert not matcher.match(QueryBlock("items:5"))
+        assert not matcher.match(QueryBlock("items:0"))
