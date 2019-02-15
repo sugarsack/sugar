@@ -11,6 +11,8 @@ import collections
 import sugar.utils.files
 from sugar.lib.logger.manager import get_logger
 
+# pylint: disable=C0103,W0622
+
 
 class CDataContainer:
     """
@@ -25,6 +27,8 @@ class CDataContainer:
         self.traits = {}
         self.inherencies = {}
 
+
+# pylint: enable=C0103,W0622
 
 class CDataStore:
     """
