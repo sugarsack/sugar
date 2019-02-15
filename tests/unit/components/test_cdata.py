@@ -7,7 +7,7 @@ import pytest
 from sugar.lib.compat import yaml
 from sugar.components.server.cdatamatch import UniformMatch
 from sugar.components.server.cdatastore import CDataContainer
-from sugar.components.server.query import QueryBlock
+from sugar.components.server.query import QueryBlock, Query
 
 
 @pytest.fixture
@@ -110,3 +110,13 @@ class TestUniformMatcher:
         assert not matcher.match(QueryBlock("...node:5aceb7fc"))
         assert not matcher.match(QueryBlock("ceph.cluster.node:5aceb7fc"))
         assert not matcher.match(QueryBlock("node.cluster.ceph:5aceb7fc"))
+
+    def test_basic_data_by_multikey(self, matcher):
+        """
+        Match basic cdata by nested keys.
+
+        :param matcher:
+        :return:
+        """
+        assert matcher.match(QueryBlock("key.innerkey.otherinnerkey:d:somevalue"))
+        assert not matcher.match(QueryBlock("key.innerkey:d:somevalue"))
