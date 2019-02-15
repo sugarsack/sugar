@@ -146,7 +146,8 @@ class QueryBlock:
             self.target = None
         self.flags = tuple(self.flags)
 
-    def _list_to_regex(self, raw: str) -> str:
+    @staticmethod
+    def _list_to_regex(raw: str) -> str:
         """
         Convert list of items to a regex.
 
