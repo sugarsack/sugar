@@ -30,6 +30,7 @@ def matcher():
 - complex.path:
     - with.nested:
       - keys.here.there: value
+- mixed-name.key: value
     """
 
     cnt = CDataContainer("han-solo")
@@ -135,6 +136,15 @@ class TestUniformMatcher:
         """
         assert matcher.match(QueryBlock("some-key:d:value"))
         assert matcher.match(QueryBlock("complex-path.with-nested.keys-here-there:d:value"))
+
+    def test_basic_mixed_dotted_key(self, matcher):
+        """
+        Test handling dotted keys with the hyphens.
+
+        :param matcher:
+        :return:
+        """
+        assert matcher.match(QueryBlock("mixed-name-key:d:value"))
 
     def test_list_data_by_multikey(self, matcher):
         """
