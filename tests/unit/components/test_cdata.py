@@ -50,3 +50,17 @@ class TestUniformMatcher:
         assert matcher.match(QueryBlock(":d:one"))
         assert matcher.match(QueryBlock(":d:o*"))
         assert not matcher.match(QueryBlock(":d:three"))
+
+    def test_basic_value_list(self, matcher):
+        """
+        Test basic list matcher against several values in the list.
+
+        :return:
+        """
+        assert matcher.match(QueryBlock(":d:one,two,three"))
+        assert matcher.match(QueryBlock(":d:one,three"))
+        assert matcher.match(QueryBlock(":d:four,three,two"))
+        assert matcher.match(QueryBlock(":d:four,three,o*"))
+        assert matcher.match(QueryBlock(":d:four,three,*e"))
+        assert matcher.match(QueryBlock(":d:a*,*e"))
+        assert not matcher.match(QueryBlock(":d:four,three"))
