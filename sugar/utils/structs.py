@@ -199,22 +199,24 @@ def update(dest, upd, recursive_update=True, merge_lists=False):
 # pylint: enable=R0911
 
 
-def path_slice(data: dict, *path: str) -> typing.Any:
+def path_slice(data: dict, *path: str) -> dict:
     """
     Get data by path key sequence.
-    Example, if data is {a: {b: c: {d}}}, then to get d, path should be [a, b, c].
+    Example, if data is {a: {b: c: {d}}}, then to get {c: {d}}, path should be [a, b, c].
 
     :param data:
     :param graph:
     :return:
     """
     _slice = None
+    last_key = None
     for pkey in path:
         ref = data if _slice is None else _slice
         if pkey in ref:
+            last_key = pkey
             _slice = copy.deepcopy(ref)[pkey]
         else:
             _slice = None
             break
 
-    return _slice
+    return {last_key: _slice} if _slice is not None else _slice
