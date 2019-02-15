@@ -120,3 +120,14 @@ class TestUniformMatcher:
         """
         assert matcher.match(QueryBlock("key.innerkey.otherinnerkey:d:somevalue"))
         assert not matcher.match(QueryBlock("key.innerkey:d:somevalue"))
+
+    def test_list_data_by_multikey(self, matcher):
+        """
+        Match list cdata by nested keys.
+
+        :param matcher:
+        :return:
+        """
+        assert matcher.match(QueryBlock("key:d:value"))
+        assert matcher.match(QueryBlock("key:d:othervalue"))
+        assert matcher.match(QueryBlock("key.innerkey:d:innervalue"))
