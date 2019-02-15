@@ -75,7 +75,9 @@ class UniformMatch:
         if isinstance(data, dict):
             for d_key in data:
                 if qblock.trait == d_key:
-                    _data = sugar.utils.objects.str_to_type(data[d_key])
+                    _data = data[d_key]
+                    if isinstance(_data, str):
+                        _data = sugar.utils.objects.str_to_type(_data)
                     if "c" not in qblock.flags and isinstance(_data, str):
                         _data = _data.lower()
                     if not isinstance(_data, (list, tuple, dict)):
@@ -88,7 +90,8 @@ class UniformMatch:
                         if ret:
                             break
                 else:
-                    ret = self._match(data=data[d_key], qblock=qblock)
+                    if d_key in qblock.path:
+                        ret = self._match(data=data[d_key], qblock=qblock)
                 if ret:
                     break
         elif isinstance(data, (list, tuple)):
