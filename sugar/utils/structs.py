@@ -240,6 +240,7 @@ def path_slice(data: dict, *path: str) -> dict:
             if pkey in ref:
                 last_key = pkey
                 _slice = copy.deepcopy(ref)[pkey]
+                break
             else:
                 _slice = None
 
