@@ -27,6 +27,7 @@ key:innerkey.otherinnerkey:d:somevalue
 """
 import re
 
+import sugar.utils.objects
 from sugar.components.server.cdatastore import CDataContainer
 from sugar.components.server.query import QueryBlock
 
@@ -60,13 +61,28 @@ class UniformMatch:
     def _match(self, data, qblock):
         """
         Traverse data by keys.
+        Types are supported.
 
         :return:
         """
         ret = False
         if isinstance(data, dict):
             for d_key in data:
-                ret = self._match(data=data[d_key], qblock=qblock)
+                if qblock.trait == d_key:
+                    _data = sugar.utils.objects.str_to_type(data[d_key])
+                    if "c" not in qblock.flags and isinstance(_data, str):
+                        _data = _data.lower()
+                    if not isinstance(_data, (list, tuple, dict)):
+                        _data = [_data]
+                    for tgt in _data:
+                        if isinstance(tgt, str):
+                            ret = bool(re.search(qblock.target, tgt))
+                        else:
+                            ret = tgt == sugar.utils.objects.str_to_type(qblock._orig_target)
+                        if ret:
+                            break
+                else:
+                    ret = self._match(data=data[d_key], qblock=qblock)
                 if ret:
                     break
         elif isinstance(data, (list, tuple)):
