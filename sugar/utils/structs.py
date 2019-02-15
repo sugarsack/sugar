@@ -213,5 +213,8 @@ def path_slice(data: dict, *path: str) -> typing.Any:
         ref = data if _slice is None else _slice
         if pkey in ref:
             _slice = copy.deepcopy(ref)[pkey]
+        else:
+            _slice = None
+            break
 
     return _slice
