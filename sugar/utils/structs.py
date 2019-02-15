@@ -203,20 +203,44 @@ def path_slice(data: dict, *path: str) -> dict:
     """
     Get data by path key sequence.
     Example, if data is {a: {b: c: {d}}}, then to get {c: {d}}, path should be [a, b, c].
+    Note, this filtering out on the way non-dict elements!
 
     :param data:
     :param graph:
     :return:
     """
+
+    def in_dicts(data) -> list:
+        """
+        Return a list of at least one element
+        but guarantee that each element is a dict.
+
+        :param data:
+        :return:
+        """
+        _set = []
+        if isinstance(data, dict):
+            _set.append(data)
+        else:
+            if isinstance(data, (list, tuple)):
+                for element in data:
+                    if isinstance(element, dict):
+                        _set.append(element)
+        return _set
+
     _slice = None
     last_key = None
-    for pkey in path:
-        ref = data if _slice is None else _slice
-        if pkey in ref:
-            last_key = pkey
-            _slice = copy.deepcopy(ref)[pkey]
-        else:
-            _slice = None
+    for pidx, pkey in enumerate(path):
+        if pidx > 0 and _slice is None:
             break
+        slice_chunks = in_dicts(data if _slice is None else _slice)
+        if not slice_chunks:
+            _slice = None
+        for ref in slice_chunks:
+            if pkey in ref:
+                last_key = pkey
+                _slice = copy.deepcopy(ref)[pkey]
+            else:
+                _slice = None
 
     return {last_key: _slice} if _slice is not None else _slice
