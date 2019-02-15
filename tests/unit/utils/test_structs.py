@@ -24,7 +24,7 @@ class TestStructObjects:
                 }
             }
         }
-        assert sugar.utils.structs.path_slice(data, "a", "b", "c", "d") == "bingo!"
+        assert sugar.utils.structs.path_slice(data, "a", "b", "c", "d").get("d") == "bingo!"
 
     def test_path_slice_nested_other_objects(self):
         """
@@ -41,7 +41,7 @@ class TestStructObjects:
             },
             "b": [1, 2],
         }
-        assert sugar.utils.structs.path_slice(data, "a", "b", "c") == "bingo!"
+        assert sugar.utils.structs.path_slice(data, "a", "b", "c").get("c") == "bingo!"
 
     def test_path_slice_wrong_path(self):
         """
