@@ -69,15 +69,3 @@ class CDataStore:
         for mid in os.listdir(self.__r_path):
             with sugar.utils.files.fopen(os.path.join(self.__r_path, mid), "rb") as nph:
                 yield pickle.load(nph)
-
-
-if __name__ == "__main__":
-    c = CDataContainer("blet")
-    c.inherencies.update({"foo": "bar"})
-    c.traits.update({"os-family": "Linux"})
-
-    store = CDataStore("here")
-    store.add(c)
-
-    for foo in store.clients():
-        print(foo)
