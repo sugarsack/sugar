@@ -40,7 +40,12 @@ def matcher():
             "eth0": "68:f7:28:d0:d0:5b",
             "virbr0": "52:54:00:77:fe:05",
             },
-        }
+        "cluster": {
+            "ceph": {
+                "node": "5aceb7fc",
+            }
+        },
+    }
     cnt.inherencies = yaml.load(data)
 
     return UniformMatch(cnt)
@@ -90,3 +95,18 @@ class TestUniformMatcher:
         assert not matcher.match(QueryBlock("os-major-version:11"))
         assert not matcher.match(QueryBlock("os-family:c:linux"))
         assert matcher.match(QueryBlock("os-family:c:Linux"))
+
+    def test_basic_traits_by_multikey(self, matcher):
+        """
+        Match cdata traits by nested keys.
+
+        :param matcher:
+        :return:
+        """
+        assert matcher.match(QueryBlock("cluster.ceph.node:5aceb7fc"))
+        assert not matcher.match(QueryBlock("cluster.ceph.node:wrong"))
+        assert not matcher.match(QueryBlock("ceph.node:5aceb7fc"))
+        assert not matcher.match(QueryBlock(".ceph.node:5aceb7fc"))
+        assert not matcher.match(QueryBlock("...node:5aceb7fc"))
+        assert not matcher.match(QueryBlock("ceph.cluster.node:5aceb7fc"))
+        assert not matcher.match(QueryBlock("node.cluster.ceph:5aceb7fc"))
