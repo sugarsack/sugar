@@ -51,6 +51,8 @@ def matcher():
                 "node": "5aceb7fc",
             }
         },
+        "ip.v4": "10.10.10.10",
+        "items": [1, 2, 3, 4],
     }
     cnt.inherencies = yaml.load(data)
 
@@ -145,6 +147,23 @@ class TestUniformMatcher:
         :return:
         """
         assert matcher.match(QueryBlock("mixed-name-key:d:value"))
+
+    def test_basic_dotted_key_traits(self, matcher):
+        """
+        Test handling dotted keys in traits.
+
+        :param matcher:
+        :return:
+        """
+        assert matcher.match(QueryBlock("ip-v4:10.10.10.10"))
+        assert matcher.match(QueryBlock("ip-v4:10.10*"))
+        assert matcher.match(QueryBlock("ip-v4:*"))
+        assert matcher.match(QueryBlock("ip-v4:*.10"))
+        assert matcher.match(QueryBlock("ip-v4:*10"))
+        assert matcher.match(QueryBlock("ip-v4:*.*.*.*"))
+        assert matcher.match(QueryBlock("ip-v4:r:(11|10)"))
+        assert not matcher.match(QueryBlock("ip-v4:r:(11|12)"))
+        assert matcher.match(QueryBlock("ip-v4:rx:(11|12)*"))
 
     def test_list_data_by_multikey(self, matcher):
         """
