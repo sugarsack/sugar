@@ -87,7 +87,7 @@ class UniformMatch:
                         if isinstance(tgt, str):
                             ret = bool(re.search(qblock.target, tgt))
                         else:
-                            ret = tgt == sugar.utils.objects.str_to_type(qblock._orig_target)
+                            ret = tgt == sugar.utils.objects.str_to_type(qblock._orig_target)  # pylint: disable=W0212
                         if ret:
                             break
                 else:
