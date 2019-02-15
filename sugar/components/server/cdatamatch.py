@@ -74,7 +74,8 @@ class UniformMatch:
         ret = False
         if isinstance(data, dict):
             for d_key in data:
-                if qblock.trait == d_key:
+                d_key_alias = d_key.replace(".", "-")  # Alias dots away
+                if qblock.trait == d_key_alias:
                     _data = data[d_key]
                     if isinstance(_data, str):
                         _data = sugar.utils.objects.str_to_type(_data)
@@ -90,7 +91,7 @@ class UniformMatch:
                         if ret:
                             break
                 else:
-                    if d_key in qblock.path:
+                    if d_key_alias in qblock.path:
                         ret = self._match(data=data[d_key], qblock=qblock)
                 if ret:
                     break
