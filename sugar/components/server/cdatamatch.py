@@ -28,6 +28,7 @@ key:innerkey.otherinnerkey:d:somevalue
 import re
 
 import sugar.utils.objects
+import sugar.utils.structs
 from sugar.components.server.cdatastore import CDataContainer
 from sugar.components.server.query import QueryBlock
 
@@ -39,6 +40,19 @@ class UniformMatch:
     def __init__(self, cdata: CDataContainer):
         self.cdata = cdata
 
+    def _get_slice_path(self, qblock):
+        """
+        Get slice path from the qblock.
+
+        :param qblock:
+        :return:
+        """
+        path = []
+        if "d" not in qblock.flags and qblock.trait:
+            path = qblock.trait.split(".")
+
+        return path
+
     def match(self, qblock: QueryBlock) -> bool:
         """
         Match structure for the query property.
@@ -49,8 +63,8 @@ class UniformMatch:
         ret = False
         sections = [self.cdata.inherencies]
         if qblock.trait:
-            sections.append(self.cdata.traits)
-
+            sections.append(sugar.utils.structs.path_slice(self.cdata.traits,
+                                                           *self._get_slice_path(qblock)) or {})
         for data in sections:
             ret = self._match(data=data, qblock=qblock)
             if ret:
