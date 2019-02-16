@@ -93,6 +93,27 @@ class TestDataStore:
                 assert obj.id == fname
                 assert obj.traits["machine-id"] == obj.id == fname
 
+    def test_add_fetch_system(self):
+        """
+        Test if added system is returned.
+
+        :return:
+        """
+        systems = [
+            ("807b8c1a8505c90781f6b4cc37e6cceb", "sugar.domain.org"),
+            ("ccd95d7d9247f00ded425c163f43d19a", "candy.domain.org"),
+            ("4008ebadf8fd65b33e775e3e98bfb9d7", "latte.domain.org"),
+        ]
+        for machine_id, hostname in systems:
+            container = CDataContainer(id=machine_id, host=hostname)
+            container.traits = {"os-family": "Linux", "machine-id": machine_id}
+            container.inherencies = {"hostname": hostname}
+            self.store_ref.add(container)
+
+        for system_object in self.store_ref.clients():
+            assert system_object.id in [mid[0] for mid in systems]
+            assert system_object.inherencies["hostname"] in [mid[1] for mid in systems]
+
     def test_delete_system(self):
         """
         Test delete system from the data store.
