@@ -120,6 +120,22 @@ class TestDataStore:
 
         :return:
         """
+        systems = [
+            ("807b8c1a8505c90781f6b4cc37e6cceb", "sugar.domain.org"),
+            ("ccd95d7d9247f00ded425c163f43d19a", "candy.domain.org"),
+            ("4008ebadf8fd65b33e775e3e98bfb9d7", "latte.domain.org"),
+        ]
+        for machine_id, hostname in systems:
+            container = CDataContainer(id=machine_id, host=hostname)
+            container.traits = {"os-family": "Linux", "machine-id": machine_id}
+            container.inherencies = {"hostname": hostname}
+            self.store_ref.add(container)
+
+        for system_object in self.store_ref.clients():
+            self.store_ref.remove(system_object)
+
+        assert not list(self.store_ref.clients())
+        assert os.listdir(os.path.join(self.store_path, "sugar", "cdata")) == []
 
     def test_flush_all(self):
         """
