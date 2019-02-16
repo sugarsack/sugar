@@ -278,6 +278,7 @@ class TestServerQueryMatcher:
                                                'zoo4.domain.com', 'zoo5.domain.com',
                                                'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'}
 
+    @pytest.mark.skip(reason="This should feed structured data")
     def test_no_flags(self, hosts_list):
         """
         Test empty flags should not raise an exception (if there are just :: syntax).
