@@ -47,6 +47,15 @@ class CDataStore:
             if exc.errno != errno.EEXIST:
                 self.log.error("Error creating client storage directory '{}': {}", self.__r_path, exc)
 
+    def _get_node_path(self, container: CDataContainer) -> str:
+        """
+        Get node path from the container data.
+
+        :param container: container of the data for serialisation
+        :return: path for the given node.
+        """
+        return os.path.join(self.__r_path, "{}.data".format(container.id))
+
     def add(self, container: CDataContainer) -> None:
         """
         Add a client by machine_id.
@@ -54,15 +63,23 @@ class CDataStore:
         :param container: container of the data for the serialisation
         :return: None
         """
-        node_path = os.path.join(self.__r_path, "{}.data".format(container.id))
+        self.remove(container)
+        with sugar.utils.files.fopen(self._get_node_path(container), "wb") as nph:
+            pickle.dump(container, nph, pickle.HIGHEST_PROTOCOL)
+
+    def remove(self, container: CDataContainer) -> None:
+        """
+        Remove a client by machine id.
+
+        :param container: container of the data for the serialisation
+        :return: None
+        """
+        node_path = self._get_node_path(container)
         try:
             os.unlink(node_path)
         except OSError as exc:
             if exc.errno != errno.ENOENT:
                 self.log.error("Error removing obsolete node data '{}': {}", node_path, exc)
-
-        with sugar.utils.files.fopen(node_path, "wb") as nph:
-            pickle.dump(container, nph, pickle.HIGHEST_PROTOCOL)
 
     def clients(self) -> collections.Iterable:
         """
