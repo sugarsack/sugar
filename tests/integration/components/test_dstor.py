@@ -8,6 +8,7 @@ import shutil
 import tempfile
 import pickle
 from sugar.components.server.cdatastore import CDataStore, CDataContainer
+from sugar.components.server.cdatamatch import QueryBlock, UniformMatch
 
 
 class TestDataStore:
@@ -143,6 +144,21 @@ class TestDataStore:
 
         :return:
         """
+        systems = [
+            ("807b8c1a8505c90781f6b4cc37e6cceb", "sugar.domain.org"),
+            ("ccd95d7d9247f00ded425c163f43d19a", "candy.domain.org"),
+            ("4008ebadf8fd65b33e775e3e98bfb9d7", "latte.domain.org"),
+        ]
+        for machine_id, hostname in systems:
+            container = CDataContainer(id=machine_id, host=hostname)
+            container.traits = {"os-family": "Linux", "machine-id": machine_id}
+            container.inherencies = {"hostname": hostname}
+            self.store_ref.add(container)
+
+        self.store_ref.flush()
+
+        assert not list(self.store_ref.clients())
+        assert os.listdir(os.path.join(self.store_path, "sugar", "cdata")) == []
 
     def test_basic_search(self):
         """
@@ -153,3 +169,21 @@ class TestDataStore:
 
         :return:
         """
+        systems = [
+            ("807b8c1a8505c90781f6b4cc37e6cceb", "sugar.domain.org", "Linux"),
+            ("ccd95d7d9247f00ded425c163f43d19a", "candy.domain.org", "BSD"),
+            ("4008ebadf8fd65b33e775e3e98bfb9d7", "latte.domain.org", "Slowlaris"),
+        ]
+        for machine_id, hostname, osfamily in systems:
+            container = CDataContainer(id=machine_id, host=hostname)
+            container.traits = {"os-family": osfamily, "machine-id": machine_id}
+            container.inherencies = {"hostname": hostname}
+            self.store_ref.add(container)
+
+        query = QueryBlock("os-family:linux")
+        hosts = []
+        for client in self.store_ref.clients():
+            if UniformMatch(client).match(query):
+                hosts.append(client.host)
+
+        assert hosts == ["sugar.domain.org"]
