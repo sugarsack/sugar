@@ -263,7 +263,7 @@ class TestServerQueryMatcher:
         :return:
         """
         for op in ["/", "&&", " and "]:
-            qry = Query("os-name:debian{op}web[1,3]*".format(op=op))
+            qry = Query("web*{op}web[1,3]*".format(op=op))
             assert set(qry.filter(hosts_list)) == {'web1.example.org', 'web3.example.org',
                                                    'web1.sugarsack.org', 'web3.sugarsack.org'}
 
