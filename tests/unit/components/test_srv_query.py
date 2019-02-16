@@ -311,3 +311,22 @@ class TestServerQueryMatcher:
             assert set(qry.filter(hosts_list)) == {'web4.example.org', 'web4.sugarsack.org', 'web5.example.org',
                                                    'web5.sugarsack.org', 'zoo1', 'zoo2', 'zoo4.domain.com',
                                                    'zoo5.domain.com'}
+
+    def test_query_simple_status(self):
+        """
+        Query should not be uniform.
+
+        :return:
+        """
+        for query in ["foo", "foo*", "foo||bar", "foo&&bar||baz", ":x:some&&:r:stuff||nothing"]:
+            assert not Query(query).is_uniform
+
+    def test_query_uniform_status(self):
+        """
+        Query should be uniform.
+
+        :return:
+        """
+        for query in ["os-family:linux", "some.key:d:value", "key:value", "key:value||something",
+                      "hostname&&os-family:r:(solaris|bsd)||ipv4:192.168.*&&web[1-3]"]:
+            assert Query(query).is_uniform
