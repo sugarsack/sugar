@@ -122,6 +122,20 @@ class TestUniformQuery:
 
         assert found == 2
 
+    def test_basic_cdata_compound(self):
+        """
+        Basic compound search for cdata.
+
+        :return:
+        """
+        found = 0
+        for meta in Query("cluster.type:ceph || services:nginx").filter(self.uniform_data):
+            found += 1
+            assert meta.host != "slowlaris.host.com"
+            assert meta.host in ["linux.host.com", "bsd.host.com"]
+
+        assert found == 2
+
     def test_basic_dotted_cdata(self):
         """
         Select basic transformable cdata.
