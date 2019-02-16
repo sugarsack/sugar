@@ -50,6 +50,7 @@ import time
 import fnmatch
 
 import sugar.lib.exceptions
+from sugar.components.server.cdatastore import CDataContainer
 
 
 class QueryBlock:
@@ -214,9 +215,20 @@ class Query:
 
         :param raw: query string.
         """
+        self.__uniform = False
         self.__blocks = []
         self.__p_blocks = []
         self._set_blocks(raw)
+
+    @property
+    def is_uniform(self) -> bool:
+        """
+        Return True if query is expecting data
+        structure for the uniform search.
+
+        :return: True if uniform
+        """
+        return bool(self.__uniform)
 
     @staticmethod
     def _or(raw: str, temp_delimeter: str) -> list:
@@ -269,6 +281,8 @@ class Query:
             q_block = []
             for q_str in self._and(p_block, temp_delimeter=temp_delim):
                 query = QueryBlock(q_str, operand=op)
+                if not self.is_uniform:
+                    self.__uniform = bool(query.trait)
                 self.__blocks.append(query)
                 q_block.append(query)
                 op = QueryBlock.OPERANDS["/"]  # pylint: disable=C0103
@@ -315,6 +329,7 @@ class Query:
         for clause in queries:
             if clause.trait:  # skip traits selector for now
                 continue
+
             regex = re.compile(clause.target)
             if "x" not in clause.flags:
                 subset = list(filter(regex.search, subset))
@@ -336,7 +351,11 @@ class Query:
         :return: filtered out list of hosts
         """
         result = []
-        for seq_queries in self.__p_blocks:
-            result += self.__filter_within(seq_queries, hosts[::])
+        if hosts:
+            if isinstance(hosts[0], str):
+                # Plain host names operations
+                for seq_queries in self.__p_blocks:
+                    result += self.__filter_within(seq_queries, hosts[::])
+                result = list(set(result))
 
-        return list(set(result))
+        return result
