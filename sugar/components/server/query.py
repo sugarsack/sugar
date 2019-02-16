@@ -193,9 +193,15 @@ class Query:
         Filter uniform data within the subset.
 
         :param queries: queries
-        :param subset: subeset of hosts meta
+        :param subset: subeset of hosts meta (a copy in memory)
         :return: list of hosts
         """
+        for clause in queries:
+            _subset = []
+            for host_meta in subset:
+                if UniformMatch(host_meta).match(clause):
+                    _subset.append(host_meta)
+            subset = _subset
 
         return subset
 
