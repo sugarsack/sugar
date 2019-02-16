@@ -108,9 +108,9 @@ class TestUniformQuery:
         assert len(out) == 1
         assert out[0].host == "linux.host.com"
 
-    def test_basic_compound(self):
+    def test_basic_traits_compound(self):
         """
-        Basic compound search.
+        Basic compound search for traits data.
 
         :return:
         """
