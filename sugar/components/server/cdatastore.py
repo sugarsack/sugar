@@ -6,6 +6,8 @@ and UCS algorithm implementation to search over it.
 import os
 import errno
 import pickle
+import pathlib
+import shutil
 import collections
 
 import sugar.utils.files
@@ -41,6 +43,15 @@ class CDataStore:
     def __init__(self, root_path=None):
         self.log = get_logger(self)
         self.__r_path = os.path.join(root_path or self.DEFAULT_CACHE_DIR, "sugar", "cdata")
+        self._create_r_path()
+
+    def _create_r_path(self) -> None:
+        """
+        Create root path.
+
+        :return: None
+        """
+        assert len(pathlib.Path(self.__r_path).parents) > 1, "Path '{}' seems too short".format(self.__r_path)
         try:
             os.makedirs(self.__r_path, mode=0o700)
         except OSError as exc:
@@ -64,7 +75,9 @@ class CDataStore:
         :return: None
         """
         self.remove(container)
-        with sugar.utils.files.fopen(self._get_node_path(container), "wb") as nph:
+        node_path = self._get_node_path(container)
+        with sugar.utils.files.fopen(node_path, "wb") as nph:
+            self.log.debug("Adding node at '{}'", node_path)
             pickle.dump(container, nph, pickle.HIGHEST_PROTOCOL)
 
     def remove(self, container: CDataContainer) -> None:
@@ -76,10 +89,24 @@ class CDataStore:
         """
         node_path = self._get_node_path(container)
         try:
+            self.log.debug("Removing node at '{}'", node_path)
             os.unlink(node_path)
         except OSError as exc:
             if exc.errno != errno.ENOENT:
                 self.log.error("Error removing obsolete node data '{}': {}", node_path, exc)
+
+    def flush(self) -> None:
+        """
+        Flushes the entire store.
+
+        :return: None
+        """
+        path = pathlib.Path(self.__r_path)
+        if path.exists():
+            self.log.debug("Removing the entire store data at '{}'", path.parents[0])
+            shutil.rmtree(str(path.parents[0]))
+            self.log.debug("Creating data store space at '{}'", self.__r_path)
+            self._create_r_path()
 
     def clients(self) -> collections.Iterable:
         """
