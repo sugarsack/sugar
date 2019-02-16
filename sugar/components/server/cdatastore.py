@@ -19,11 +19,13 @@ class CDataContainer:
     Data container structure
     """
 
-    def __init__(self, id: str):
+    def __init__(self, id: str, host: str):
         """
         :param id: machine ID
+        :param host: IP addr or FQDN
         """
         self.id = id
+        self.host = host
         self.traits = {}
         self.inherencies = {}
 
@@ -38,9 +40,7 @@ class CDataStore:
 
     def __init__(self, root_path=None):
         self.log = get_logger(self)
-        if root_path is None:
-            root_path = os.path.join(self.DEFAULT_CACHE_DIR, "sugar", "cdata")
-        self.__r_path = root_path
+        self.__r_path = os.path.join(root_path or self.DEFAULT_CACHE_DIR, "sugar", "cdata")
         try:
             os.makedirs(self.__r_path, mode=0o700)
         except OSError as exc:
