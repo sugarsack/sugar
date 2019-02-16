@@ -33,7 +33,7 @@ def matcher():
 - mixed-name.key: value
     """
 
-    cnt = CDataContainer("han-solo")
+    cnt = CDataContainer("han-solo", "hansolo.org")
     cnt.traits = {
         "os-family": "Linux",
         "os-major-version": "10",
