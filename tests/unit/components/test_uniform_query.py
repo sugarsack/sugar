@@ -107,3 +107,17 @@ class TestUniformQuery:
         out = Query("cluster.type:ceph").filter(self.uniform_data)
         assert len(out) == 1
         assert out[0].host == "linux.host.com"
+
+    def test_basic_compound(self):
+        """
+        Basic compound search.
+
+        :return:
+        """
+        found = 0
+        for meta in Query("os-family:r:(sunos|bsd) && os-family:bsd || os-family:linux").filter(self.uniform_data):
+            found += 1
+            assert meta.host != "slowlaris.host.com"
+            assert meta.host in ["linux.host.com", "bsd.host.com"]
+
+        assert found == 2
