@@ -41,7 +41,7 @@ class TestUniformQuery:
                     "machine-id": "5895f46c218d0e93ad89b2b1c5ece70a",
                 },
                 {
-                    "alias": "snorcle",
+                    "alias.name": "snorcle",
                 },
             ),
             (
@@ -121,3 +121,13 @@ class TestUniformQuery:
             assert meta.host in ["linux.host.com", "bsd.host.com"]
 
         assert found == 2
+
+    def test_basic_dotted_cdata(self):
+        """
+        Select basic transformable cdata.
+
+        :return:
+        """
+        out = Query("alias-name:snorcle").filter(self.uniform_data)
+        assert len(out) == 1
+        assert out[0].host == "slowlaris.host.com"
