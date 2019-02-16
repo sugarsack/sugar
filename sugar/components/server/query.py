@@ -325,11 +325,7 @@ class Query:
         :param hosts: subset of hosts
         :return: list of hosts
         """
-        # Filter hostnames
         for clause in queries:
-            if clause.trait:  # skip traits selector for now
-                continue
-
             regex = re.compile(clause.target)
             if "x" not in clause.flags:
                 subset = list(filter(regex.search, subset))
@@ -343,6 +339,18 @@ class Query:
 
         return subset
 
+    @staticmethod
+    def __filter_uniform_within(queries: list, subset: list) -> list:
+        """
+        Filter uniform data within the subset.
+
+        :param queries: queries
+        :param subset: subeset of hosts meta
+        :return: list of hosts
+        """
+
+        return subset
+
     def filter(self, hosts: list) -> list:
         """
         Filter hosts.
@@ -351,11 +359,8 @@ class Query:
         :return: filtered out list of hosts
         """
         result = []
-        if hosts:
-            if isinstance(hosts[0], str):
-                # Plain host names operations
-                for seq_queries in self.__p_blocks:
-                    result += self.__filter_within(seq_queries, hosts[::])
-                result = list(set(result))
+        data_filter = self.__filter_uniform_within if self.is_uniform else self.__filter_within
+        for seq_queries in self.__p_blocks:
+            result += data_filter(seq_queries, hosts[::])
 
-        return result
+        return list(set(result))
