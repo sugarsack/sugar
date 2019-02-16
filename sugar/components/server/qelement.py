@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+Query block element, a part of the query compound.
+"""
 
 import fnmatch
 import sugar.lib.exceptions
