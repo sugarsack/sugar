@@ -4,6 +4,7 @@ Structs utility.
 """
 
 from __future__ import absolute_import, print_function, unicode_literals
+
 import collections
 import copy
 
@@ -195,3 +196,62 @@ def update(dest, upd, recursive_update=True, merge_lists=False):
 
     return dest
 # pylint: enable=R0911
+
+
+def path_slice(data: dict, *path: str) -> dict:
+    """
+    Get data by path key sequence.
+    Example, if data is {a: {b: c: {d}}}, then to get {c: {d}}, path should be [a, b, c].
+
+    Notes:
+      1. This filtering out on the way non-dict elements!
+      2. No dot can be in the path element (this is a delimeter)
+      3. Dots on target keys are hyphens in the path.
+         That is if the key is "foo.bar: spam", then the selector is "foo-bar: spam".
+
+    :param data: dictionary original data to slice from
+    :param path: path elements
+    :return: dictionary of the ending slice
+    """
+
+    def in_dicts(data: collections.Iterable) -> list:
+        """
+        Return a list of at least one element
+        but guarantee that each element is a dict.
+
+        :param data: iterable
+        :return: list of the dictionaries
+        """
+        _set = []
+        if isinstance(data, dict):
+            _set.append(data)
+        else:
+            if isinstance(data, (list, tuple)):
+                for element in data:
+                    if isinstance(element, dict):
+                        _set.append(element)
+        return _set
+
+    _slice = None
+    last_key = None
+    for pidx, pkey in enumerate(path):
+        if pidx > 0 and _slice is None:
+            break
+        slice_chunks = in_dicts(data if _slice is None else _slice)
+        if not slice_chunks:
+            _slice = None
+        for ref in slice_chunks:
+
+            updated = False
+            for ref_key, ref_val in ref.items():
+                if pkey == ref_key.replace(".", "-"):
+                    last_key = pkey
+                    _slice = copy.deepcopy(ref_val)
+                    updated = True
+                    break
+            if not updated:
+                _slice = None
+            else:
+                break
+
+    return {last_key: _slice} if _slice is not None else _slice

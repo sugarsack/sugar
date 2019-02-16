@@ -263,7 +263,7 @@ class TestServerQueryMatcher:
         :return:
         """
         for op in ["/", "&&", " and "]:
-            qry = Query("os-name:debian{op}web[1,3]*".format(op=op))
+            qry = Query("web*{op}web[1,3]*".format(op=op))
             assert set(qry.filter(hosts_list)) == {'web1.example.org', 'web3.example.org',
                                                    'web1.sugarsack.org', 'web3.sugarsack.org'}
 
@@ -278,6 +278,7 @@ class TestServerQueryMatcher:
                                                'zoo4.domain.com', 'zoo5.domain.com',
                                                'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'}
 
+    @pytest.mark.skip(reason="This should feed structured data")
     def test_no_flags(self, hosts_list):
         """
         Test empty flags should not raise an exception (if there are just :: syntax).
@@ -311,3 +312,22 @@ class TestServerQueryMatcher:
             assert set(qry.filter(hosts_list)) == {'web4.example.org', 'web4.sugarsack.org', 'web5.example.org',
                                                    'web5.sugarsack.org', 'zoo1', 'zoo2', 'zoo4.domain.com',
                                                    'zoo5.domain.com'}
+
+    def test_query_simple_status(self):
+        """
+        Query should not be uniform.
+
+        :return:
+        """
+        for query in ["foo", "foo*", "foo||bar", "foo&&bar||baz", ":x:some&&:r:stuff||nothing"]:
+            assert not Query(query).is_uniform
+
+    def test_query_uniform_status(self):
+        """
+        Query should be uniform.
+
+        :return:
+        """
+        for query in ["os-family:linux", "some.key:d:value", "key:value", "key:value||something",
+                      "hostname&&os-family:r:(solaris|bsd)||ipv4:192.168.*&&web[1-3]"]:
+            assert Query(query).is_uniform
