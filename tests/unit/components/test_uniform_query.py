@@ -83,3 +83,17 @@ class TestUniformQuery:
         out = Query("os-family:sunos").filter(self.uniform_data)
         assert len(out) == 1
         assert out[0].host == "slowlaris.host.com"
+
+    def test_compound_search(self):
+        """
+        Perform compound uniform search over the data.
+
+        :return:
+        """
+        found = 0
+        for meta in Query("os-family:r:(sunos|linux)").filter(self.uniform_data):
+            found += 1
+            assert meta.host != "bsd.host.com"
+            assert meta.host in ["linux.host.com", "slowlaris.host.com"]
+
+        assert found == 2
