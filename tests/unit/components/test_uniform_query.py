@@ -74,7 +74,7 @@ class TestUniformQuery:
         """
         cls.uniform_data = []
 
-    def test_basic_search(self):
+    def test_basic_traits(self):
         """
         Perform a basic uniform search over the data.
 
@@ -84,7 +84,7 @@ class TestUniformQuery:
         assert len(out) == 1
         assert out[0].host == "slowlaris.host.com"
 
-    def test_compound_search(self):
+    def test_regex_traits(self):
         """
         Perform compound uniform search over the data.
 
@@ -97,3 +97,13 @@ class TestUniformQuery:
             assert meta.host in ["linux.host.com", "slowlaris.host.com"]
 
         assert found == 2
+
+    def test_basic_cdata(self):
+        """
+        Basic search over cdata.
+
+        :return:
+        """
+        out = Query("cluster.type:ceph").filter(self.uniform_data)
+        assert len(out) == 1
+        assert out[0].host == "linux.host.com"
