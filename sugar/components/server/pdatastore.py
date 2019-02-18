@@ -16,7 +16,7 @@ from sugar.lib.logger.manager import get_logger
 # pylint: disable=C0103,W0622
 
 
-class CDataContainer:
+class PDataContainer:
     """
     Data container structure
     """
@@ -58,7 +58,7 @@ class PDataStore:
             if exc.errno != errno.EEXIST:
                 self.log.error("Error creating client storage directory '{}': {}", self.__r_path, exc)
 
-    def _get_node_path(self, container: CDataContainer) -> str:
+    def _get_node_path(self, container: PDataContainer) -> str:
         """
         Get node path from the container data.
 
@@ -67,7 +67,7 @@ class PDataStore:
         """
         return os.path.join(self.__r_path, "{}.data".format(container.id))
 
-    def add(self, container: CDataContainer) -> None:
+    def add(self, container: PDataContainer) -> None:
         """
         Add a client by machine_id.
 
@@ -80,7 +80,7 @@ class PDataStore:
             self.log.debug("Adding node at '{}'", node_path)
             pickle.dump(container, nph, pickle.HIGHEST_PROTOCOL)
 
-    def remove(self, container: CDataContainer) -> None:
+    def remove(self, container: PDataContainer) -> None:
         """
         Remove a client by machine id.
 
@@ -112,7 +112,7 @@ class PDataStore:
         """
         Return top nodes of the store.
 
-        :return: CDataContainer object
+        :return: PDataContainer object
         """
         for mid in os.listdir(self.__r_path):
             with sugar.utils.files.fopen(os.path.join(self.__r_path, mid), "rb") as nph:

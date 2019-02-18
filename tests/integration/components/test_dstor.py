@@ -7,7 +7,7 @@ import errno
 import shutil
 import tempfile
 import pickle
-from sugar.components.server.pdatastore import PDataStore, CDataContainer
+from sugar.components.server.pdatastore import PDataStore, PDataContainer
 from sugar.components.server.cdatamatch import QueryBlock, UniformMatch
 
 
@@ -77,7 +77,7 @@ class TestDataStore:
             ("4008ebadf8fd65b33e775e3e98bfb9d7", "latte.domain.org"),
         ]
         for machine_id, hostname in systems:
-            container = CDataContainer(id=machine_id, host=hostname)
+            container = PDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": "Linux", "machine-id": machine_id}
             container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
@@ -106,7 +106,7 @@ class TestDataStore:
             ("4008ebadf8fd65b33e775e3e98bfb9d7", "latte.domain.org"),
         ]
         for machine_id, hostname in systems:
-            container = CDataContainer(id=machine_id, host=hostname)
+            container = PDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": "Linux", "machine-id": machine_id}
             container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
@@ -127,7 +127,7 @@ class TestDataStore:
             ("4008ebadf8fd65b33e775e3e98bfb9d7", "latte.domain.org"),
         ]
         for machine_id, hostname in systems:
-            container = CDataContainer(id=machine_id, host=hostname)
+            container = PDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": "Linux", "machine-id": machine_id}
             container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
@@ -150,7 +150,7 @@ class TestDataStore:
             ("4008ebadf8fd65b33e775e3e98bfb9d7", "latte.domain.org"),
         ]
         for machine_id, hostname in systems:
-            container = CDataContainer(id=machine_id, host=hostname)
+            container = PDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": "Linux", "machine-id": machine_id}
             container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
@@ -175,7 +175,7 @@ class TestDataStore:
             ("4008ebadf8fd65b33e775e3e98bfb9d7", "latte.domain.org", "Slowlaris"),
         ]
         for machine_id, hostname, osfamily in systems:
-            container = CDataContainer(id=machine_id, host=hostname)
+            container = PDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": osfamily, "machine-id": machine_id}
             container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
