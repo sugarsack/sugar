@@ -36,7 +36,10 @@ class _DefaultConfigurations(object):
                 'rotate': 10,
                 'max_size_mb': 10,
             }
-        ]
+        ],
+        'cache': {
+            'path': '/var/cache/sugar',
+        },
     }
 
     # Default master configuration
