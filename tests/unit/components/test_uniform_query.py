@@ -59,10 +59,10 @@ class TestUniformQuery:
         ]
 
         cls.uniform_data = []
-        for mid, hname, traits, cdata in hosts:
+        for mid, hname, traits, pdata in hosts:
             container = CDataContainer(mid, hname)
             container.traits = traits
-            container.inherencies = cdata
+            container.pdata = pdata
             cls.uniform_data.append(container)
 
     @classmethod

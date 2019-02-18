@@ -29,7 +29,7 @@ class CDataContainer:
         self.id = id
         self.host = host
         self.traits = {}
-        self.inherencies = {}
+        self.pdata = {}
 
 
 # pylint: enable=C0103,W0622
