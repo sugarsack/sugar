@@ -42,6 +42,7 @@ class PDataStore:
 
     def __init__(self, root_path=None):
         self.log = get_logger(self)
+        self.log.debug("Initialising P-Data store")
         self.__r_path = os.path.join(root_path or self.DEFAULT_CACHE_DIR, "sugar", "cdata")
         self._create_r_path()
 

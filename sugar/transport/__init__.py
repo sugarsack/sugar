@@ -176,6 +176,7 @@ class ClientMsgFactory(_MessageFactory):
     KIND_HANDSHAKE_TKEN_REQ = 0xfb      # Signed token request
     KIND_HANDSHAKE_PKEY_REG_REQ = 0xfc  # Public key registration request
     KIND_OPR_RESP = 0xa1                # Operational response
+    KIND_TRAITS = 0x1                   # Contains traits
 
     scheme = Schema({
         Optional('.'): None,  # Marker

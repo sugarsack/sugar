@@ -8,7 +8,7 @@ from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.internet import threads
 
 from sugar.components.client.core import ClientCore
-from sugar.transport import ObjectGate, ServerMsgFactory
+from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory
 import sugar.transport.utils
 import sugar.utils.stringutils
 
@@ -72,6 +72,23 @@ class SugarClientProtocol(WebSocketClientProtocol):
             self.log.debug("the handshake routine is finished")
         else:
             self.dropConnection()  # Something entirely went wrong
+
+    def on_authenticated_start(self, *args, **kwargs):
+        """
+        Called when client successfully completed handshake.
+
+        :return:
+        """
+        if not self.factory.core.rts.startup:
+            return
+
+        # Traits update
+        msg = ClientMsgFactory.create(ClientMsgFactory.KIND_TRAITS)
+        msg.internal.update(self.factory.core.traits.data)
+        self.sendMessage(ClientMsgFactory.pack(msg), is_binary=True)
+        self.log.debug("Client traits update")
+
+        self.factory.core.rts.startup = False
 
     def onMessage(self, payload, binary):
         """

@@ -121,7 +121,9 @@ class ClientCore(object):
         self._proto = {}
         self.traits = Traits()
         self.reactor_connection = None
+
         self.hds = HandshakeStatus()
+        self.rts = RuntimeStatus()
 
     def set_reactor_connection(self, connection):
         """
@@ -365,6 +367,7 @@ class ClientSystemEvents(object):
             key_status = reply.internal["payload"]
             if key_status == KeyStore.STATUS_ACCEPTED:
                 self.core.hds.set_successfull()
+                proto.on_authenticated_start()
             else:
                 self.core.hds.set_failed()
             self.log.info("RSA key has been {}".format(key_status))

@@ -16,6 +16,7 @@ from sugar.transport import Serialisable, ServerMsgFactory, ObjectGate
 from sugar.lib.pki import Crypto
 from sugar.lib.pki.keystore import KeyStore
 from sugar.components.server.registry import RuntimeRegistry
+from sugar.components.server.pdatastore import PDataContainer
 
 import sugar.transport
 import sugar.lib.pki.utils
@@ -63,15 +64,25 @@ class ServerCore(object):
         self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\ttarget: {}\n\targs: {}",
                        evt.fun, evt.tgt, evt.arg)
 
-    def register_client_protocol(self, machine_id, proto):
+    def register_client_protocol(self, machine_id, proto, traits=None):
         """
         Register machine connection.
 
         :param machine_id: string form of the machine ID
         :param proto: current protocol instance
+        :param traits: traits from the client machine
         :return: None
         """
+        assert traits is not None, "No traits has been sent, but they required to be updated on client connect."
+
         self.peer_registry.register(machine_id=machine_id, peer=proto)
+
+        # WARNING: Removal of the peer from the data store is only on key invalidation!
+        #          Traits data and P-Data of the peer is always updated on each connect.
+        container = PDataContainer(id=machine_id, host=self.peer_registry.get_hostname(machine_id))
+        container.traits = traits
+        container.pdata = {}  # TODO: Get pdata from the pdata subsystem here
+        self.peer_registry.pdata_store.add(container=container)
 
     def remove_client_protocol(self, proto):
         """
@@ -80,6 +91,8 @@ class ServerCore(object):
         :param proto: current protocol instance
         :return: None
         """
+        # STOP: Do not ever remove peer here from the data store!
+
         self.peer_registry.unregister(proto.get_machine_id())
 
     def get_client_protocol(self, machine_id):

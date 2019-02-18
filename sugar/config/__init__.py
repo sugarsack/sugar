@@ -38,7 +38,7 @@ class _DefaultConfigurations(object):
             }
         ],
         'cache': {
-            'path': '/var/cache/sugar',
+            'path': '/var/cache',
         },
     }
 

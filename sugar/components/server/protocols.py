@@ -115,6 +115,11 @@ class SugarServerProtocol(WebSocketServerProtocol):
                 self.log.debug("handshake: new RSA key registration accepted")
                 self.sendMessage(ObjectGate(self.factory.core.system.on_add_new_rsa_key(msg)).pack(binary), binary)
 
+            elif msg.kind == ClientMsgFactory.KIND_TRAITS:
+                # TODO: client global status
+                self.log.debug("Traits update on client connect")
+                self.factory.core.register_client_protocol(self.machine_id, self, traits=msg.internal)
+
     def onClose(self, wasClean, code, reason):
         self.log.debug("client's connection has been closed: {0}".format(reason))
 
@@ -146,7 +151,6 @@ class SugarServerProtocol(WebSocketServerProtocol):
         """
         if self.get_machine_id() != machine_id:
             setattr(self, "machine_id", machine_id)
-            self.factory.core.register_client_protocol(self.machine_id, self)
 
 
 class SugarServerFactory(WebSocketServerFactory):
