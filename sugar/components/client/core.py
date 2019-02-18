@@ -24,7 +24,15 @@ from sugar.transport import ClientMsgFactory, ServerMsgFactory
 
 # pylint: disable=R0801
 
-class HandshakeStatus(object):
+class RuntimeStatus:
+    """
+    Runtime status.
+    """
+    def __init__(self):
+        self.startup = True
+
+
+class HandshakeStatus:
     """
     Handshake status.
     """
