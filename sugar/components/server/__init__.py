@@ -30,7 +30,7 @@ class SugarServer(object):
         self.factory = SugarServerFactory("wss://*:5505")
         self.factory.protocol = SugarServerProtocol
 
-        self.console_factory = SugarConsoleServerFactory("wss://*:5507")
+        self.console_factory = SugarConsoleServerFactory("wss://localhost:5507")
         self.console_factory.protocol = SugarConsoleServerProtocol
 
     def on_shutdown(self):
