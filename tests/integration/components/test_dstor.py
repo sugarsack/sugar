@@ -79,7 +79,7 @@ class TestDataStore:
         for machine_id, hostname in systems:
             container = CDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": "Linux", "machine-id": machine_id}
-            container.inherencies = {"hostname": hostname}
+            container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
 
         data_path = os.path.join(self.store_path, "sugar", "cdata")
@@ -108,12 +108,12 @@ class TestDataStore:
         for machine_id, hostname in systems:
             container = CDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": "Linux", "machine-id": machine_id}
-            container.inherencies = {"hostname": hostname}
+            container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
 
         for system_object in self.store_ref.clients():
             assert system_object.id in [mid[0] for mid in systems]
-            assert system_object.inherencies["hostname"] in [mid[1] for mid in systems]
+            assert system_object.pdata["hostname"] in [mid[1] for mid in systems]
 
     def test_delete_system(self):
         """
@@ -129,7 +129,7 @@ class TestDataStore:
         for machine_id, hostname in systems:
             container = CDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": "Linux", "machine-id": machine_id}
-            container.inherencies = {"hostname": hostname}
+            container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
 
         for system_object in self.store_ref.clients():
@@ -152,7 +152,7 @@ class TestDataStore:
         for machine_id, hostname in systems:
             container = CDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": "Linux", "machine-id": machine_id}
-            container.inherencies = {"hostname": hostname}
+            container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
 
         self.store_ref.flush()
@@ -177,7 +177,7 @@ class TestDataStore:
         for machine_id, hostname, osfamily in systems:
             container = CDataContainer(id=machine_id, host=hostname)
             container.traits = {"os-family": osfamily, "machine-id": machine_id}
-            container.inherencies = {"hostname": hostname}
+            container.pdata = {"hostname": hostname}
             self.store_ref.add(container)
 
         query = QueryBlock("os-family:linux")

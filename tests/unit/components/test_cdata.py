@@ -54,7 +54,7 @@ def matcher():
         "ip.v4": "10.10.10.10",
         "items": [1, 2, 3, 4],
     }
-    cnt.inherencies = yaml.load(data)
+    cnt.pdata = yaml.load(data)
 
     return UniformMatch(cnt)
 

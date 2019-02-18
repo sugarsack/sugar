@@ -50,9 +50,9 @@ class UniformMatch:
         ret = False
         sections = []
         if qblock.trait:
-            sections.append(sugar.utils.structs.path_slice(self.cdata.inherencies, *qblock.path) or {})
+            sections.append(sugar.utils.structs.path_slice(self.cdata.pdata, *qblock.path) or {})
         else:
-            sections.append(self.cdata.inherencies)
+            sections.append(self.cdata.pdata)
 
         if qblock.trait:
             sections.append(sugar.utils.structs.path_slice(self.cdata.traits, *qblock.path) or {})
