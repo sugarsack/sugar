@@ -5,7 +5,7 @@ Test client data matchers
 import pytest
 
 from sugar.lib.compat import yaml
-from sugar.components.server.cdatamatch import UniformMatch
+from sugar.components.server.pdatamatch import UniformMatch
 from sugar.components.server.pdatastore import PDataContainer
 from sugar.components.server.query import QueryBlock, Query
 

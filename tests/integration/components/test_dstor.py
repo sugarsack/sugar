@@ -8,7 +8,7 @@ import shutil
 import tempfile
 import pickle
 from sugar.components.server.pdatastore import PDataStore, PDataContainer
-from sugar.components.server.cdatamatch import QueryBlock, UniformMatch
+from sugar.components.server.pdatamatch import QueryBlock, UniformMatch
 
 
 class TestDataStore:

@@ -48,7 +48,7 @@ Examples:
 import re
 import time
 
-from sugar.components.server.cdatamatch import UniformMatch
+from sugar.components.server.pdatamatch import UniformMatch
 from sugar.components.server.qelement import QueryBlock
 
 

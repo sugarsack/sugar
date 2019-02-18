@@ -4,7 +4,7 @@ Test uniform query.
 """
 
 from sugar.components.server.query import Query
-from sugar.components.server.cdatamatch import PDataContainer
+from sugar.components.server.pdatamatch import PDataContainer
 
 
 class TestUniformQuery:
