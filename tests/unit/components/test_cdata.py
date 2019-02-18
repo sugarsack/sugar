@@ -6,7 +6,7 @@ import pytest
 
 from sugar.lib.compat import yaml
 from sugar.components.server.cdatamatch import UniformMatch
-from sugar.components.server.cdatastore import CDataContainer
+from sugar.components.server.pdatastore import CDataContainer
 from sugar.components.server.query import QueryBlock, Query
 
 

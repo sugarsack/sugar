@@ -34,7 +34,7 @@ class CDataContainer:
 
 # pylint: enable=C0103,W0622
 
-class CDataStore:
+class PDataStore:
     """
     Data storage/retriever in the directory.
     """

@@ -7,7 +7,7 @@ import errno
 import shutil
 import tempfile
 import pickle
-from sugar.components.server.cdatastore import CDataStore, CDataContainer
+from sugar.components.server.pdatastore import PDataStore, CDataContainer
 from sugar.components.server.cdatamatch import QueryBlock, UniformMatch
 
 
@@ -53,7 +53,7 @@ class TestDataStore:
         :return:
         """
         assert not os.path.exists(os.path.join(self.store_path, "sugar")), "Unclean setup"
-        self.store_ref = CDataStore(self.store_path)
+        self.store_ref = PDataStore(self.store_path)
 
     def teardown_method(self, method):
         """
