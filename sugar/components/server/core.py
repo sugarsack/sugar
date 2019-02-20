@@ -96,14 +96,13 @@ class ServerCore(object):
         """
         assert traits is not None, "No traits has been sent, but they required to be updated on client connect."
 
-        self.peer_registry.register(machine_id=machine_id, peer=proto)
-
         # WARNING: Removal of the peer from the data store is only on key invalidation!
         #          Traits data and P-Data of the peer is always updated on each connect.
         container = PDataContainer(id=machine_id, host=self.peer_registry.get_hostname(machine_id))
         container.traits = traits
         container.pdata = {}  # TODO: Get pdata from the pdata subsystem here
         self.peer_registry.pdata_store.add(container=container)
+        self.log.debug("Traits loaded from host '{}' ({})", container.host, container.id)
 
     def remove_client_protocol(self, proto):
         """
