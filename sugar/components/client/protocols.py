@@ -73,11 +73,13 @@ class SugarClientProtocol(WebSocketClientProtocol):
         else:
             self.dropConnection()  # Something entirely went wrong
 
-    def on_authenticated_start(self, *args, **kwargs):
+    def on_authenticated_start(self, *args, **kwargs) -> None:  # pylint: disable=W0613
         """
         Called when client successfully completed handshake.
 
-        :return:
+        :param args: arbitrary arguments
+        :param kwargs: arbitrary keywargs
+        :return: None
         """
         if not self.factory.core.rts.startup:
             return

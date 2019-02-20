@@ -121,7 +121,7 @@ class SugarServerProtocol(WebSocketServerProtocol):
 
             elif msg.kind == ClientMsgFactory.KIND_TRAITS:
                 self.log.debug("Traits update on client connect")
-                self.factory.core.register_client_protocol(self.machine_id, self, traits=msg.internal)
+                self.factory.core.refresh_client_pdata(self.machine_id, traits=msg.internal)
 
     def onClose(self, wasClean, code, reason):
         self.log.debug("client's connection has been closed: {0}".format(reason))

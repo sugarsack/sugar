@@ -28,12 +28,10 @@ from sugar.utils.tokens import MasterLocalToken
 @Singleton
 class ServerCore(object):
     """
-    Server
+    Server core composite class.
     """
+
     def __init__(self):
-        """
-        Server core class.
-        """
         self.log = get_logger(self)
         self.config = get_config()
         self.cli_db = RegisteredClients()
@@ -85,12 +83,11 @@ class ServerCore(object):
         for target in self.peer_registry.get_targets(query=evt.tgt):
             threads.deferToThread(self.fire_event, event=evt, target=target)
 
-    def register_client_protocol(self, machine_id, proto, traits=None):
+    def refresh_client_pdata(self, machine_id, traits=None):
         """
         Register machine connection.
 
         :param machine_id: string form of the machine ID
-        :param proto: current protocol instance
         :param traits: traits from the client machine
         :return: None
         """

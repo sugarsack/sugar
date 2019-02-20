@@ -32,10 +32,11 @@ class RuntimeStatus:
         self.startup = None
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset
-        :return:
+
+        :return: None
         """
         self.startup = True
 

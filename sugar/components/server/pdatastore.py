@@ -109,10 +109,11 @@ class PDataStore:
             self.log.debug("Creating data store space at '{}'", self.__r_path)
             self._create_r_path()
 
-    def clients(self, active=None) -> collections.Iterable:
+    def clients(self, active: list = None) -> collections.Iterable:
         """
         Return top nodes of the store.
 
+        :param active: List of currently joined peers. Used to threshold offline machines.
         :return: PDataContainer object
         """
         for mid_file in os.listdir(self.__r_path):
