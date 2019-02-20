@@ -114,6 +114,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
         :param reason: reason closing protocol
         :return: None
         """
+        self.transport.loseConnection()
         self.log.info("connection to the server is closed: {0}".format(reason))
         self.factory.core.remove_protocol(self._id)
         self.factory.core.get_queue().queue.clear()
@@ -150,6 +151,7 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         :param reason: Reason connection failure
         :return: None
         """
+        self.core.hds.reset()
         self.log.debug("connection to the server is lost: {}".format(reason))
         self.resetDelay()
         self.retry(connector)
