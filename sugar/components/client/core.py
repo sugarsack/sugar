@@ -29,6 +29,14 @@ class RuntimeStatus:
     Runtime status.
     """
     def __init__(self):
+        self.startup = None
+        self.reset()
+
+    def reset(self):
+        """
+        Reset
+        :return:
+        """
         self.startup = True
 
 
