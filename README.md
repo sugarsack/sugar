@@ -1,6 +1,6 @@
 # What is Sugar Project?
 
-Sugar Project is a software prototype for complex systems management at scale.
+Sugar Project is a **software prototype** for complex systems management at scale.
 
 The goal of the project is to be easy enough to get it running in minutes,
 be scalable and fast enough to manage well thousands of servers.
@@ -12,6 +12,10 @@ design, focusing rather on modern intrastructure trends.
 Same as Salt Open, Sugar Project can be used for data-driven orchestration,
 remote execution for any infrastructure, configuration management for any
 app stack, and much more.
+
+## What is the motto?
+
+No matter how slow it goes. As long as it doesn't stop.
 
 ## What is the status?
 
