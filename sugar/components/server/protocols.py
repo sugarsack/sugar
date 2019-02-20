@@ -102,7 +102,10 @@ class SugarServerProtocol(WebSocketServerProtocol):
     def onMessage(self, payload, binary):
         if binary:
             msg = ObjectGate().load(payload, binary)
-            self.set_machine_id(msg.machine_id)
+            if self.get_machine_id() is None:
+                self.set_machine_id(msg.machine_id)
+                self.factory.core.peer_registry.register(machine_id=msg.machine_id, peer=self)
+
             if msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ:
                 self.log.debug("handshake: public key request")
                 self.sendMessage(ObjectGate(self.factory.core.system.on_pub_rsa_request()).pack(binary), binary)
