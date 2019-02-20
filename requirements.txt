@@ -2,6 +2,7 @@ service_identity
 terminaltables
 sugarsack-sdk
 # pycryptodome
+persist-queue
 observable
 pipupgrade
 pytest-cov

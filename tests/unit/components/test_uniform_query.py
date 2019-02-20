@@ -4,7 +4,7 @@ Test uniform query.
 """
 
 from sugar.components.server.query import Query
-from sugar.components.server.cdatamatch import CDataContainer
+from sugar.components.server.pdatamatch import PDataContainer
 
 
 class TestUniformQuery:
@@ -60,7 +60,7 @@ class TestUniformQuery:
 
         cls.uniform_data = []
         for mid, hname, traits, pdata in hosts:
-            container = CDataContainer(mid, hname)
+            container = PDataContainer(mid, hname)
             container.traits = traits
             container.pdata = pdata
             cls.uniform_data.append(container)

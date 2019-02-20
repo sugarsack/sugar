@@ -8,7 +8,7 @@ from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.internet import threads
 
 from sugar.components.client.core import ClientCore
-from sugar.transport import ObjectGate, ServerMsgFactory
+from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory
 import sugar.transport.utils
 import sugar.utils.stringutils
 
@@ -73,6 +73,25 @@ class SugarClientProtocol(WebSocketClientProtocol):
         else:
             self.dropConnection()  # Something entirely went wrong
 
+    def on_authenticated_start(self, *args, **kwargs) -> None:  # pylint: disable=W0613
+        """
+        Called when client successfully completed handshake.
+
+        :param args: arbitrary arguments
+        :param kwargs: arbitrary keywargs
+        :return: None
+        """
+        if not self.factory.core.rts.startup:
+            return
+
+        # Traits update
+        msg = ClientMsgFactory.create(ClientMsgFactory.KIND_TRAITS)
+        msg.internal.update(self.factory.core.traits.data)
+        self.sendMessage(ClientMsgFactory.pack(msg), is_binary=True)
+        self.log.debug("Client traits update")
+
+        self.factory.core.rts.startup = False
+
     def onMessage(self, payload, binary):
         """
         Message received from peer.
@@ -97,6 +116,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
         :param reason: reason closing protocol
         :return: None
         """
+        self.transport.loseConnection()
         self.log.info("connection to the server is closed: {0}".format(reason))
         self.factory.core.remove_protocol(self._id)
         self.factory.core.get_queue().queue.clear()
@@ -133,6 +153,7 @@ class SugarClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         :param reason: Reason connection failure
         :return: None
         """
+        self.core.hds.reset()
         self.log.debug("connection to the server is lost: {}".format(reason))
         self.resetDelay()
         self.retry(connector)

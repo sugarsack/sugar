@@ -16,6 +16,7 @@ from sugar.transport import Serialisable, ServerMsgFactory, ObjectGate
 from sugar.lib.pki import Crypto
 from sugar.lib.pki.keystore import KeyStore
 from sugar.components.server.registry import RuntimeRegistry
+from sugar.components.server.pdatastore import PDataContainer
 
 import sugar.transport
 import sugar.lib.pki.utils
@@ -27,12 +28,10 @@ from sugar.utils.tokens import MasterLocalToken
 @Singleton
 class ServerCore(object):
     """
-    Server
+    Server core composite class.
     """
+
     def __init__(self):
-        """
-        Server core class.
-        """
         self.log = get_logger(self)
         self.config = get_config()
         self.cli_db = RegisteredClients()
@@ -53,7 +52,26 @@ class ServerCore(object):
         """
         return token == self.master_local_token.get_token()
 
-    def _send_task_to_clients(self, evt):
+    def fire_event(self, event, target) -> None:
+        """
+        Fire an event (usually a remote task).
+
+        :param event: An event to broadcast
+        :param target: Selected target
+        :return: None
+        """
+        self.log.debug("Sending event '{}({})' to host '{}' ({})", event.fun, event.arg, target.host, target.id)
+
+        task_message = ServerMsgFactory().create()
+        task_message.ret.message = "ping"
+        task_message.internal = {
+            "function": event.fun,
+            "arguments": event.arg,
+        }
+
+        self.get_client_protocol(target.id).sendMessage(ServerMsgFactory.pack(task_message), isBinary=True)
+
+    def on_broadcast_tasks(self, evt):
         """
         Send task to clients.
 
@@ -62,16 +80,26 @@ class ServerCore(object):
         """
         self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\ttarget: {}\n\targs: {}",
                        evt.fun, evt.tgt, evt.arg)
+        for target in self.peer_registry.get_targets(query=evt.tgt):
+            threads.deferToThread(self.fire_event, event=evt, target=target)
 
-    def register_client_protocol(self, machine_id, proto):
+    def refresh_client_pdata(self, machine_id, traits=None):
         """
         Register machine connection.
 
         :param machine_id: string form of the machine ID
-        :param proto: current protocol instance
+        :param traits: traits from the client machine
         :return: None
         """
-        self.peer_registry.register(machine_id=machine_id, peer=proto)
+        assert traits is not None, "No traits has been sent, but they required to be updated on client connect."
+
+        # WARNING: Removal of the peer from the data store is only on key invalidation!
+        #          Traits data and P-Data of the peer is always updated on each connect.
+        container = PDataContainer(id=machine_id, host=self.peer_registry.get_hostname(machine_id))
+        container.traits = traits
+        container.pdata = {}  # TODO: Get pdata from the pdata subsystem here
+        self.peer_registry.pdata_store.add(container=container)
+        self.log.debug("Traits loaded from host '{}' ({})", container.host, container.id)
 
     def remove_client_protocol(self, proto):
         """
@@ -80,6 +108,8 @@ class ServerCore(object):
         :param proto: current protocol instance
         :return: None
         """
+        # STOP: Do not ever remove peer here from the data store!
+
         self.peer_registry.unregister(proto.get_machine_id())
 
     def get_client_protocol(self, machine_id):
@@ -99,7 +129,7 @@ class ServerCore(object):
         :return: immediate response
         """
         if evt.kind == sugar.transport.ServerMsgFactory.TASK_RESPONSE:
-            threads.deferToThread(self._send_task_to_clients, evt)
+            threads.deferToThread(self.on_broadcast_tasks, evt)
 
         msg = sugar.transport.ServerMsgFactory.create_console_msg()
         msg.ret.message = "Task has been accepted"

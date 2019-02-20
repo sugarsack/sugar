@@ -3,7 +3,9 @@
 Query parser test.
 """
 import pytest
+import hashlib
 from sugar.components.server.query import QueryBlock, Query
+from sugar.components.server.pdatastore import PDataContainer
 
 
 @pytest.fixture
@@ -13,6 +15,16 @@ def hosts_list() -> list:
 
     :return: list
     """
+
+    def pdc(hostname: str) -> PDataContainer:
+        """
+        Create p-data containers from the hostnames.
+
+        :param hostname: hostname
+        :return: PDataContainer
+        """
+        return PDataContainer(id=hashlib.md5(hostname.encode("ascii")).hexdigest(), host=hostname)
+
     hosts = [
         "web1.example.org", "web2.example.org", "web3.example.org", "web4.example.org", "web5.example.org",
         "web1.sugarsack.org", "web2.sugarsack.org", "web3.sugarsack.org", "web4.sugarsack.org", "web5.sugarsack.org",
@@ -20,7 +32,17 @@ def hosts_list() -> list:
         "zoo1", "zoo2", "zoo3", "zoo4", "zoo5",
     ]
 
-    return hosts
+    return [pdc(host) for host in hosts]
+
+
+def get_hosts(pdcs: list) -> list:
+    """
+    Get list of PDataContainers and get only hostnames into a list.
+
+    :param pdcs: list of PDataContainers
+    :return: list of strings of hostnames
+    """
+    return [pdc.host for pdc in pdcs]
 
 
 class TestServerQueryBlock:
@@ -244,7 +266,8 @@ class TestServerQueryMatcher:
         :return:
         """
         qry = Query("zoo1,web2*,web3.sugarsack.org")
-        assert set(qry.filter(hosts_list)) == {"web3.sugarsack.org", "web2.sugarsack.org", "web2.example.org", "zoo1"}
+        assert set(get_hosts(qry.filter(hosts_list))) == {"web3.sugarsack.org", "web2.sugarsack.org",
+                                                          "web2.example.org", "zoo1"}
 
     def test_select_subselect(self, hosts_list):
         """
@@ -254,7 +277,7 @@ class TestServerQueryMatcher:
         :return:
         """
         for op in ["/", "&&", " and "]:
-            assert Query("zoo[1,3,4]{op}zoo[2,4]".format(op=op)).filter(hosts_list) == ["zoo4"]
+            assert get_hosts(Query("zoo[1,3,4]{op}zoo[2,4]".format(op=op)).filter(hosts_list)) == ["zoo4"]
 
     def test_select_subsequent_after_trait(self, hosts_list):
         """
@@ -264,8 +287,8 @@ class TestServerQueryMatcher:
         """
         for op in ["/", "&&", " and "]:
             qry = Query("web*{op}web[1,3]*".format(op=op))
-            assert set(qry.filter(hosts_list)) == {'web1.example.org', 'web3.example.org',
-                                                   'web1.sugarsack.org', 'web3.sugarsack.org'}
+            assert set(get_hosts(qry.filter(hosts_list))) == {'web1.example.org', 'web3.example.org',
+                                                              'web1.sugarsack.org', 'web3.sugarsack.org'}
 
     def test_select_inversion_flag(self, hosts_list):
         """
@@ -274,9 +297,9 @@ class TestServerQueryMatcher:
         :return:
         """
         qry = Query(":x:web*")
-        assert set(qry.filter(hosts_list)) == {'zoo1.domain.com', 'zoo2.domain.com', 'zoo3.domain.com',
-                                               'zoo4.domain.com', 'zoo5.domain.com',
-                                               'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'}
+        assert set(get_hosts(qry.filter(hosts_list))) == {'zoo1.domain.com', 'zoo2.domain.com', 'zoo3.domain.com',
+                                                          'zoo4.domain.com', 'zoo5.domain.com',
+                                                          'zoo1', 'zoo2', 'zoo3', 'zoo4', 'zoo5'}
 
     @pytest.mark.skip(reason="This should feed structured data")
     def test_no_flags(self, hosts_list):
@@ -298,7 +321,8 @@ class TestServerQueryMatcher:
         :return:
         """
         for op in ["/", "&&", " and "]:
-            assert set(Query("zoo1,zoo2,zoo3{op}:x:zoo2".format(op=op)).filter(hosts_list)) == {"zoo1", "zoo3"}
+            assert set(get_hosts(Query("zoo1,zoo2,zoo3{op}:x:zoo2".format(
+                op=op)).filter(hosts_list))) == {"zoo1", "zoo3"}
 
     def test_union(self, hosts_list):
         """
@@ -309,9 +333,9 @@ class TestServerQueryMatcher:
         for aop, oop in [("/", "//"), ("&&", "||"), (" and ", " or ")]:
             qry = Query("*.example.org,*.sugarsack.org,*.domain.com{a}:x:*[1-3]*{o}zoo[1-3]{a}:x:zoo[3]".format(
                 a=aop, o=oop))
-            assert set(qry.filter(hosts_list)) == {'web4.example.org', 'web4.sugarsack.org', 'web5.example.org',
-                                                   'web5.sugarsack.org', 'zoo1', 'zoo2', 'zoo4.domain.com',
-                                                   'zoo5.domain.com'}
+            assert set(get_hosts(qry.filter(hosts_list))) == {'web4.example.org', 'web4.sugarsack.org',
+                                                              'web5.example.org', 'web5.sugarsack.org',
+                                                              'zoo1', 'zoo2', 'zoo4.domain.com', 'zoo5.domain.com'}
 
     def test_query_simple_status(self):
         """

@@ -29,7 +29,7 @@ import re
 
 import sugar.utils.objects
 import sugar.utils.structs
-from sugar.components.server.cdatastore import CDataContainer
+from sugar.components.server.pdatastore import PDataContainer
 from sugar.components.server.qelement import QueryBlock
 
 
@@ -37,7 +37,7 @@ class UniformMatch:
     """
     Graph data elements search.
     """
-    def __init__(self, cdata: CDataContainer):
+    def __init__(self, cdata: PDataContainer):
         self.cdata = cdata
 
     def match(self, qblock: QueryBlock) -> bool:

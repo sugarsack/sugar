@@ -16,7 +16,7 @@ from sugar.lib.logger.manager import get_logger
 # pylint: disable=C0103,W0622
 
 
-class CDataContainer:
+class PDataContainer:
     """
     Data container structure
     """
@@ -34,7 +34,7 @@ class CDataContainer:
 
 # pylint: enable=C0103,W0622
 
-class CDataStore:
+class PDataStore:
     """
     Data storage/retriever in the directory.
     """
@@ -42,6 +42,7 @@ class CDataStore:
 
     def __init__(self, root_path=None):
         self.log = get_logger(self)
+        self.log.debug("Initialising P-Data store")
         self.__r_path = os.path.join(root_path or self.DEFAULT_CACHE_DIR, "sugar", "cdata")
         self._create_r_path()
 
@@ -58,7 +59,7 @@ class CDataStore:
             if exc.errno != errno.EEXIST:
                 self.log.error("Error creating client storage directory '{}': {}", self.__r_path, exc)
 
-    def _get_node_path(self, container: CDataContainer) -> str:
+    def _get_node_path(self, container: PDataContainer) -> str:
         """
         Get node path from the container data.
 
@@ -67,7 +68,7 @@ class CDataStore:
         """
         return os.path.join(self.__r_path, "{}.data".format(container.id))
 
-    def add(self, container: CDataContainer) -> None:
+    def add(self, container: PDataContainer) -> None:
         """
         Add a client by machine_id.
 
@@ -80,7 +81,7 @@ class CDataStore:
             self.log.debug("Adding node at '{}'", node_path)
             pickle.dump(container, nph, pickle.HIGHEST_PROTOCOL)
 
-    def remove(self, container: CDataContainer) -> None:
+    def remove(self, container: PDataContainer) -> None:
         """
         Remove a client by machine id.
 
@@ -108,12 +109,15 @@ class CDataStore:
             self.log.debug("Creating data store space at '{}'", self.__r_path)
             self._create_r_path()
 
-    def clients(self) -> collections.Iterable:
+    def clients(self, active: list = None) -> collections.Iterable:
         """
         Return top nodes of the store.
 
-        :return: CDataContainer object
+        :param active: List of currently joined peers. Used to threshold offline machines.
+        :return: PDataContainer object
         """
-        for mid in os.listdir(self.__r_path):
-            with sugar.utils.files.fopen(os.path.join(self.__r_path, mid), "rb") as nph:
-                yield pickle.load(nph)
+        for mid_file in os.listdir(self.__r_path):
+            mid = mid_file.split(".")[0]
+            if active is None or mid in active:
+                with sugar.utils.files.fopen(os.path.join(self.__r_path, mid_file), "rb") as nph:
+                    yield pickle.load(nph)

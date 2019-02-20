@@ -27,7 +27,10 @@ class SchemeBuilder(object):
                 Optional('rotate'): int,
                 Optional('max_size_mb'): int,
             }
-        ]
+        ],
+        And('cache'): {
+            And('path'): str,
+        },
     }
 
     # Client configuration scheme for validation

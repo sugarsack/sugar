@@ -5,8 +5,8 @@ Test client data matchers
 import pytest
 
 from sugar.lib.compat import yaml
-from sugar.components.server.cdatamatch import UniformMatch
-from sugar.components.server.cdatastore import CDataContainer
+from sugar.components.server.pdatamatch import UniformMatch
+from sugar.components.server.pdatastore import PDataContainer
 from sugar.components.server.query import QueryBlock, Query
 
 
@@ -33,7 +33,7 @@ def matcher():
 - mixed-name.key: value
     """
 
-    cnt = CDataContainer("han-solo", "hansolo.org")
+    cnt = PDataContainer("han-solo", "hansolo.org")
     cnt.traits = {
         "os-family": "Linux",
         "os-major-version": "10",
