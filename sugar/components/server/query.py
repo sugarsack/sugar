@@ -175,15 +175,12 @@ class Query:
         """
         for clause in queries:
             regex = re.compile(clause.target)
-            if "x" not in clause.flags:
-                subset = list(filter(regex.search, subset))
-            else:
-                _hosts = []
-                for host in subset:
-                    if not regex.search(host):
-                        _hosts.append(host)
-                subset = _hosts
-                del _hosts
+            _hosts = []
+            for host_meta in subset:
+                if not regex.search(host_meta.host) if "x" in clause.flags else regex.search(host_meta.host):
+                    _hosts.append(host_meta)
+            subset = _hosts
+            del _hosts
 
         return subset
 
