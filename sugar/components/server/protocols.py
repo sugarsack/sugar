@@ -43,7 +43,8 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
         self.sendMessage(ServerMsgFactory.pack(reply), isBinary=True)
 
     def onClose(self, wasClean, code, reason):
-        self.log.debug("console connection has been terminated: {0}".format(reason))
+        self.factory.unregister(self)
+        self.log.debug("console connection has been closed: {0}", reason)
 
     def connectionLost(self, reason):
         """
@@ -52,8 +53,8 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
         :param reason: connection failure reason
         :return: None
         """
+        self.log.debug("console connection has been lost: {0}", reason)
         WebSocketServerProtocol.connectionLost(self, reason)
-        self.factory.unregister(self)
 
 
 class SugarConsoleServerFactory(WebSocketServerFactory):
@@ -119,12 +120,14 @@ class SugarServerProtocol(WebSocketServerProtocol):
                 self.sendMessage(ObjectGate(self.factory.core.system.on_add_new_rsa_key(msg)).pack(binary), binary)
 
             elif msg.kind == ClientMsgFactory.KIND_TRAITS:
-                # TODO: client global status
                 self.log.debug("Traits update on client connect")
                 self.factory.core.register_client_protocol(self.machine_id, self, traits=msg.internal)
 
     def onClose(self, wasClean, code, reason):
         self.log.debug("client's connection has been closed: {0}".format(reason))
+        self.transport.loseConnection()
+        self.factory.unregister(self)
+        self.factory.core.remove_client_protocol(self)
 
     def connectionLost(self, reason):
         """
@@ -134,8 +137,6 @@ class SugarServerProtocol(WebSocketServerProtocol):
         :return: None
         """
         WebSocketServerProtocol.connectionLost(self, reason)
-        self.factory.unregister(self)
-        self.factory.core.remove_client_protocol(self)
 
     def get_machine_id(self):
         """
