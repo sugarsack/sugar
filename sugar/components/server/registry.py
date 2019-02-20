@@ -13,6 +13,7 @@ from sugar.utils.structs import ImmutableDict
 from sugar.lib.logger.manager import get_logger
 from sugar.config import get_config
 from sugar.components.server.pdatastore import PDataStore
+from sugar.components.server.query import Query
 
 
 @Singleton
@@ -90,26 +91,13 @@ class RuntimeRegistry:
         :return: hostname
         """
         keyobj = self.keystore.get_key_by_machine_id(machine_id)
-        if keyobj is not None and keyobj:
-            hostname = next(iter(keyobj)).hostname
-        else:
-            hostname = None
-
-        return hostname
+        return next(iter(keyobj)).hostname if keyobj is not None and keyobj else None
 
     def get_targets(self, query: str) -> list:
         """
-        This returns target clients for the given query.
+        Return target clients for the given query.
 
         :param query: query string from the caller
         :return: list of machine-id to which target the messages by the query
         """
-        # This works the following way:
-        # 1. Every time something comes or goes away, existing peers
-        #    are limiting store result, so the store wont iterate over everything.
-        # 2. Store is generating *possible* targets with all the metadata (traits/pdata).
-        # 3. Query matcher filtering out what is not needed
-        # 4. The result is returned and it already contains traits, pdata and a current hostname
-
-        targets = []
-        return targets
+        return Query(query).filter(list(self.pdata_store.clients(active=self.__peers.keys())))
