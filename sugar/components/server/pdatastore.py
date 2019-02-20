@@ -109,12 +109,14 @@ class PDataStore:
             self.log.debug("Creating data store space at '{}'", self.__r_path)
             self._create_r_path()
 
-    def clients(self) -> collections.Iterable:
+    def clients(self, active=None) -> collections.Iterable:
         """
         Return top nodes of the store.
 
         :return: PDataContainer object
         """
-        for mid in os.listdir(self.__r_path):
-            with sugar.utils.files.fopen(os.path.join(self.__r_path, mid), "rb") as nph:
-                yield pickle.load(nph)
+        for mid_file in os.listdir(self.__r_path):
+            mid = mid_file.split(".")[0]
+            if active is None or mid in active:
+                with sugar.utils.files.fopen(os.path.join(self.__r_path, mid_file), "rb") as nph:
+                    yield pickle.load(nph)
