@@ -54,7 +54,26 @@ class ServerCore(object):
         """
         return token == self.master_local_token.get_token()
 
-    def _send_task_to_clients(self, evt):
+    def fire_event(self, event, target) -> None:
+        """
+        Fire an event (usually a remote task).
+
+        :param event: An event to broadcast
+        :param target: Selected target
+        :return: None
+        """
+        self.log.debug("Sending event '{}({})' to host '{}' ({})", event.fun, event.arg, target.host, target.id)
+
+        task_message = ServerMsgFactory().create()
+        task_message.ret.message = "ping"
+        task_message.internal = {
+            "function": event.fun,
+            "arguments": event.arg,
+        }
+
+        self.get_client_protocol(target.id).sendMessage(ServerMsgFactory.pack(task_message), isBinary=True)
+
+    def on_broadcast_tasks(self, evt):
         """
         Send task to clients.
 
@@ -63,6 +82,8 @@ class ServerCore(object):
         """
         self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\ttarget: {}\n\targs: {}",
                        evt.fun, evt.tgt, evt.arg)
+        for target in self.peer_registry.get_targets(query=evt.tgt):
+            threads.deferToThread(self.fire_event, event=evt, target=target)
 
     def register_client_protocol(self, machine_id, proto, traits=None):
         """
@@ -112,7 +133,7 @@ class ServerCore(object):
         :return: immediate response
         """
         if evt.kind == sugar.transport.ServerMsgFactory.TASK_RESPONSE:
-            threads.deferToThread(self._send_task_to_clients, evt)
+            threads.deferToThread(self.on_broadcast_tasks, evt)
 
         msg = sugar.transport.ServerMsgFactory.create_console_msg()
         msg.ret.message = "Task has been accepted"
