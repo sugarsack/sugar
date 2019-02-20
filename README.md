@@ -15,7 +15,15 @@ app stack, and much more.
 
 ## What is the status?
 
-Nothing works yet. :-)
+Something works already: 
+
+- server/client registration
+- keys management
+- client machines matching by complex queries
+- state compiler (still needs a better way tracing failed state files)
+- module loader
+- Sugar SDK for developing modules (yay!). It gets installed along, if you setup dev-env.
+- i18n!!! :wink:
 
 As of January 2019, Sugar Project is in its very early stage, ready for
 nothing much. Stay tuned for the first release of it!
