@@ -1,6 +1,9 @@
 # coding: utf-8
 """
 File-system queue.
+
+This queue implementation should not have any extra-delay
+when getting an item.
 """
 import os
 import time
@@ -76,15 +79,33 @@ class FSQueue(Queue):
         """
         Blocking get.
         """
-        self._lock()
-        self._unlock()
+        return self.__get(wait=True)
 
     def get_nowait(self):
         """
         Non-blocking get.
         """
+        return self.__get()
+
+    def __get(self, wait=False):
         self._lock()
+        if wait:
+            while self.full():
+                time.sleep(0.01)
+
+        frame_log = os.path.join(self._queue_path, "{}.xlog".format(self._f_dealloc()))
+        with sugar.utils.files.fopen(frame_log, "rb") as h_frm:
+            obj = pickle.load(h_frm)
+            os.unlink(frame_log)
         self._unlock()
+
+        return obj
+
+    def _f_dealloc(self):
+        """
+        Deallocate frame
+        """
+        return str(list(sorted([int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)]))[0]).zfill(5)
 
     def _f_alloc(self):
         """
