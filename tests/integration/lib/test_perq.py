@@ -3,7 +3,6 @@
 Test Persistent Queue object.
 """
 import os
-import pytest
 import tempfile
 import shutil
 from sugar.lib.perq import FSQueue
@@ -36,16 +35,12 @@ class TestFSQueue:
         """
         Setup method
         """
-        print()
-        print("-" * 80)
         self._current_tree = tempfile.mkdtemp(dir=self.root_path)
 
     def teardown_method(self):
         """
         Teardown method.
         """
-        print()
-        print("-" * 80)
         try:
             shutil.rmtree(self._current_tree)
         except (IOError, OSError) as err:
@@ -57,3 +52,6 @@ class TestFSQueue:
         :return:
         """
         fsq = FSQueue(self._current_tree)
+        for obj in ["one", "two", "three"]:
+            fsq.put(obj)
+        assert fsq.qsize() == 3
