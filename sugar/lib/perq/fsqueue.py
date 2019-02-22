@@ -97,17 +97,31 @@ class FSQueue(Queue):
         """
         Blocking put.
         """
-        self._lock()
-        frame = self._f_alloc()
-        with sugar.utils.files.fopen(os.path.join(self._queue_path, "{}.xlog".format(frame)), "wb") as h_frm:
-            pickle.dump(obj, h_frm)
-        self._unlock()
+        self.__put(obj, wait=True)
 
     def put_nowait(self, obj):
         """
         Non-blocking put.
         """
+        self.__put(obj)
+
+    def __put(self, obj, wait: bool = False) -> None:
+        """
+        Put an object to the FS.
+
+        :param obj: Object to put.
+        :param wait: Wait if queue is full.
+        :return: None
+        """
         self._lock()
+
+        if wait:
+            while self.full():
+                time.sleep(0.01)
+
+        frame = self._f_alloc()
+        with sugar.utils.files.fopen(os.path.join(self._queue_path, "{}.xlog".format(frame)), "wb") as h_frm:
+            pickle.dump(obj, h_frm)
         self._unlock()
 
     def qsize(self):
