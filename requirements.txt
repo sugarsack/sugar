@@ -11,6 +11,7 @@ pycrypto
 autobahn
 rstcheck
 queuelib
+msgpack
 colored
 twisted
 pyyaml
