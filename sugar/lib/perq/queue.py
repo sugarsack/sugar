@@ -35,13 +35,13 @@ class Queue(abc.ABC):
         """
 
     @abc.abstractmethod
-    def put(self):
+    def put(self, obj):
         """
         Blocking put.
         """
 
     @abc.abstractmethod
-    def put_nowait(self):
+    def put_nowait(self, obj):
         """
         Non-blocking put.
         """
