@@ -49,9 +49,24 @@ class TestFSQueue:
     def test_add(self):
         """
         Add an object to the queue.
+
         :return:
         """
         fsq = FSQueue(self._current_tree)
         for obj in ["one", "two", "three"]:
             fsq.put(obj)
         assert fsq.qsize() == 3
+
+    def test_get(self):
+        """
+        Get an object from the queue.
+
+        :return:
+        """
+        fsq = FSQueue(self._current_tree)
+        for obj in ["one", "two", "three"]:
+            fsq.put(obj)
+
+        assert fsq.get() == "one"
+        assert fsq.get() == "two"
+        assert fsq.get() == "three"
