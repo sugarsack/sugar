@@ -210,12 +210,15 @@ class FSQueue(Queue):
                 time.sleep(0.01)
 
         frame = self._f_alloc()
-
-        h_frm = sugar.utils.files.fopen(os.path.join(self._queue_path, "{}.xlog".format(frame)), "wb")
+        xlog_path = os.path.join(self._queue_path, "{}.xlog".format(frame))
+        xlog_path_tmp = "{}.temp".format(xlog_path)
+        h_frm = sugar.utils.files.fopen(xlog_path_tmp, "wb")
         h_frm.write(self._serialiser.dumps(obj))
         h_frm.flush()
         os.fdatasync(h_frm)
         h_frm.close()
+        os.replace(xlog_path_tmp, xlog_path)
+        assert os.path.exists(xlog_path), "xlog {} wasn't written".format(xlog_path)
 
         if self._mp_notify is not None:
             self._mp_notify.put_nowait(True)
