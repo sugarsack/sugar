@@ -5,7 +5,9 @@ Test Persistent Queue object.
 import os
 import tempfile
 import shutil
+import pytest
 from sugar.lib.perq import FSQueue
+from sugar.lib.perq.qexc import QueueEmpty
 
 
 class TestFSQueue:
@@ -70,3 +72,16 @@ class TestFSQueue:
         assert fsq.get() == "one"
         assert fsq.get() == "two"
         assert fsq.get() == "three"
+
+    def test_empty_get_nowait(self):
+        """
+        Get an object from the queue if there is nothing.
+
+        :return:
+        """
+
+        fsq = FSQueue(self._current_tree)
+        with pytest.raises(QueueEmpty) as exc:
+            fsq.get_nowait()
+
+        assert "Queue is empty" in str(exc)
