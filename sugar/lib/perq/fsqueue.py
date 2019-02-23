@@ -145,9 +145,11 @@ class FSQueue(Queue):
             raise QueueEmpty("Queue is empty")
 
         frame_log = os.path.join(self._queue_path, "{}.xlog".format(xlog))
-        with sugar.utils.files.fopen(frame_log, "rb") as h_frm:
-            obj = self._serialiser.load(h_frm)
-            os.unlink(frame_log)
+        h_frm = sugar.utils.files.fopen(frame_log, "rb")
+        obj = self._serialiser.load(h_frm)
+        h_frm.flush()
+        h_frm.close()
+        os.unlink(frame_log)
         self._unlock()
 
         return obj
@@ -171,7 +173,7 @@ class FSQueue(Queue):
 
         :return: name of the next xlog frame
         """
-        objects = [int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)]
+        objects = sorted([int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)])
         return str((list(reversed(objects))[0] if objects else 0) + 1).zfill(5)
 
     def put(self, obj) -> None:
@@ -215,10 +217,10 @@ class FSQueue(Queue):
         h_frm = sugar.utils.files.fopen(xlog_path_tmp, "wb")
         h_frm.write(self._serialiser.dumps(obj))
         h_frm.flush()
-        os.fdatasync(h_frm)
+        os.fsync(h_frm.fileno())
         h_frm.close()
         os.replace(xlog_path_tmp, xlog_path)
-        assert os.path.exists(xlog_path), "xlog {} wasn't written".format(xlog_path)
+        assert os.path.exists(xlog_path), "Error writing xlog {}".format(xlog_path)
 
         if self._mp_notify is not None:
             self._mp_notify.put_nowait(True)
