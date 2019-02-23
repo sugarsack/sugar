@@ -9,10 +9,10 @@ import os
 import time
 import errno
 import pickle
+import multiprocessing
 
 from sugar.lib.perq.queue import Queue
 from sugar.lib.perq.qexc import QueueEmpty, QueueFull
-from collections import OrderedDict
 import sugar.utils.files
 
 try:
@@ -26,14 +26,11 @@ class FSQueue(Queue):
     File-system queue
     """
     MAX_SIZE = 0xfff  # Default max size of the queue
-    BUFF = 0xa        # Default buffer
     POLL = 5          # Poll seconds
 
-    def __init__(self, path, maxsize: int = MAX_SIZE, buff: int = BUFF, poll: int = POLL):
+    def __init__(self, path, maxsize: int = MAX_SIZE, poll: int = POLL):
         self._queue_path = path
         self._max_size = maxsize
-        self._buff_size = buff
-        self._buff = OrderedDict()
         self._mutex = False
         self._serialiser = pickle
         self._mp_notify = None
@@ -54,12 +51,13 @@ class FSQueue(Queue):
         However, pickle is used by default to
         deal with the native Python objects.
 
-        :return:
+        :param use: boolean, used to turn on/off msgpack usage. Default is pickle.
+        :return: Queue
         """
         self._serialiser = msgpack if msgpack is not None and use else pickle
         return self
 
-    def use_notify(self, queue) -> Queue:
+    def use_notify(self, queue=None) -> Queue:
         """
         Use queue notification between multi processes via "multiprocessing.Queue".
 
@@ -73,40 +71,59 @@ class FSQueue(Queue):
         This configuration option also assumes that there is
         shared queue and it is transferring messages to an end-point.
 
-        :return:
+        :param queue: commonly shared queue object. Usually multiprocessing.Queue (default)
+        :return: Queue
         """
-        self._mp_notify = queue
+        self._mp_notify = queue or multiprocessing.Queue()
         return self
 
-    def _lock(self):
+    def _lock(self) -> None:
+        """
+        Lock mutex of the FS
+
+        :return: None
+        """
         while self._mutex:
             time.sleep(0.01)
         self._mutex = True
 
-    def _unlock(self):
+    def _unlock(self) -> None:
+        """
+        Unlock mutex of the FS.
+
+        :return: None
+        """
         self._mutex = False
 
     def empty(self) -> bool:
         """
         Returns True if queue is empty.
+
+        :return: True if Queue is empty
         """
         return bool(not self.qsize())
 
     def full(self) -> bool:
         """
         Returns True if queue is full.
+
+        :return: True if queue is full.
         """
         return bool(self.qsize() >= self._max_size)
 
     def get(self):
         """
-        Blocking get.
+        Get an object in blocking mode.
+
+        :return: object
         """
         return self.__get(wait=True)
 
     def get_nowait(self):
         """
-        Non-blocking get.
+        Get an object in non-blocking mode.
+
+        :return: object
         """
         return self.__get()
 
@@ -135,33 +152,43 @@ class FSQueue(Queue):
 
         return obj
 
-    def _f_dealloc(self):
+    def _f_dealloc(self) -> str:
         """
-        Deallocate frame
+        Deallocate xlog frame.
+
+        :return: name of the previous xlog frame
         """
         try:
-            fn = str(list(sorted([int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)]))[0]).zfill(5)
+            frn = str(list(sorted([int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)]))[0]).zfill(5)
         except IndexError:
-            fn = None
+            frn = None
 
-        return fn
+        return frn
 
-    def _f_alloc(self):
+    def _f_alloc(self) -> str:
         """
-        Allocate next frame.
+        Allocate next xlog frame.
+
+        :return: name of the next xlog frame
         """
         objects = [int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)]
         return str((list(reversed(objects))[0] if objects else 0) + 1).zfill(5)
 
-    def put(self, obj):
+    def put(self, obj) -> None:
         """
         Blocking put.
+
+        :param obj: object to put
+        :return: None
         """
         self.__put(obj, wait=True)
 
-    def put_nowait(self, obj):
+    def put_nowait(self, obj) -> None:
         """
         Non-blocking put.
+
+        :param obj: object to put
+        :return: None
         """
         self.__put(obj)
 
@@ -194,5 +221,7 @@ class FSQueue(Queue):
     def qsize(self) -> int:
         """
         Return queue size.
+
+        :return: int, size of the Queue
         """
         return len(list(os.listdir(self._queue_path)))
