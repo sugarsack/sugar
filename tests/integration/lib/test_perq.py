@@ -7,7 +7,7 @@ import tempfile
 import shutil
 import pytest
 from sugar.lib.perq import FSQueue
-from sugar.lib.perq.qexc import QueueEmpty
+from sugar.lib.perq.qexc import QueueEmpty, QueueFull
 from mock import MagicMock, patch
 import multiprocessing
 
@@ -197,3 +197,26 @@ class TestFSQueue:
             fsq.get()
 
         assert "Notified" in str(exc)
+
+    def test_full_empty(self):
+        """
+        Test queue is full or empty.
+
+        :return:
+        """
+        fsq = FSQueue(self._current_tree, maxsize=3)
+        fsq.put("one")
+        fsq.put("two")
+        fsq.put("three")
+
+        with pytest.raises(QueueFull) as exc:
+            fsq.put("one")
+        assert "Queue is full" in str(exc)
+
+        fsq.get()
+        fsq.put("four")
+        fsq.get()
+        fsq.get()
+        assert fsq.get() == "four"
+        assert fsq.qsize() == 0
+        assert fsq.empty()
