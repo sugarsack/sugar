@@ -45,7 +45,7 @@ class FSQueue(Queue):
             if exc.errno != errno.EEXIST:
                 raise
 
-    def use_msgpack(self, use=False):
+    def use_msgpack(self, use=False) -> Queue:
         """
         Set use msgpack instead of pickle.
 
@@ -59,7 +59,7 @@ class FSQueue(Queue):
         self._msgpack = use if msgpack is not None else False
         return self
 
-    def use_notify(self, queue):
+    def use_notify(self, queue) -> Queue:
         """
         Use queue notification between multi processes via "multiprocessing.Queue".
 
@@ -110,7 +110,7 @@ class FSQueue(Queue):
         """
         return self.__get()
 
-    def __get(self, wait=False):
+    def __get(self, wait: bool = False):
         self._lock()
         if wait:
             if self._mp_notify is not None:
@@ -191,7 +191,7 @@ class FSQueue(Queue):
 
         self._unlock()
 
-    def qsize(self):
+    def qsize(self) -> int:
         """
         Return queue size.
         """
