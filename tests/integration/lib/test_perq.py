@@ -190,7 +190,7 @@ class TestFSQueue:
 
         :return:
         """
-        fsq = FSQueue(self._current_tree).use_notify()
+        fsq = FSQueue(self._current_tree).use_notify(multiprocessing.Queue())
         assert fsq._mp_notify is not None
         fsq._mp_notify.get = MagicMock(side_effect=Exception("Notified"))
         with pytest.raises(Exception) as exc:

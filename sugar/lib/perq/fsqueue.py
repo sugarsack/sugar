@@ -9,7 +9,6 @@ import os
 import time
 import errno
 import pickle
-import multiprocessing
 
 from sugar.lib.perq.queue import Queue
 from sugar.lib.perq.qexc import QueueEmpty, QueueFull
@@ -60,9 +59,9 @@ class FSQueue(Queue):
         self._msgpack = use if msgpack is not None else False
         return self
 
-    def use_notify(self):
+    def use_notify(self, queue):
         """
-        Use queue notification between multi processes.
+        Use queue notification between multi processes via "multiprocessing.Queue".
 
         Every time when put() is called, internal queue also
         accepts an object, which indicates that disk has been changed.
@@ -76,7 +75,7 @@ class FSQueue(Queue):
 
         :return:
         """
-        self._mp_notify = multiprocessing.Queue()
+        self._mp_notify = queue
         return self
 
     def _lock(self):
