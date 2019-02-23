@@ -213,10 +213,10 @@ class TestFSQueue:
             fsq.put("one")
         assert "Queue is full" in str(exc)
 
-        fsq.get()
+        fsq.get_nowait()
         fsq.put("four")
-        fsq.get()
-        fsq.get()
-        assert fsq.get() == "four"
+        fsq.get_nowait()
+        fsq.get_nowait()
+        assert fsq.get_nowait() == "four"
         assert fsq.qsize() == 0
         assert fsq.empty()
