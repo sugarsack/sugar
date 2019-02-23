@@ -90,7 +90,7 @@ class FSQueue(Queue):
         """
         Returns True if queue is empty.
         """
-        return bool(self.qsize())
+        return bool(not self.qsize())
 
     def full(self) -> bool:
         """
