@@ -9,6 +9,7 @@ import pytest
 from sugar.lib.perq import FSQueue
 from sugar.lib.perq.qexc import QueueEmpty
 from mock import MagicMock, patch
+import multiprocessing
 
 
 class TestFSQueue:
@@ -182,3 +183,17 @@ class TestFSQueue:
         with pytest.raises(Exception) as exc:
             fsq.get()
         assert "Polling" in str(exc)
+
+    def test_notify(self):
+        """
+        Test notification.
+
+        :return:
+        """
+        fsq = FSQueue(self._current_tree).use_notify()
+        assert fsq._mp_notify is not None
+        fsq._mp_notify.get = MagicMock(side_effect=Exception("Notified"))
+        with pytest.raises(Exception) as exc:
+            fsq.get()
+
+        assert "Notified" in str(exc)
