@@ -100,3 +100,47 @@ class TestFSQueue:
             fsq.get()
         assert "Polling" in str(exc)
 
+    def test_ordering(self):
+        """
+        Get objects in the order.
+
+        :return:
+        """
+        fsq = FSQueue(self._current_tree)
+
+        fsq.put("one")
+
+        assert fsq.get() == "one"
+
+        fsq.put("two")
+        fsq.put("three")
+        fsq.put("four")
+
+        assert fsq.get() == "two"
+
+        fsq.put("five")
+
+        assert fsq.get() == "three"
+
+        fsq.put("six")
+        fsq.put("seven")
+        fsq.put("eight")
+
+        assert fsq.get() == "four"
+        assert fsq.get() == "five"
+        assert fsq.get() == "six"
+        assert fsq.get() == "seven"
+
+        fsq.put("nine")
+
+        assert fsq.get() == "eight"
+
+        fsq.put("ten")
+
+        assert fsq.get() == "nine"
+        assert fsq.get() == "ten"
+
+        with pytest.raises(QueueEmpty) as exc:
+            fsq.get_nowait()
+
+        assert "Queue is empty" in str(exc)
