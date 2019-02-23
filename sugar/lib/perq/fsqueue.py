@@ -12,7 +12,7 @@ import pickle
 import multiprocessing
 
 from sugar.lib.perq.queue import Queue
-from sugar.lib.perq.qexc import QueueEmpty
+from sugar.lib.perq.qexc import QueueEmpty, QueueFull
 from collections import OrderedDict
 import sugar.utils.files
 
@@ -91,13 +91,13 @@ class FSQueue(Queue):
         """
         Returns True if queue is empty.
         """
-        return True
+        return bool(self.qsize())
 
     def full(self) -> bool:
         """
         Returns True if queue is full.
         """
-        return False
+        return bool(self.qsize() >= self._max_size)
 
     def get(self):
         """
@@ -174,6 +174,9 @@ class FSQueue(Queue):
         :param wait: Wait if queue is full.
         :return: None
         """
+        if self.full():
+            raise QueueFull("Queue is full")
+
         self._lock()
 
         if wait:
