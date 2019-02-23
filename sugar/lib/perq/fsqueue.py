@@ -120,7 +120,7 @@ class FSQueue(Queue):
             else:
                 # Poll the disk
                 while True:
-                    if all([True for fname in os.listdir(self._queue_path) if fname.endswith(".xlog")]):
+                    if bool([True for fname in os.listdir(self._queue_path) if fname.endswith(".xlog")]):
                         break
                     time.sleep(self._poll)
 

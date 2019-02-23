@@ -8,6 +8,7 @@ import shutil
 import pytest
 from sugar.lib.perq import FSQueue
 from sugar.lib.perq.qexc import QueueEmpty
+from mock import MagicMock, patch
 
 
 class TestFSQueue:
@@ -75,7 +76,8 @@ class TestFSQueue:
 
     def test_empty_get_nowait(self):
         """
-        Get an object from the queue if there is nothing.
+        Get an object from the queue immediately if there is nothing.
+        This should just raise an exception QueueEmpty.
 
         :return:
         """
@@ -85,3 +87,16 @@ class TestFSQueue:
             fsq.get_nowait()
 
         assert "Queue is empty" in str(exc)
+
+    @patch("time.sleep", MagicMock(side_effect=Exception("Polling")))
+    def test_empty_get(self):
+        """
+        Get an object from the queue if there is nothing.
+
+        :return:
+        """
+        fsq = FSQueue(self._current_tree)
+        with pytest.raises(Exception) as exc:
+            fsq.get()
+        assert "Polling" in str(exc)
+
