@@ -144,3 +144,41 @@ class TestFSQueue:
             fsq.get_nowait()
 
         assert "Queue is empty" in str(exc)
+
+    @patch("time.sleep", MagicMock(side_effect=Exception("Polling")))
+    def test_qsize(self):
+        """
+        Test qsize method.
+
+        :return:
+        """
+        fsq = FSQueue(self._current_tree)
+        assert fsq.qsize() == 0
+
+        fsq.put("one")
+        assert fsq.qsize() == 1
+
+        fsq.put("one")
+        assert fsq.qsize() == 2
+
+        fsq.put("one")
+        assert fsq.qsize() == 3
+
+        fsq.put("one")
+        assert fsq.qsize() == 4
+
+        fsq.get()
+        assert fsq.qsize() == 3
+
+        fsq.get()
+        assert fsq.qsize() == 2
+
+        fsq.get()
+        assert fsq.qsize() == 1
+
+        fsq.get()
+        assert fsq.qsize() == 0
+
+        with pytest.raises(Exception) as exc:
+            fsq.get()
+        assert "Polling" in str(exc)
