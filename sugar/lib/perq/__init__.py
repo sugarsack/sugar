@@ -3,4 +3,4 @@
 Persistent Queue
 """
 
-from sugar.lib.perq.fsqueue import FSQueue
+from sugar.lib.perq.fsqueue import FSQueue  # noqa
