@@ -35,7 +35,7 @@ class FSQueue(Queue):
         self._buff_size = buff
         self._buff = OrderedDict()
         self._mutex = False
-        self._msgpack = False
+        self._serialiser = pickle
         self._mp_notify = None
         self._poll = poll
 
@@ -56,7 +56,7 @@ class FSQueue(Queue):
 
         :return:
         """
-        self._msgpack = use if msgpack is not None else False
+        self._serialiser = msgpack if msgpack is not None and use else pickle
         return self
 
     def use_notify(self, queue) -> Queue:
@@ -129,7 +129,7 @@ class FSQueue(Queue):
 
         frame_log = os.path.join(self._queue_path, "{}.xlog".format(xlog))
         with sugar.utils.files.fopen(frame_log, "rb") as h_frm:
-            obj = pickle.load(h_frm)
+            obj = self._serialiser.load(h_frm)
             os.unlink(frame_log)
         self._unlock()
 
@@ -184,7 +184,7 @@ class FSQueue(Queue):
 
         frame = self._f_alloc()
         with sugar.utils.files.fopen(os.path.join(self._queue_path, "{}.xlog".format(frame)), "wb") as h_frm:
-            pickle.dump(obj, h_frm)
+            self._serialiser.dump(obj, h_frm)
 
         if self._mp_notify is not None:
             self._mp_notify.put_nowait(True)
