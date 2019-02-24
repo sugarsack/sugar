@@ -31,6 +31,7 @@ class FSQueue(Queue):
     def __init__(self, path, maxsize: int = MAX_SIZE, poll: int = POLL):
         self._queue_path = path
         self._max_size = maxsize
+        self._xpad = len(str(self._max_size))
         self._mutex = False
         self._serialiser = pickle
         self._mp_notify = None
@@ -160,12 +161,8 @@ class FSQueue(Queue):
 
         :return: name of the previous xlog frame
         """
-        try:
-            frn = str(list(sorted([int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)]))[0]).zfill(5)
-        except IndexError:
-            frn = None
-
-        return frn
+        frn = [int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)]
+        return str(min(frn)).zfill(self._xpad) if frn else None
 
     def _f_alloc(self) -> str:
         """
@@ -173,8 +170,7 @@ class FSQueue(Queue):
 
         :return: name of the next xlog frame
         """
-        objects = sorted([int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)])
-        return str((list(reversed(objects))[0] if objects else 0) + 1).zfill(5)
+        return str(max([int(fnm.split(".")[0]) for fnm in os.listdir(self._queue_path)] + [0]) + 1).zfill(self._xpad)
 
     def put(self, obj) -> None:
         """
