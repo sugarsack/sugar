@@ -104,6 +104,9 @@ class SugarClientProtocol(WebSocketClientProtocol):
             msg = ObjectGate().load(payload, binary)
             if msg.kind != ServerMsgFactory.KIND_OPR_REQ:
                 self.factory.core.put_message(msg)
+            else:
+                # TODO: pass that thing to the queue
+                print(">>>", msg.internal)
         else:
             self.log.debug("non-binary message: {}".format(payload))
 

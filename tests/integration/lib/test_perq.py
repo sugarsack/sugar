@@ -220,3 +220,38 @@ class TestFSQueue:
         assert fsq.get_nowait() == "four"
         assert fsq.qsize() == 0
         assert fsq.empty()
+
+    def test_falloc(self):
+        """
+        Test xlog frame allocation.
+
+        :return:
+        """
+        fsq = FSQueue(self._current_tree, maxsize=10)
+
+        assert fsq._f_alloc() == "01"
+        fsq.put(1)
+        assert fsq._f_alloc() == "02"
+        fsq.put(2)
+        assert fsq._f_alloc() == "03"
+        fsq.put(3)
+
+    def test_fdealloc(self):
+        """
+        Test xlog fram de-allocation.
+
+        :return:
+        """
+        fsq = FSQueue(self._current_tree, maxsize=10)
+
+        fsq.put(1)
+        fsq.put(2)
+        fsq.put(3)
+
+        assert fsq._f_dealloc() == "01"
+        fsq.get_nowait()
+        assert fsq._f_dealloc() == "02"
+        fsq.get_nowait()
+        assert fsq._f_dealloc() == "03"
+        fsq.get_nowait()
+        assert fsq._f_dealloc() is None
