@@ -49,7 +49,7 @@ jobs:
           name: Integration Tests
           command: |
             . venv/bin/activate
-            pytest -vv tests/integration
+            PYTHONUNBUFFERED=1 pytest --disable-warnings --tb=native --color=yes -svv tests/integration
 
       - run:
           name: Unit Tests

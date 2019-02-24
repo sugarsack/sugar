@@ -95,6 +95,7 @@ class TestSugarModuleLoader:
         assert sml.runners.map()[uri] is not None
         assert sml.states.map()[uri] is not None
 
+    @pytest.mark.skip(reason="Only when modules subsystem is implemented and integrated")
     def test_virtloader_present_in_virtual_module(self):
         """
         Virtual module should have self.modules and refer to other siblings.
@@ -102,7 +103,6 @@ class TestSugarModuleLoader:
         :return: None
         """
         # TODO: this require any other module, which we do not have yet.
-        sys.stdout.write("**>>> POSTPONED TEST <<** ")  # Remove this mark after test implemented
 
     def test_method_validation(self, loader_class):
         """
