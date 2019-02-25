@@ -121,7 +121,7 @@ class FSQueue(Queue):
         """
         try:
             os.unlink(os.path.join(self._queue_path, self.F_LOCK))
-        except Exception:
+        except FileNotFoundError:
             pass
 
     def empty(self) -> bool:
@@ -140,23 +140,26 @@ class FSQueue(Queue):
         """
         return bool(self.qsize() >= self._max_size)
 
-    def get(self):
+    def get(self, force=False):
         """
         Get an object in blocking mode.
 
         :return: object
         """
-        return self.__get(wait=True)
+        return self.__get(wait=True, force=force)
 
-    def get_nowait(self):
+    def get_nowait(self, force=False):
         """
         Get an object in non-blocking mode.
 
         :return: object
         """
-        return self.__get()
+        return self.__get(force=force)
 
-    def __get(self, wait: bool = False):
+    def __get(self, wait: bool = False, force: bool = False):
+        if force:
+            self._unlock()
+
         self._lock()
         if wait:
             if self._mp_notify is not None:
@@ -165,12 +168,13 @@ class FSQueue(Queue):
             else:
                 # Poll the disk
                 while True:
-                    if bool([True for fname in os.listdir(self._queue_path) if fname.endswith(".xlog")]):
+                    if bool(self._f_xlog()):
                         break
                     time.sleep(self._poll)
 
         xlog = self._f_dealloc()
         if xlog is None:
+            self._unlock()
             raise QueueEmpty("Queue is empty")
 
         frame_log = os.path.join(self._queue_path, "{}.xlog".format(xlog))
@@ -246,8 +250,6 @@ class FSQueue(Queue):
             while self.full():
                 time.sleep(0.01)
 
-        self._lock()
-
         frame = self._f_alloc()
         xlog_path = os.path.join(self._queue_path, "{}.xlog".format(frame))
         xlog_path_tmp = "{}.temp".format(xlog_path)
@@ -261,8 +263,6 @@ class FSQueue(Queue):
 
         if self._mp_notify is not None:
             self._mp_notify.put_nowait(True)
-
-        self._unlock()
 
     def qsize(self) -> int:
         """
