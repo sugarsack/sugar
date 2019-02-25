@@ -2,10 +2,12 @@
 Core client operations.
 """
 
-from __future__ import unicode_literals, absolute_import
-
 import os
 
+from twisted.internet import reactor
+import sugar.lib.pki.utils
+import sugar.utils.stringutils
+import sugar.utils.network
 from sugar.config import get_config
 from sugar.lib.compat import queue
 from sugar.lib.logger.manager import get_logger
@@ -13,13 +15,11 @@ from sugar.lib.pki import Crypto
 from sugar.lib.pki.keystore import KeyStore
 from sugar.lib.exceptions import SugarClientException
 from sugar.lib.traits import Traits
-import sugar.lib.pki.utils
-import sugar.utils.stringutils
-import sugar.utils.network
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
 from sugar.transport.serialisable import Serialisable
 from sugar.transport import ClientMsgFactory, ServerMsgFactory
+from sugar.lib.loader import SugarModuleLoader
 
 
 # pylint: disable=R0801
@@ -213,6 +213,19 @@ class ClientSystemEvents(object):
         :return: None
         """
         sugar.lib.pki.utils.check_keys(self.pki_path)
+
+    def on_shutdown(self, *args, **kwargs):
+        """
+        Called on Client shutdown (if it is not killed).
+
+        :return:
+        """
+        for proto in self.core._proto.values():
+            try:
+                proto.transport.loseConnection()
+            except Exception as exc:
+                self.log.error("Error shutting down protocol: {}", str(exc))
+        reactor.stop()
 
     def check_master_pubkey(self) -> bool:
         """

@@ -1,7 +1,7 @@
 """
 Sugar client
 """
-from __future__ import absolute_import, unicode_literals
+import signal
 
 from twisted.internet import reactor, ssl
 from autobahn.twisted.websocket import connectWS
@@ -36,6 +36,8 @@ class SugarClient(object):
         if not self.factory.isSecure:
             self.log.error("TLS is not available. Raising an exception.")
             raise Exception('Unable to initialte TLS')
+
+        signal.signal(signal.SIGINT, self.factory.core.system.on_shutdown)
 
     def run(self):
         """
