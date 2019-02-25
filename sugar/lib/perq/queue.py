@@ -27,7 +27,7 @@ class Queue(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get(self):
+    def get(self, force: bool):
         """
         Blocking get.
 
@@ -35,7 +35,7 @@ class Queue(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_nowait(self):
+    def get_nowait(self, force: bool):
         """
         Non-blocking get.
 
