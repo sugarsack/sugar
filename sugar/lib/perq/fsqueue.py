@@ -146,7 +146,13 @@ class FSQueue(Queue):
 
         :return: object
         """
-        return self.__get(wait=True, force=force)
+        try:
+            obj = self.__get(wait=True, force=force)
+        except Exception:
+            self._unlock()
+            raise
+
+        return obj
 
     def get_nowait(self, force=False):
         """
@@ -154,7 +160,13 @@ class FSQueue(Queue):
 
         :return: object
         """
-        return self.__get(force=force)
+        try:
+            obj = self.__get(force=force)
+        except Exception:
+            self._unlock()
+            raise
+
+        return obj
 
     def __get(self, wait: bool = False, force: bool = False):
         if force:
@@ -163,7 +175,6 @@ class FSQueue(Queue):
         self._lock()
         if wait:
             if self._mp_notify is not None:
-                # Use notification protocol
                 self._mp_notify.get()
             else:
                 # Poll the disk
@@ -171,6 +182,9 @@ class FSQueue(Queue):
                     if bool(self._f_xlog()):
                         break
                     time.sleep(self._poll)
+        else:
+            if not self._mp_notify.empty():
+                self._mp_notify.get_nowait()  # decrease counter
 
         xlog = self._f_dealloc()
         if xlog is None:
@@ -183,6 +197,7 @@ class FSQueue(Queue):
         h_frm.flush()
         h_frm.close()
         os.unlink(frame_log)
+
         self._unlock()
 
         return obj
