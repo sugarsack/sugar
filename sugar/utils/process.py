@@ -5,6 +5,7 @@ Daemons.
 
 # Import python libs
 from __future__ import absolute_import, with_statement, print_function, unicode_literals
+import os
 import sys
 import signal
 import contextlib
@@ -121,7 +122,15 @@ class SignalHandlingMultiprocessingProcess(MultiprocessingProcess):
                 for child in process.children(recursive=True):
                     if child.is_running():
                         child.terminate()
-        sys.exit(sugar.utils.exitcodes.EX_OK)
+        os.kill(self.pid, signal.SIGKILL)
+
+    def kill(self):
+        """
+        Kill current process (gracefully, via SIGTERM chain).
+
+        :return:
+        """
+        os.kill(self.pid, signal.SIGTERM)
 
     def start(self):
         """
