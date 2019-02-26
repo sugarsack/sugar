@@ -34,7 +34,10 @@ class TaskProcessor:
         self.log.debug("Running task: {}", task)
         try:
             uri = "{module}.{function}".format(module=task.module, function=task.function)
-            result = self.loader.runners[uri](*task.args, **task.kwargs)
+            if task.type == FunctionObject.TYPE_RUNNER:
+                result = self.loader.runners[uri](*task.args, **task.kwargs)
+            else:
+                raise NotImplemented("State running is not implemented yet")
         except Exception as exc:
             self.log.error("Error running task '{}.{}': {}", task.module, task.function, str(exc))
             result = {}
