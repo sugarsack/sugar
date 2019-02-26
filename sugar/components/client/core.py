@@ -5,6 +5,7 @@ Core client operations.
 import os
 
 from twisted.internet import reactor
+import twisted.internet.error
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
 import sugar.utils.network
@@ -274,7 +275,10 @@ class ClientSystemEvents(object):
             except Exception as exc:
                 self.log.error("Error shutting down protocol: {}", str(exc))
         self.task_pool.stop()
-        reactor.stop()
+        try:
+            reactor.stop()
+        except twisted.internet.error.ReactorNotRunning:
+            self.log.debug("Reactor is already stopped by another process.")
 
     def check_master_pubkey(self) -> bool:
         """

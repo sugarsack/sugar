@@ -4,6 +4,7 @@ Task processing daemon.
 """
 import time
 from twisted.internet import reactor, threads
+import twisted.internet.error
 
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.compiler.objtask import FunctionObject
@@ -78,9 +79,18 @@ class TaskProcessor:
 
         if not self.t_counter:
             self.log.info("Task processor shut down")
-            reactor.stop()
+            try:
+                reactor.stop()
+            except twisted.internet.error.ReactorNotRunning as exc:
+                self.log.debug("Reactor is no longer running")
 
-    def retask(self, first=False):
+    def next_task(self, first=False):
+        """
+        Cycle the next task.
+
+        :param first:
+        :return:
+        """
         task = None
         while task is None:
             try:
@@ -101,7 +111,7 @@ class TaskProcessor:
                 self.log.debug("No more tasks")
                 break
 
-        threads.deferToThread(lambda: self.retask())
+        threads.deferToThread(lambda: self.next_task())
 
     def schedule_task(self, task):
         """
@@ -119,6 +129,6 @@ class TaskProcessor:
         :return:
         """
         self.log.info("Task processor start")
-        self.retask(first=True)
+        self.next_task(first=True)
         reactor.run()
         self.log.info("Processor stopped")
