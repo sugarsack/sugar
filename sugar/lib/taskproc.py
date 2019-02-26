@@ -32,7 +32,14 @@ class TaskProcessor:
         :return:
         """
         self.log.debug("Running task: {}", task)
-        return {}
+        try:
+            uri = "{module}.{function}".format(module=task.module, function=task.function)
+            result = self.loader.runners[uri](*task.args, **task.kwargs)
+        except Exception as exc:
+            self.log.error("Error running task '{}.{}': {}", task.module, task.function, str(exc))
+            result = {}
+
+        return result
 
     def on_task_result(self, data):
         """
