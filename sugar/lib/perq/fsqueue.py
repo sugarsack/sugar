@@ -88,7 +88,7 @@ class FSQueue(Queue):
         try:
             with sugar.utils.files.fopen(lock_path, "rb") as flock:
                 locked = flock.read()
-        except Exception as exc:
+        except Exception:
             locked = None
 
         return bool(locked)
@@ -105,7 +105,7 @@ class FSQueue(Queue):
                 with sugar.utils.files.fopen(lock_path, "rb") as flock:
                     flock.read()
                 time.sleep(0.1)
-            except Exception as exc:
+            except Exception:
                 flock = sugar.utils.files.fopen(lock_path, "wb")
                 flock.write(str(os.getpid()).encode("ascii"))
                 flock.flush()
@@ -144,6 +144,8 @@ class FSQueue(Queue):
         """
         Get an object in blocking mode.
 
+        :param force: When set to True, remove existing lock if any.
+        :raises Exception: re-raise any exception, if get() function failed.
         :return: object
         """
         try:
@@ -158,6 +160,8 @@ class FSQueue(Queue):
         """
         Get an object in non-blocking mode.
 
+        :param force: When set to True, remove existing lock if any.
+        :raises Exception: re-raise any exception, if get() function failed.
         :return: object
         """
         try:

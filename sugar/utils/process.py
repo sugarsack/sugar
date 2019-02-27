@@ -6,14 +6,12 @@ Daemons.
 # Import python libs
 from __future__ import absolute_import, with_statement, print_function, unicode_literals
 import os
-import sys
 import signal
 import contextlib
 import subprocess
 import multiprocessing
 import multiprocessing.util
 
-import sugar.utils.exitcodes
 from sugar.lib.logger.manager import get_logger
 
 log = get_logger(__name__)  # pylint: disable=C0103
@@ -124,11 +122,11 @@ class SignalHandlingMultiprocessingProcess(MultiprocessingProcess):
                         child.terminate()
         os.kill(self.pid, signal.SIGKILL)
 
-    def kill(self):
+    def kill(self) -> None:
         """
-        Kill current process (gracefully, via SIGTERM chain).
+        Kill current process gracefully, via SIGTERM chain.
 
-        :return:
+        :return: None
         """
         os.kill(self.pid, signal.SIGTERM)
 

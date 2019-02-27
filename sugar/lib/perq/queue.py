@@ -31,6 +31,7 @@ class Queue(abc.ABC):
         """
         Blocking get.
 
+        :param force: force lock removal
         :return: obj
         """
 
@@ -39,6 +40,7 @@ class Queue(abc.ABC):
         """
         Non-blocking get.
 
+        :param force: force lock removal
         :return: obj
         """
 

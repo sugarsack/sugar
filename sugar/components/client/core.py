@@ -127,19 +127,19 @@ class TaskPool:
         self.worker = sugar.utils.process.SignalHandlingMultiprocessingProcess(target=self.processor.run)
         self.worker.daemon = True
 
-    def start(self):
+    def start(self) -> None:
         """
         Start internal worker.
 
-        :return:
+        :return: None
         """
         self.worker.start()
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop internal worker.
 
-        :return:
+        :return: None
         """
         self.processor.deferred_stop()
 
@@ -147,12 +147,13 @@ class TaskPool:
         if self.worker.is_alive():
             self.worker.kill()
 
-    def add_task(self, task):
+    def add_task(self, task) -> None:
         """
         Schedule task.
 
-        :param task:
-        :return:
+        :param task: schedule task to the task processor
+        :raises SugarRuntimeException: raised when task worker is not running
+        :return: None
         """
         if not self.worker.is_alive():
             raise sugar.lib.exceptions.SugarRuntimeException("Task worker is not running")
@@ -263,13 +264,13 @@ class ClientSystemEvents(object):
         sugar.lib.pki.utils.check_keys(self.pki_path)
         self.task_pool.start()
 
-    def on_shutdown(self, *args, **kwargs):
+    def on_shutdown(self) -> None:
         """
         Called on Client shutdown (if it is not killed).
 
-        :return:
+        :return: None
         """
-        for proto in self.core._proto.values():
+        for proto in self.core._proto.values():  # pylint: disable=W0212
             try:
                 proto.transport.loseConnection()
             except Exception as exc:
