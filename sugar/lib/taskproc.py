@@ -17,7 +17,7 @@ class TaskProcessor:
     """
     Concurrent task processor.
     """
-    XLOG_PATH = "/tmp/task-processor"
+    XLOG_PATH = "/var/cache/sugar/client/tasks"
 
     def __init__(self, loader):
         self.t_counter = 0
