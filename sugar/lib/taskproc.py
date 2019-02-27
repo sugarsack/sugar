@@ -3,7 +3,7 @@
 Task processing daemon.
 """
 import time
-from twisted.internet import reactor, threads
+from twisted.internet import reactor, threads, task
 import twisted.internet.error
 
 from sugar.lib.logger.manager import get_logger
@@ -24,6 +24,7 @@ class TaskProcessor:
         self.loader = loader
         self._queue = QueueFactory.fs_queue(self.XLOG_PATH).use_notify()
         self._d_stop = False
+        self._task_looper_marker = True
 
     def on_task(self, task: FunctionObject) -> dict:
         """
@@ -84,7 +85,7 @@ class TaskProcessor:
             except twisted.internet.error.ReactorNotRunning:
                 self.log.debug("Reactor is no longer running")
 
-    def next_task(self, first=False) -> None:
+    def next_task(self) -> None:
         """
         Cycle the next task.
 
@@ -94,11 +95,13 @@ class TaskProcessor:
         task = None
         while task is None:
             try:
-                task = self._queue.get(force=first)  # If any old lock still there
+                task = self._queue.get(force=self._task_looper_marker)  # If any old lock still there
+                self._task_looper_marker = False
             except QueueEmpty:
                 self.log.debug("Skipping concurrent notification: task already taken")
                 time.sleep(1)
 
+        self.log.info("Processing task")
         threads.deferToThread(self.on_task, task).addCallback(self.on_task_result)
         self.t_counter += 1
 
@@ -110,8 +113,6 @@ class TaskProcessor:
             except QueueEmpty:
                 self.log.debug("No more tasks")
                 break
-
-        threads.deferToThread(lambda: self.next_task())
 
     def schedule_task(self, task) -> None:
         """
@@ -129,6 +130,6 @@ class TaskProcessor:
         :return: None
         """
         self.log.info("Task processor start")
-        self.next_task(first=True)
+        task.LoopingCall(self.next_task).start(0.1)
         reactor.run()
         self.log.info("Processor stopped")
