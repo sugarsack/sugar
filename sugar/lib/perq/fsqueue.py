@@ -23,8 +23,10 @@ except ImportError:
 
 class FSQueue(Queue):
     """
-    File-system queue
+    File-system queue.
     """
+    # No fcntl here for locking, as it is Unix-only. :-(
+    F_LOCK = ".lock"  # Lock file
     MAX_SIZE = 0xfff  # Default max size of the queue
     POLL = 5          # Poll seconds
 
@@ -32,7 +34,6 @@ class FSQueue(Queue):
         self._queue_path = path
         self._max_size = maxsize
         self._xpad = len(str(self._max_size))
-        self._mutex = False
         self._serialiser = pickle
         self._mp_notify = None
         self._poll = poll
@@ -78,15 +79,39 @@ class FSQueue(Queue):
         self._mp_notify = queue or multiprocessing.Queue()
         return self
 
+    def _is_locked(self) -> bool:
+        """
+        Return True if Queue is locked.
+        :return: boolean
+        """
+        lock_path = os.path.join(self._queue_path, self.F_LOCK)
+        try:
+            with sugar.utils.files.fopen(lock_path, "rb") as flock:
+                locked = flock.read()
+        except Exception:
+            locked = None
+
+        return bool(locked)
+
     def _lock(self) -> None:
         """
         Lock mutex of the FS
 
         :return: None
         """
-        while self._mutex:
-            time.sleep(0.01)
-        self._mutex = True
+        lock_path = os.path.join(self._queue_path, self.F_LOCK)
+        while True:
+            try:
+                with sugar.utils.files.fopen(lock_path, "rb") as flock:
+                    flock.read()
+                time.sleep(0.1)
+            except Exception:
+                flock = sugar.utils.files.fopen(lock_path, "wb")
+                flock.write(str(os.getpid()).encode("ascii"))
+                flock.flush()
+                os.fsync(flock.fileno())
+                flock.close()
+                break
 
     def _unlock(self) -> None:
         """
@@ -94,7 +119,10 @@ class FSQueue(Queue):
 
         :return: None
         """
-        self._mutex = False
+        try:
+            os.unlink(os.path.join(self._queue_path, self.F_LOCK))
+        except FileNotFoundError:
+            pass
 
     def empty(self) -> bool:
         """
@@ -112,37 +140,59 @@ class FSQueue(Queue):
         """
         return bool(self.qsize() >= self._max_size)
 
-    def get(self):
+    def get(self, force=False):
         """
         Get an object in blocking mode.
 
+        :param force: When set to True, remove existing lock if any.
+        :raises Exception: re-raise any exception, if get() function failed.
         :return: object
         """
-        return self.__get(wait=True)
+        try:
+            obj = self.__get(wait=True, force=force)
+        except Exception:
+            self._unlock()
+            raise
 
-    def get_nowait(self):
+        return obj
+
+    def get_nowait(self, force=False):
         """
         Get an object in non-blocking mode.
 
+        :param force: When set to True, remove existing lock if any.
+        :raises Exception: re-raise any exception, if get() function failed.
         :return: object
         """
-        return self.__get()
+        try:
+            obj = self.__get(force=force)
+        except Exception:
+            self._unlock()
+            raise
 
-    def __get(self, wait: bool = False):
+        return obj
+
+    def __get(self, wait: bool = False, force: bool = False):
+        if force:
+            self._unlock()
+
         self._lock()
         if wait:
             if self._mp_notify is not None:
-                # Use notification protocol
                 self._mp_notify.get()
             else:
                 # Poll the disk
                 while True:
-                    if bool([True for fname in os.listdir(self._queue_path) if fname.endswith(".xlog")]):
+                    if bool(self._f_xlog()):
                         break
                     time.sleep(self._poll)
+        else:
+            if self._mp_notify is not None and not self._mp_notify.empty():
+                self._mp_notify.get_nowait()  # decrease counter
 
         xlog = self._f_dealloc()
         if xlog is None:
+            self._unlock()
             raise QueueEmpty("Queue is empty")
 
         frame_log = os.path.join(self._queue_path, "{}.xlog".format(xlog))
@@ -151,9 +201,23 @@ class FSQueue(Queue):
         h_frm.flush()
         h_frm.close()
         os.unlink(frame_log)
+
         self._unlock()
 
         return obj
+
+    def _f_xlog(self) -> list:
+        """
+        Return xlog files.
+        :return: list
+        """
+        xlog = []
+        for fname in os.listdir(self._queue_path):
+            if fname == self.F_LOCK:
+                continue
+            xlog.append(int(fname.split(".")[0]))
+
+        return xlog
 
     def _f_dealloc(self) -> str:
         """
@@ -161,7 +225,7 @@ class FSQueue(Queue):
 
         :return: name of the previous xlog frame
         """
-        frn = [int(fname.split(".")[0]) for fname in os.listdir(self._queue_path)]
+        frn = self._f_xlog()
         return str(min(frn)).zfill(self._xpad) if frn else None
 
     def _f_alloc(self) -> str:
@@ -170,7 +234,7 @@ class FSQueue(Queue):
 
         :return: name of the next xlog frame
         """
-        return str(max([int(fnm.split(".")[0]) for fnm in os.listdir(self._queue_path)] + [0]) + 1).zfill(self._xpad)
+        return str(max(self._f_xlog() + [0]) + 1).zfill(self._xpad)
 
     def put(self, obj) -> None:
         """
@@ -201,8 +265,6 @@ class FSQueue(Queue):
         if self.full():
             raise QueueFull("Queue is full")
 
-        self._lock()
-
         if wait:
             while self.full():
                 time.sleep(0.01)
@@ -221,12 +283,10 @@ class FSQueue(Queue):
         if self._mp_notify is not None:
             self._mp_notify.put_nowait(True)
 
-        self._unlock()
-
     def qsize(self) -> int:
         """
         Return queue size.
 
         :return: int, size of the Queue
         """
-        return len(list(os.listdir(self._queue_path)))
+        return len(list(self._f_xlog()))

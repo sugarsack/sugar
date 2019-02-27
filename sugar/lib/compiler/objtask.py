@@ -37,10 +37,15 @@ class FunctionObject:
     This object carries all the information for
     an exact task to be performed by the client.
     """
-    module = None    # Module may include the namespace, e.g. "system.io.file"
-    function = None  # Function name to be called from that module
-    args = []        # Arguments to the function
-    kwargs = []      # Keywords to the function
+    TYPE_STATE = 0
+    TYPE_RUNNER = 1
+    TYPE_CUSTOM = 2
+
+    module = None      # Module may include the namespace, e.g. "system.io.file"
+    function = None    # Function name to be called from that module
+    args = []          # Arguments to the function
+    kwargs = []        # Keywords to the function
+    type = TYPE_STATE  # Type of the function (state, runner or custom)
 
     def __repr__(self):
         return "<{name} at {mem} Module: {mdl}, Function: {fnc}, Args: {arg}, Keywords: {kwr}>".format(

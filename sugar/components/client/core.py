@@ -2,10 +2,15 @@
 Core client operations.
 """
 
-from __future__ import unicode_literals, absolute_import
-
 import os
 
+from twisted.internet import reactor
+import twisted.internet.error
+import sugar.lib.pki.utils
+import sugar.utils.stringutils
+import sugar.utils.network
+import sugar.utils.process
+import sugar.lib.exceptions
 from sugar.config import get_config
 from sugar.lib.compat import queue
 from sugar.lib.logger.manager import get_logger
@@ -13,13 +18,12 @@ from sugar.lib.pki import Crypto
 from sugar.lib.pki.keystore import KeyStore
 from sugar.lib.exceptions import SugarClientException
 from sugar.lib.traits import Traits
-import sugar.lib.pki.utils
-import sugar.utils.stringutils
-import sugar.utils.network
+from sugar.lib.taskproc import TaskProcessor
 from sugar.utils.objects import Singleton
 from sugar.utils.cli import get_current_component
 from sugar.transport.serialisable import Serialisable
 from sugar.transport import ClientMsgFactory, ServerMsgFactory
+from sugar.lib.loader import SugarModuleLoader
 
 
 # pylint: disable=R0801
@@ -114,6 +118,50 @@ class HandshakeStatus:
 
 
 @Singleton
+class TaskPool:
+    """
+    Task pool to collect, run them and get the output back.
+    """
+    def __init__(self):
+        self.processor = TaskProcessor(SugarModuleLoader())
+        self.worker = sugar.utils.process.SignalHandlingMultiprocessingProcess(target=self.processor.run)
+        self.worker.daemon = True
+
+    def start(self) -> None:
+        """
+        Start internal worker.
+
+        :return: None
+        """
+        self.worker.start()
+
+    def stop(self) -> None:
+        """
+        Stop internal worker.
+
+        :return: None
+        """
+        self.processor.deferred_stop()
+
+        # TODO: wait for actually deferred stop. Now we just killing it.
+        if self.worker.is_alive():
+            self.worker.kill()
+
+    def add_task(self, task) -> None:
+        """
+        Schedule task.
+
+        :param task: schedule task to the task processor
+        :raises SugarRuntimeException: raised when task worker is not running
+        :return: None
+        """
+        if not self.worker.is_alive():
+            raise sugar.lib.exceptions.SugarRuntimeException("Task worker is not running")
+
+        self.processor.schedule_task(task)
+
+
+@Singleton
 class ClientCore(object):
     """
     Client.
@@ -201,6 +249,7 @@ class ClientSystemEvents(object):
     def __init__(self, core: ClientCore):
         self.log = get_logger(self)
         self.core = core
+        self.task_pool = TaskPool()
         self.pki_path = os.path.join(self.core.config.config_path, "pki/{}".format(get_current_component()))
         if not os.path.exists(self.pki_path):
             self.log.info("creating directory for keys in: {}", self.pki_path)
@@ -213,6 +262,26 @@ class ClientSystemEvents(object):
         :return: None
         """
         sugar.lib.pki.utils.check_keys(self.pki_path)
+        self.task_pool.start()
+
+    def on_shutdown(self, *args, **kwargs) -> None:  # pylint: disable=W0613
+        """
+        Called on Client shutdown (if it is not killed).
+
+        :param args: Common args
+        :param kwargs: Common keywords
+        :return: None
+        """
+        for proto in self.core._proto.values():  # pylint: disable=W0212
+            try:
+                proto.transport.loseConnection()
+            except Exception as exc:
+                self.log.error("Error shutting down protocol: {}", str(exc))
+        self.task_pool.stop()
+        try:
+            reactor.stop()
+        except twisted.internet.error.ReactorNotRunning:
+            self.log.debug("Reactor is already stopped by another process.")
 
     def check_master_pubkey(self) -> bool:
         """

@@ -27,18 +27,20 @@ class Queue(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get(self):
+    def get(self, force: bool):
         """
         Blocking get.
 
+        :param force: force lock removal
         :return: obj
         """
 
     @abc.abstractmethod
-    def get_nowait(self):
+    def get_nowait(self, force: bool):
         """
         Non-blocking get.
 
+        :param force: force lock removal
         :return: obj
         """
 
