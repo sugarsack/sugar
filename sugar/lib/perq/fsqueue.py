@@ -187,7 +187,7 @@ class FSQueue(Queue):
                         break
                     time.sleep(self._poll)
         else:
-            if not self._mp_notify.empty():
+            if self._mp_notify is not None and not self._mp_notify.empty():
                 self._mp_notify.get_nowait()  # decrease counter
 
         xlog = self._f_dealloc()
