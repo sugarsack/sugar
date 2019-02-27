@@ -264,7 +264,7 @@ class ClientSystemEvents(object):
         sugar.lib.pki.utils.check_keys(self.pki_path)
         self.task_pool.start()
 
-    def on_shutdown(self, *args, **kwargs) -> None:
+    def on_shutdown(self, *args, **kwargs) -> None:  # pylint: disable=W0613
         """
         Called on Client shutdown (if it is not killed).
 

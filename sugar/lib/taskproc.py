@@ -3,7 +3,8 @@
 Task processing daemon.
 """
 import time
-from twisted.internet import reactor, threads, task
+from twisted.internet import reactor, threads
+from twisted.internet import task as twisted_task
 import twisted.internet.error
 
 from sugar.lib.logger.manager import get_logger
@@ -89,7 +90,6 @@ class TaskProcessor:
         """
         Cycle the next task.
 
-        :param first: If this is a first call, any existing lock will be removed.
         :return: None
         """
         task = None
@@ -130,6 +130,6 @@ class TaskProcessor:
         :return: None
         """
         self.log.info("Task processor start")
-        task.LoopingCall(self.next_task).start(0.1)
+        twisted_task.LoopingCall(self.next_task).start(0.1)
         reactor.run()
         self.log.info("Processor stopped")
