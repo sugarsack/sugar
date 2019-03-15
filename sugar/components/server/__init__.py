@@ -14,6 +14,7 @@ from sugar.components.server.protocols import (SugarServerProtocol, SugarServerF
                                                SugarConsoleServerProtocol, SugarConsoleServerFactory)
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
+from sugarapi.service import APIService
 
 
 class SugarServer(object):
@@ -33,6 +34,8 @@ class SugarServer(object):
         self.console_factory = SugarConsoleServerFactory("wss://localhost:5507")
         self.console_factory.protocol = SugarConsoleServerProtocol
 
+        self.api = APIService(self.config, self.factory)
+
     def on_shutdown(self):
         """
         Perform actions on shutdown.
@@ -40,6 +43,7 @@ class SugarServer(object):
         :return: None
         """
         self.factory.core.master_local_token.cleanup()
+        self.api.stop()
 
     def run(self):
         """
@@ -48,6 +52,8 @@ class SugarServer(object):
         :return: None
         """
         self.factory.core.system.on_startup()
+        self.api.start()
+
         context_factory = ssl.DefaultOpenSSLContextFactory(
             os.path.join(self.config.config_path, "ssl", self.config.crypto.ssl.private),
             os.path.join(self.config.config_path, "ssl", self.config.crypto.ssl.certificate),
