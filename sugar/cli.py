@@ -12,6 +12,10 @@ from sugar.lib.logger import Logger
 from sugar.lib import schemelib
 from sugar.lib.i18n import gettext as __
 from sugar.lib.outputters.console import otty
+try:
+    import sugarui
+except ImportError:
+    sugarui = None
 
 
 class CapitalisedHelpFormatter(argparse.HelpFormatter):
@@ -38,7 +42,7 @@ class SugarCLI(object):
     """
     CLI for running Sugar components in Git style command line interface.
     """
-    COMPONENTS = ['master', 'client', 'local', 'keys', 'doc']
+    COMPONENTS = ['master', 'client', 'local', 'keys', 'doc', "ui"]
 
     def __init__(self):
         parser = argparse.ArgumentParser(
@@ -58,6 +62,7 @@ Available components:
 
 Other:
        doc     Built-in documentation, manuals
+        ui     Terminal user interface
 
 """), formatter_class=CapitalisedHelpFormatter)
         parser.add_argument('component', help=__("Component to run"))
@@ -259,6 +264,18 @@ Other:
 
         :return: None
         """
+    def ui(self):
+        """
+        Sugar UI (terminal).
+
+        :return: None
+        """
+        if sugarui is None:
+            sys.stderr.write('{errmsg} {msg}:\n  {err}\n'.format(
+                errmsg="Error running", msg=__(sys.argv[1].title()), err="UI module was not loaded."))
+        else:
+            from sugarui import SugarUI
+            SugarUI().run()
 
     def doc(self):
         """
