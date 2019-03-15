@@ -64,3 +64,15 @@ del map_constructor, map_representer
 
 # Merge PyYAML namespace for drop-in replacement
 from yaml import *  # noqa
+
+
+def load(stream):
+    """
+    Parse the first YAML document in a stream
+    and produce the corresponding Python object.
+    """
+    loader = FullLoader(stream)
+    try:
+        return loader.get_single_data()
+    finally:
+        loader.dispose()
