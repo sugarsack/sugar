@@ -113,6 +113,19 @@ function setup_sugar_ui () {
 }
 
 #
+# Setup child project: sugar-api
+#
+function setup_sugar_api () {
+    echo "----[ Sugar API ]-------------------------------------"
+    sleep 1
+    cd $MY_HME
+    git clone git@github.com:sugarsack/sugar-api.git
+    cd sugar-api
+    pip install -r requirements.txt
+    ln -s "$(pwd)/sugarapi" "$(python -c "import sysconfig;print(sysconfig.get_paths()['purelib'])")"    
+}
+
+#
 # Setup child project: sugar-rfc
 #
 function setup_sugar_rfc () {
@@ -162,6 +175,7 @@ setup_configuration_symlink
 
 # Other repos
 setup_sugar_ui
+setup_sugar_api
 setup_sugar_rfc
 
 final_notes
