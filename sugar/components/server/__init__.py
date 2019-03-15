@@ -8,6 +8,7 @@ from __future__ import unicode_literals, print_function, absolute_import
 
 import os
 from twisted.internet import reactor, ssl
+from twisted.internet.threads import deferToThread
 
 from autobahn.twisted.websocket import listenWS
 from sugar.components.server.protocols import (SugarServerProtocol, SugarServerFactory,
@@ -15,6 +16,7 @@ from sugar.components.server.protocols import (SugarServerProtocol, SugarServerF
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugarapi.service import APIService
+from sugarapi import MasterRef
 
 
 class SugarServer(object):
@@ -34,7 +36,7 @@ class SugarServer(object):
         self.console_factory = SugarConsoleServerFactory("wss://localhost:5507")
         self.console_factory.protocol = SugarConsoleServerProtocol
 
-        self.api = APIService(self.config, self.factory)
+        self.api = APIService(self.config)
 
     def on_shutdown(self):
         """
@@ -53,6 +55,7 @@ class SugarServer(object):
         """
         self.factory.core.system.on_startup()
         self.api.start()
+        deferToThread(self.api.queue_loop, self.factory)
 
         context_factory = ssl.DefaultOpenSSLContextFactory(
             os.path.join(self.config.config_path, "ssl", self.config.crypto.ssl.private),
