@@ -4,6 +4,7 @@
 
 PY_EXE=""
 MY_HME="$(pwd)"
+ENVDIR=".sugar-virtual-environment"
 
 #
 # Checkout repo
@@ -16,9 +17,9 @@ function checkout_repo () {
 # Create virtual environment
 #
 function setup_virt_env () {
-    $PY_EXE -m venv sugar-env
+    $PY_EXE -m venv $ENVDIR
 
-    source sugar-env/bin/activate
+    source $ENVDIR/bin/activate
 
     pip install --upgrade pip
     pip install -r sugar/requirements.txt
@@ -91,8 +92,11 @@ function setup_ssl () {
 #
 function setup_hacking_env () {
     cd $MY_HME
+    echo "ORIG_PS=\$PS1" >> "$(pwd)/sugar/dev/hacking"
     echo "PATH=\"$(pwd)/sugar/bin:\$PATH\"" >> "$(pwd)/sugar/dev/hacking"
-    echo "source $(pwd)/sugar-env/bin/activate" >> "$(pwd)/sugar/dev/hacking"
+    echo "source $(pwd)/$ENVDIR/bin/activate" >> "$(pwd)/sugar/dev/hacking"
+    echo "PS1=\"[sugar] \$ORIG_PS\"" >> "$(pwd)/sugar/dev/hacking"
+    echo "export PS1" >> "$(pwd)/sugar/dev/hacking"    
 }
 
 #
