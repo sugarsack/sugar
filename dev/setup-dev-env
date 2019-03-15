@@ -2,7 +2,7 @@
 #
 # Author: Bo Maryniuk <bo@maryniuk.net>
 
-PY_EXE="python3"
+PY_EXE=""
 MY_HME="$(pwd)"
 
 #
@@ -16,7 +16,7 @@ function checkout_repo () {
 # Create virtual environment
 #
 function setup_virt_env () {
-    python3 -m venv sugar-env
+    $PY_EXE -m venv sugar-env
 
     source sugar-env/bin/activate
 
@@ -36,6 +36,12 @@ function setup_virt_env () {
 # Check python version. Minimun 3.5 is required
 #
 function check_python_version () {
+    for version in "3.6" "3.7" "3.8"; do
+	if hash "python$version"; then
+	    PY_EXE="python$version"
+	    break
+	fi
+    done
     if ! hash $PY_EXE; then
 	echo "Python 3 executable is not found, using default"
 	PY_EXE="python"
@@ -90,6 +96,29 @@ function setup_hacking_env () {
 }
 
 #
+# Setup child project: sugar-ui
+#
+function setup_sugar_ui () {
+    echo "----[ Sugar UI ]--------------------------------------"
+    sleep 1
+    cd $MY_HME
+    git clone git@github.com:sugarsack/sugar-ui.git
+    cd sugar-ui
+    pip install -r requirements.txt
+    ln -s "$(pwd)/sugarui" "$(python -c "import sysconfig;print(sysconfig.get_paths()['purelib'])")"    
+}
+
+#
+# Setup child project: sugar-rfc
+#
+function setup_sugar_rfc () {
+    echo "----[ Sugar RFC ]-------------------------------------"
+    sleep 1
+    cd $MY_HME
+    git clone git@github.com:sugarsack/rfc.git sugar-rfc
+}
+
+#
 # Say final notes
 #
 function final_notes () {
@@ -126,5 +155,9 @@ setup_virt_env
 setup_ssl
 setup_hacking_env
 setup_configuration_symlink
+
+# Other repos
+setup_sugar_ui
+setup_sugar_rfc
 
 final_notes
