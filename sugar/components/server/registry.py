@@ -101,3 +101,17 @@ class RuntimeRegistry:
         :return: list of machine-id to which target the messages by the query
         """
         return Query(query).filter(list(self.pdata_store.clients(active=self.__peers.keys())))
+
+    def get_status(self):
+        """
+        Return clients minimal data (no p-data) and their status (offline/online).
+        :return: list of machines with their statuses.
+        """
+        systems = {}
+        for pd_container in self.pdata_store.clients():
+            del pd_container.pdata
+            del pd_container.traits
+            pd_container.online = pd_container.id in self.__peers.keys()
+            systems[pd_container.id] = pd_container
+
+        return systems
