@@ -52,6 +52,7 @@ class SchemeBuilder(object):
             Optional('ssl'): {
                 Optional('certificate', default="certificate.pem"): str,
                 Optional('private', default="private_key.pem"): str,
+                Optional('verify', default="true"): bool,
             },
         },
         Optional('terminal'): {
