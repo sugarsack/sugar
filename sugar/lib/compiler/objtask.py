@@ -53,6 +53,15 @@ class FunctionObject:
             arg=self.args, kwr=self.kwargs
         )
 
+    @property
+    def uri(self):
+        """
+        Get function object call URI.
+
+        :return:
+        """
+        return "{m}.{f}".format(m=self.module, f=self.function)
+
 
 class StateTask:
     """
