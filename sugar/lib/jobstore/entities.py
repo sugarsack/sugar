@@ -22,7 +22,7 @@ class Job(database.Entity):
     status = orm.Required(str, default=S_ISSUED)
 
     query = orm.Required(str)
-    src = orm.Required(str)       # job expression (state name or function name)
+    expr = orm.Required(str)      # job expression (state name or function name)
 
     tag = orm.Optional(str)       # Tag/label of the job for better search for it
     tasks = orm.Set("Task")
