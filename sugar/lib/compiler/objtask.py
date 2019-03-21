@@ -130,7 +130,7 @@ class StateTask:
 
     def _add_multiple_tasks(self) -> None:
         """
-        Add a multiple tasks instances to the container.
+        Add a multiple tasks instances to the container (batch mode per Task ID).
 
         :return: None
         """
