@@ -36,17 +36,23 @@ class JobStorage:
             Job(jid=jid, query=query, expr=expr)
         return jid
 
-    def add_tasks(self, jid, *tasks: StateTask) -> None:
+    def add_tasks(self, jid, *tasks: StateTask, job_src: str = None) -> None:
         """
         Adds a completed task to the job.
 
         :param jid: job ID
         :param tasks: List of tasks that has been completed
+        :param src: Job source
         :return: None
         """
         with orm.db_session:
+            job = Job.get(jid=jid)
+
+            if job_src is not None:
+                job.src = job_src
+
             for task in tasks:
-                Job.get(jid=jid).tasks.create(idn=task.idn)
+                job.tasks.create(idn=task.idn)
 
     def get_by_jid(self, jid) -> Job:
         """

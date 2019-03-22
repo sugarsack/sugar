@@ -65,8 +65,9 @@ class TestBasicJobStore:
         state = StateCompiler(get_barestates_root).compile(uri)
 
         # Client updates the server
-        self.store.add_tasks(jid, *state.tasklist)
+        self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
         job = self.store.get_by_jid(jid)
 
         assert len(job.tasks) == 1
         assert state.tasklist[0].idn == next(iter(job.tasks)).idn
+        assert state.to_yaml() == job.src

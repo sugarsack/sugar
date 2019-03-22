@@ -26,6 +26,7 @@ class Job(database.Entity, SerialisableEntity):
     expr = orm.Required(str)                      # job expression (state name or function name)
 
     tag = orm.Optional(str)                       # Tag/label of the job for better search for it
+    src = orm.Optional(str)                       # Source of the task (YAML)
     tasks = orm.Set("Task")
 
 
