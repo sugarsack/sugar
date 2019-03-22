@@ -104,3 +104,12 @@ class JobStorage:
         """
         database.bind(provider="sqlite", filename=self._db_path, create_db=True)
         database.generate_mapping(create_tables=True)
+    def close(self):
+        """
+        Close and detach database.
+
+        :return:
+        """
+        database.disconnect()
+        database.provider = None
+        database.schema = None
