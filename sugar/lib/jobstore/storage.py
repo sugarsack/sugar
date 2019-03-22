@@ -54,7 +54,9 @@ class JobStorage:
                 job.src = job_src
 
             for task in tasks:
-                job.tasks.create(idn=task.idn)
+                _task = job.tasks.create(idn=task.idn)
+                for call in task.calls:
+                    _task.calls.create(uri=call.uri, src=call.src)
 
     def get_by_jid(self, jid) -> Job:
         """

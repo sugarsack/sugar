@@ -27,6 +27,7 @@ over the same target:
 
 import collections
 import sugar.lib.exceptions
+from sugar.lib.compat import yaml
 
 
 class FunctionObject:
@@ -54,11 +55,26 @@ class FunctionObject:
         )
 
     @property
-    def uri(self):
+    def src(self) -> str:
+        """
+        Get source definition of this function.
+
+        :return: string
+        """
+        data = {
+            "function": self.uri,
+            "arguments": self.args,
+            "keywords": self.kwargs,
+        }
+
+        return yaml.dump(data, default_flow_style=False)
+
+    @property
+    def uri(self) -> str:
         """
         Get function object call URI.
 
-        :return:
+        :return: string
         """
         return "{m}.{f}".format(m=self.module, f=self.function)
 
