@@ -2,17 +2,36 @@
 """
 Job store tests.
 """
+import os
+import shutil
 import pytest
 from sugar.lib.jobstore import JobStorage
 from sugar.config import get_config
 from tests.integration.fixtures import get_barestates_root
 
 
-class TestJobStore:
+class TestBasicJobStore:
     """
-    Job Store test suite.
+    Basic Job Store test suite (e.g. db works at all).
     """
-    def test_register_job(self, get_barestates_root):
+    def setup_method(self):
+        """
+        Perform setup before every test method.
+        :return:
+        """
+        self.store = JobStorage(get_config())
+
+    def teardown_method(self):
+        """
+        Perform teardown after every test method.
+        :return:
+        """
+        self.store.close()
+        del self.store
+        if os.path.exists(get_config().cache.path):
+            shutil.rmtree(get_config().cache.path)
+
+    def test_register_job(self):
         """
         Register a job into a job cache. This is happening when either
         state or a command is issued. Here no job yet is even compiled.
@@ -24,8 +43,8 @@ class TestJobStore:
         clientslist = ["web.sugarsack.org", "docs.sugarsack.org"]
         expr = "job_store.test_jobstore_register_job"
 
-        store = JobStorage(get_config())
-        jid = store.new(query=query, clientslist=clientslist, expr=expr)
+        jid = self.store.new(query=query, clientslist=clientslist, expr=expr)
+        assert self.store.get_by_jid(jid).jid == jid
 
     def test_update_job(self):
         """
