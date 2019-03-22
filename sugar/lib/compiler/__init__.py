@@ -7,6 +7,7 @@ from sugar.lib.compiler.objresolv import ObjectResolver
 from sugar.lib.compiler.objtree import ObjectTree
 from sugar.lib.compiler.objtask import StateTask
 import sugar.lib.exceptions
+from sugar.lib.compat import yaml
 
 
 class StateCompiler(object):
@@ -71,3 +72,11 @@ class StateCompiler(object):
             self._tasks = tuple(self._get_state_tasks())
 
         return self._tasks
+
+    def to_yaml(self) -> str:
+        """
+        Render YAML source out of the compiled tree.
+
+        :return: YAML source string
+        """
+        return (yaml.dump(self.tree, default_flow_style=False) or "").strip()
