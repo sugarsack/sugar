@@ -45,7 +45,10 @@ class TestBasicJobStore:
         uri = "job_store.test_jobstore_register_job"
 
         jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
-        assert self.store.get_by_jid(jid).jid == jid
+        obj = self.store.get_by_jid(jid)
+        assert obj.jid == jid
+        for result in obj.results:
+            assert result.hostname in clientslist
 
     def test_update_job(self, get_barestates_root):
         """

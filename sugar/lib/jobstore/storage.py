@@ -33,7 +33,9 @@ class JobStorage:
         """
         jid = jidstore.create()
         with orm.db_session:
-            Job(jid=jid, query=query, expr=expr)
+            job = Job(jid=jid, query=query, expr=expr)
+            for hostname in clientslist:
+                job.results.create(hostname=hostname)
         return jid
 
     def add_tasks(self, jid, *tasks: StateTask, job_src: str = None) -> None:

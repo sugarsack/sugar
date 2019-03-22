@@ -28,6 +28,7 @@ class Job(database.Entity, SerialisableEntity):
     tag = orm.Optional(str)                       # Tag/label of the job for better search for it
     src = orm.Optional(str)                       # Source of the task (YAML)
     tasks = orm.Set("Task")
+    results = orm.Set("Result")
 
 
 class Task(database.Entity, SerialisableEntity):
@@ -38,7 +39,6 @@ class Task(database.Entity, SerialisableEntity):
     idn = orm.Required(str, unique=True)          # Task IDN (an id of the task in the compiler, a name)
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     calls = orm.Set("Call")
-    results = orm.Set("Result")
 
 
 class Result(database.Entity, SerialisableEntity):
@@ -51,7 +51,7 @@ class Result(database.Entity, SerialisableEntity):
     R_OOPS = "Oops"                               # all machines failed (100%). Did you just made a joke? :-)
     R_DIRTY = "Dirty"                             # Most machines with warnings
 
-    job = orm.Required(Task)
+    job = orm.Required(Job)
     hostname = orm.Required(str)
     status = orm.Required(str, default=R_NOT_SET)
 
