@@ -41,9 +41,9 @@ class TestBasicJobStore:
         """
         query = ":a"
         clientslist = ["web.sugarsack.org", "docs.sugarsack.org"]
-        expr = "job_store.test_jobstore_register_job"
+        uri = "job_store.test_jobstore_register_job"
 
-        jid = self.store.new(query=query, clientslist=clientslist, expr=expr)
+        jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
         assert self.store.get_by_jid(jid).jid == jid
 
     def test_update_job(self):
