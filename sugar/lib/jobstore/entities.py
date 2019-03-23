@@ -3,7 +3,6 @@
 Entities to be saved in the database.
 """
 import datetime
-import inspect
 from pony import orm
 from sugar.utils.db import database, SerialisableEntity
 
