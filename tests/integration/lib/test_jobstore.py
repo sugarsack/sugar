@@ -6,6 +6,7 @@ import os
 import shutil
 import json
 import datetime
+import time
 import pytest
 from sugar.lib.compiler import StateCompiler
 from sugar.lib.jobstore import JobStorage
@@ -123,3 +124,32 @@ class TestBasicJobStore:
         assert stats.percent == 50
         assert stats.tasks == 2
         assert stats.finished == 1
+
+    def test_get_later_than(self, get_barestates_root):
+        """
+        Test get later than particular date/time.
+
+        :param get_barestates_root:
+        :return:
+        """
+        query = ":a"
+        clientslist = ["web.sugarsack.org", "docs.sugarsack.org"]
+        uri = "job_store.test_jobstore_register_job"
+
+        print()
+        begin = datetime.datetime.now()
+        middle = None
+        for idx in range(10):
+            if idx == 4:
+                middle = datetime.datetime.now()
+            jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
+            state = StateCompiler(get_barestates_root).compile(uri)
+            self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+            print("Adding job", idx + 1, "of 10, JID:", jid)
+            time.sleep(1)
+        end = datetime.datetime.now()
+
+        assert len(self.store.get_later_then(begin)) == 10
+        middle = len(self.store.get_later_then(middle))
+        assert 7 > middle > 4
+        assert len(self.store.get_later_then(end)) == 0
