@@ -44,15 +44,15 @@ class Result(database.Entity, SerialisableEntity):
     """
     Results of the client.
     """
-    R_NOT_SET = "N/A"                             # Not available yet
-    R_FAULTY = "Faulty"                           # less than 20% machines failed
-    R_UNCLEAN = "Unclean"                         # at least one machine has warnings
-    R_OOPS = "Oops"                               # all machines failed (100%). Did you just made a joke? :-)
-    R_DIRTY = "Dirty"                             # Most machines with warnings
+    R_NOT_SET = 0                                 # N/A. Not available yet
+    R_FAULTY = 1                                  # Faulty. Less than 20% machines failed
+    R_UNCLEAN = 2                                 # Unclean. At least one machine has warnings
+    R_OOPS = 3                                    # Fatal. All machines failed (100%).
+    R_DIRTY = 4                                   # Dirty. Most machines with warnings
 
     job = orm.Required(Job)
     hostname = orm.Required(str)
-    status = orm.Required(str, default=R_NOT_SET)
+    status = orm.Required(int, default=R_NOT_SET)
 
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     src = orm.Optional(str)                       # Source of the task
