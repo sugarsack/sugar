@@ -124,6 +124,19 @@ class JobStorage:
         with orm.db_session:
             return [job.clone() for job in orm.select(job for job in Job if job.created > dt)]
 
+    def get_not_finished(self) -> list:
+        """
+        Get unfinished jobs.
+
+        :return: list of unfinished jobs, where calls are not yet reported
+        """
+        jobs = []
+        with orm.db_session:
+            for job in orm.select(j for j in Job
+                                  for t in j.tasks
+                                  for c in t.calls if c.finished is not None):
+                jobs.append(job.clone())
+        return jobs
     def get_by_tag(self, tag) -> Job:
         """
         Get a job by a tag.
