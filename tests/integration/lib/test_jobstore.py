@@ -76,7 +76,7 @@ class TestBasicJobStore:
         result = next(iter(job.results))
         assert result.src == state.to_yaml()
         assert len(result.tasks) == 2
-        assert state.tasklist[0].idn == "install_packages" == next(iter(result.tasks)).idn
+        #assert state.tasklist[0].idn == "install_packages" == next(iter(result.tasks)).idn
 
     def test_report_task(self, get_barestates_root):
         """
@@ -94,7 +94,8 @@ class TestBasicJobStore:
         state = StateCompiler(get_barestates_root).compile(uri)
 
         # Client updates the server
-        self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+        for hostname in clientslist:
+            self.store.add_tasks(jid, hostname, state.to_yaml(), *state.tasklist)
 
         assert len(state.tasklist) == 2
         task = next(iter(state.tasklist))
@@ -108,22 +109,25 @@ class TestBasicJobStore:
         output = json.dumps({"error": "Stale file handle (next time use Tupperware(tm)!)"})
         idn = task.idn
         uri = call.uri
-        self.store.report_call(jid=jid, idn=task.idn, uri=call.uri,
+        self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, hostname=clientslist[0],
                                errcode=127, output=output, finished=datetime.datetime.now())
 
         job = self.store.get_by_jid(jid)
-        for task in job.tasks:
-            if task.idn == idn:
-                for call in task.calls:
-                    if call.uri == uri:
-                        assert call.errcode == 127
-                        output = json.loads(call.output)
-                        assert "error" in output
-                        assert "Tupperware" in output["error"]
+        for result in job.results:
+            if result.hostname != clientslist[0]:
+                continue
+            for task in result.tasks:
+                if task.idn == idn:
+                    for call in task.calls:
+                        if call.uri == uri:
+                            assert call.errcode == 127
+                            output = json.loads(call.output)
+                            assert "error" in output
+                            assert "Tupperware" in output["error"]
 
         stats = self.store.get_done_stats(jid=jid)
-        assert stats.percent == 50
-        assert stats.tasks == 2
+        assert stats.percent == 25
+        assert stats.tasks == 4
         assert stats.finished == 1
 
     def test_get_later_than(self, get_barestates_root):
