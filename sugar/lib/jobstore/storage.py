@@ -4,12 +4,14 @@ Job storage
 """
 import os
 import errno
-import typing
+import json
 from sugar.lib.compiler.objtask import StateTask
 from sugar.lib.jobstore.entities import Job, Task, Call
+from sugar.lib.jobstore.stats import JobStats
 from sugar.utils.db import database
 from sugar.utils.sanitisers import join_path
 from sugar.utils.jid import jidstore
+import sugar.lib.exceptions
 from pony import orm
 
 
@@ -57,6 +59,41 @@ class JobStorage:
                 _task = job.tasks.create(idn=task.idn)
                 for call in task.calls:
                     _task.calls.create(uri=call.uri, src=call.src)
+
+    def report(self, jid, idn, uri, errcode, output) -> None:
+        """
+        Report job progress. Each time task is completed with any kind of result,
+        this should update current status of it.
+
+        :param jid: Job ID
+        :param idn: Identificator of the task
+        :param uri: URI of the called function
+        :param errcode: return code of the performed function
+        :param output: output of the function
+        :return: None
+        """
+        with orm.db_session:
+            job = Job.get(jid=jid)
+            for task in job.tasks.select(lambda task: task.idn == idn):
+                print(task)
+                for call in task.calls.select(lambda call: call.uri == uri):
+                    if not isinstance(output, str):
+                        raise sugar.lib.exceptions.SugarJobStoreException("output expected to be a JSON string")
+                    try:
+                        json.loads(output)
+                    except Exception as exc:
+                        raise sugar.lib.exceptions.SugarJobStoreException(exc)
+                    call.output = output
+                    call.errcode = errcode
+
+    def get_done_stats(self):
+        """
+        Get status of done.
+
+        :return:
+        """
+        stats = JobStats()
+        return stats
 
     def get_by_jid(self, jid) -> Job:
         """
