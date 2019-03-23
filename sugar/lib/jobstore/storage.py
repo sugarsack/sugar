@@ -60,7 +60,7 @@ class JobStorage:
                 for call in task.calls:
                     _task.calls.create(uri=call.uri, src=call.src)
 
-    def report_call(self, jid, idn, uri, errcode, output) -> None:
+    def report_call(self, jid, idn, uri, errcode, output, finished) -> None:
         """
         Report job progress. Each time task is completed with any kind of result,
         this should update current status of it.
@@ -84,14 +84,22 @@ class JobStorage:
                         raise sugar.lib.exceptions.SugarJobStoreException(exc)
                     call.output = output
                     call.errcode = errcode
+                    call.finished = finished
 
-    def get_done_stats(self):
+    def get_done_stats(self, jid):
         """
         Get status of done.
 
+        :param jid: Job ID.
         :return:
         """
-        stats = JobStats()
+        job = self.get_by_jid(jid)
+        stats = JobStats(jid=jid, tasks=len(job.tasks))
+        for task in job.tasks:
+            for call in task.calls:
+                if call.finished:
+                    stats.finished += 1
+
         return stats
 
     def get_by_jid(self, jid) -> Job:

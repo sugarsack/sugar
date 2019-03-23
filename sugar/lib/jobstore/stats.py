@@ -20,4 +20,4 @@ class JobStats:
 
         :return: int
         """
-        return self.tasks * 100 // self.finished
+        return int(self.finished / self.tasks * 100)

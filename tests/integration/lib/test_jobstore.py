@@ -5,6 +5,7 @@ Job store tests.
 import os
 import shutil
 import json
+import datetime
 import pytest
 from sugar.lib.compiler import StateCompiler
 from sugar.lib.jobstore import JobStorage
@@ -105,7 +106,8 @@ class TestBasicJobStore:
         output = json.dumps({"error": "Stale file handle (next time use Tupperware(tm)!)"})
         idn = task.idn
         uri = call.uri
-        self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, errcode=127, output=output)
+        self.store.report_call(jid=jid, idn=task.idn, uri=call.uri,
+                               errcode=127, output=output, finished=datetime.datetime.now())
 
         job = self.store.get_by_jid(jid)
         for task in job.tasks:
@@ -116,3 +118,8 @@ class TestBasicJobStore:
                         output = json.loads(call.output)
                         assert "error" in output
                         assert "Tupperware" in output["error"]
+
+        stats = self.store.get_done_stats(jid=jid)
+        assert stats.percent == 50
+        assert stats.tasks == 2
+        assert stats.finished == 1
