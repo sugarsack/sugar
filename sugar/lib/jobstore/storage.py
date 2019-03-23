@@ -26,43 +26,51 @@ class JobStorage:
         self._db_path = None
         self.init()
 
-    def new(self, query: str, clientslist: list, expr: str) -> str:
+    def new(self, query: str, clientslist: list, expr: str, tag=None) -> str:
         """
         Register a new job.
 
         :param query: Issued matcher expression during the job state or runner.
         :param clientslist: Result of the matcher query
         :param expr: Expression of the job: either it is the name of the state or function etc. I.e. what was called.
+        :param tag: Tag (label) of the job.
         :return: jid (new job id)
         """
         jid = jidstore.create()
         with orm.db_session:
-            job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now())
+            job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now(), tag=tag)
             for hostname in clientslist:
                 job.results.create(hostname=hostname)
         return jid
 
-    def add_tasks(self, jid, *tasks: StateTask, job_src: str = None) -> None:
+    def add_tasks(self, jid, hostname, src, *tasks: StateTask) -> None:
         """
-        Adds a completed task to the job.
+        Adds a completed task to the job per a hostname.
 
         :param jid: job ID
         :param tasks: List of tasks that has been completed
-        :param src: Job source
         :return: None
         """
         with orm.db_session:
             job = Job.get(jid=jid)
+            for result in job.results.select(lambda result: result.hostname == hostname):
+                result.src = src
+                for task in tasks:
+                    _task = result.tasks.create(idn=task.idn)
+                    for call in task.calls:
+                        _task.calls.create(uri=call.uri, src=call.src)
 
-            if job_src is not None:
-                job.src = job_src
+    def report_job(self, jid, idn, source):
+        """
+        Report compiled job source on the client.
 
-            for task in tasks:
-                _task = job.tasks.create(idn=task.idn)
-                for call in task.calls:
-                    _task.calls.create(uri=call.uri, src=call.src)
+        :param jid:
+        :param idn:
+        :param source:
+        :return:
+        """
 
-    def report_call(self, jid, idn, uri, errcode, output, finished) -> None:
+    def report_call(self, jid, hostname, idn, uri, errcode, output, finished) -> None:
         """
         Report job progress. Each time task is completed with any kind of result,
         this should update current status of it.
@@ -75,8 +83,8 @@ class JobStorage:
         :return: None
         """
         with orm.db_session:
-            job = Job.get(jid=jid)
-            for task in job.tasks.select(lambda task: task.idn == idn):
+            result = Job.get(jid=jid).results.select(lambda result: result.hostname == hostname).first()
+            for task in result.tasks.select(lambda task: task.idn == idn):
                 for call in task.calls.select(lambda call: call.uri == uri):
                     if not isinstance(output, str):
                         raise sugar.lib.exceptions.SugarJobStoreException("output expected to be a JSON string")
@@ -96,11 +104,19 @@ class JobStorage:
         :return:
         """
         job = self.get_by_jid(jid)
-        stats = JobStats(jid=jid, tasks=len(job.tasks))
-        for task in job.tasks:
-            for call in task.calls:
-                if call.finished:
-                    stats.finished += 1
+        tasks = 0
+        for result in job.results:
+            _tasks = len(result.tasks)
+            if _tasks > tasks:
+                tasks = _tasks
+        tasks = tasks * len(job.results)
+        stats = JobStats(jid=jid, tasks=tasks)
+        with orm.db_session:
+            finished = orm.select(job for job in Job if job.jid == jid
+                                  for result in job.results
+                                  for task in result.tasks
+                                  for call in task.calls if call.finished is not None)
+            stats.finished = len(finished)
         return stats
 
     def get_by_jid(self, jid) -> Job:
