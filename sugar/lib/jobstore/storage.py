@@ -134,7 +134,7 @@ class JobStorage:
         with orm.db_session:
             for job in orm.select(j for j in Job
                                   for t in j.tasks
-                                  for c in t.calls if c.finished is not None):
+                                  for c in t.calls if c.finished is None):
                 jobs.append(job.clone())
         return jobs
 
@@ -145,6 +145,11 @@ class JobStorage:
         :return: list of finished jobs, where calls are reported already
         """
         jobs = []
+        with orm.db_session:
+            for job in orm.select(j for j in Job
+                                  for t in j.tasks
+                                  for c in t.calls if c.finished is not None):
+                jobs.append(job.clone())
         return jobs
 
     def get_failed(self) -> list:
