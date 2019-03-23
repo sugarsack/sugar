@@ -137,6 +137,34 @@ class JobStorage:
                                   for c in t.calls if c.finished is not None):
                 jobs.append(job.clone())
         return jobs
+
+    def get_finished(self) -> list:
+        """
+        Get finished jobs.
+
+        :return: list of finished jobs, where calls are reported already
+        """
+        jobs = []
+        return jobs
+
+    def get_failed(self) -> list:
+        """
+        Get any job that has at least one failed call.
+
+        :return: list of failed jobs
+        """
+        jobs = []
+        return jobs
+
+    def get_suceeded(self) -> list:
+        """
+        Get jobs that has no single failure inside.
+
+        :return: list of succeeded jobs
+        """
+        jobs = []
+        return jobs
+
     def get_by_tag(self, tag) -> Job:
         """
         Get a job by a tag.
@@ -152,13 +180,15 @@ class JobStorage:
 
         :return: List of job objects.
         """
-        return []
+        jobs = []
+        return jobs
 
-    def expire(self) -> None:
+    def expire(self, dt=None) -> None:
         """
         Swipe over jobs and remove those that already outdated.
 
-        :return:
+        :param dt: date/time threshold (default last five days)
+        :return: None
         """
 
     def export(self, jid, path) -> None:
