@@ -4,3 +4,8 @@ install_packages:
       - nginx
       - python
       - pip
+
+do_something_else:
+  pkg.installed:
+    name:
+      - zypper
