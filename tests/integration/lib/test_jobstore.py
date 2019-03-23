@@ -53,7 +53,7 @@ class TestBasicJobStore:
         for result in obj.results:
             assert result.hostname in clientslist
 
-    def test_update_job(self, get_barestates_root):
+    def test_add_tasks(self, get_barestates_root):
         """
         Update job.
 
