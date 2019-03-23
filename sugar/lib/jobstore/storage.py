@@ -75,7 +75,6 @@ class JobStorage:
         with orm.db_session:
             job = Job.get(jid=jid)
             for task in job.tasks.select(lambda task: task.idn == idn):
-                print(task)
                 for call in task.calls.select(lambda call: call.uri == uri):
                     if not isinstance(output, str):
                         raise sugar.lib.exceptions.SugarJobStoreException("output expected to be a JSON string")

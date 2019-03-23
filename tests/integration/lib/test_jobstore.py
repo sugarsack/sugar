@@ -72,7 +72,7 @@ class TestBasicJobStore:
 
         job = self.store.get_by_jid(jid)
         assert len(job.tasks) == 2
-        assert state.tasklist[0].idn == next(iter(job.tasks)).idn
+        assert state.tasklist[0].idn == "install_packages"
         assert state.to_yaml() == job.src
 
     def test_report_task(self, get_barestates_root):
