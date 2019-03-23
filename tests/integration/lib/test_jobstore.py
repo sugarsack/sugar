@@ -220,3 +220,38 @@ class TestBasicJobStore:
             unfinished.pop(unfinished.index(job.jid))
         assert not unfinished
 
+    def test_get_failed_jobs(self, get_barestates_root):
+        """
+        Test get all tasks that are failed (error code is not EX_OK).
+
+        :param get_barestates_root:
+        :return:
+        """
+        query = ":a"
+        clientslist = ["web.sugarsack.org", "docs.sugarsack.org"]
+        uri = "job_store.test_jobstore_register_job"
+        failed = []
+        succeed = []
+        for idx in range(10):
+            jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
+            state = StateCompiler(get_barestates_root).compile(uri)
+            self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+            if idx in [4, 7]:
+                failed.append(jid)
+            else:
+                succeed.append(jid)
+
+        output = json.dumps({"message": "Traffic jam on the Information Superhighway."})
+        for jid in failed + succeed:
+            job = self.store.get_by_jid(jid)
+            for task in job.tasks:
+                for call in task.calls:
+                    errcode = 1 if jid in failed else 0
+                    self.store.report_call(jid=jid, idn=task.idn, uri=call.uri,
+                                           errcode=errcode, output=output, finished=datetime.datetime.now())
+        for job in self.store.get_failed():
+            assert job.jid in failed
+            assert job.jid not in succeed
+            failed.pop(failed.index(job.jid))
+        assert not failed
+
