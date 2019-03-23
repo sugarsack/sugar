@@ -35,7 +35,7 @@ class Task(database.Entity, SerialisableEntity):
     Task. Contains many calls.
     """
     job = orm.Required(Job)                       # Job object ID in the database, not JID
-    idn = orm.Required(str, unique=True)          # Task IDN (an id of the task in the compiler, a name)
+    idn = orm.Required(str)                       # Task IDN (an id of the task in the compiler, a name)
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     calls = orm.Set("Call")
 
