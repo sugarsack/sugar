@@ -12,6 +12,7 @@ from sugar.lib.jobstore.stats import JobStats
 from sugar.utils.db import database
 from sugar.utils.sanitisers import join_path
 from sugar.utils.jid import jidstore
+import sugar.utils.exitcodes
 import sugar.lib.exceptions
 from pony import orm
 
@@ -159,6 +160,11 @@ class JobStorage:
         :return: list of failed jobs
         """
         jobs = []
+        with orm.db_session:
+            for job in orm.select(j for j in Job
+                                  for t in j.tasks
+                                  for c in t.calls if c.errcode != sugar.utils.exitcodes.EX_OK):
+                jobs.append(job.clone())
         return jobs
 
     def get_suceeded(self) -> list:
