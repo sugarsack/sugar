@@ -70,12 +70,13 @@ class TestBasicJobStore:
         state = StateCompiler(get_barestates_root).compile(uri)
 
         # Client updates the server
-        self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+        self.store.add_tasks(jid, clientslist[0], state.to_yaml(), *state.tasklist)
 
         job = self.store.get_by_jid(jid)
-        assert len(job.tasks) == 2
-        assert state.tasklist[0].idn == "install_packages"
-        assert state.to_yaml() == job.src
+        result = next(iter(job.results))
+        assert result.src == state.to_yaml()
+        assert len(result.tasks) == 2
+        assert state.tasklist[0].idn == "install_packages" == next(iter(result.tasks)).idn
 
     def test_report_task(self, get_barestates_root):
         """
