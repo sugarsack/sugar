@@ -5,6 +5,7 @@ Job storage
 import os
 import errno
 import json
+import datetime
 from sugar.lib.compiler.objtask import StateTask
 from sugar.lib.jobstore.entities import Job, Task, Call
 from sugar.lib.jobstore.stats import JobStats
@@ -35,7 +36,7 @@ class JobStorage:
         """
         jid = jidstore.create()
         with orm.db_session:
-            job = Job(jid=jid, query=query, expr=expr)
+            job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now())
             for hostname in clientslist:
                 job.results.create(hostname=hostname)
         return jid
@@ -99,7 +100,6 @@ class JobStorage:
             for call in task.calls:
                 if call.finished:
                     stats.finished += 1
-
         return stats
 
     def get_by_jid(self, jid) -> Job:
@@ -121,7 +121,8 @@ class JobStorage:
         :param dt: datetime threshold.
         :return: list of Job objects
         """
-        return []
+        with orm.db_session:
+            return [job.clone() for job in orm.select(job for job in Job if job.created > dt)]
 
     def get_by_tag(self, tag) -> Job:
         """
