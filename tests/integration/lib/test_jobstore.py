@@ -71,7 +71,7 @@ class TestBasicJobStore:
         self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
 
         job = self.store.get_by_jid(jid)
-        assert len(job.tasks) == 1
+        assert len(job.tasks) == 2
         assert state.tasklist[0].idn == next(iter(job.tasks)).idn
         assert state.to_yaml() == job.src
 
@@ -105,7 +105,7 @@ class TestBasicJobStore:
         output = json.dumps({"error": "Stale file handle (next time use Tupperware(tm)!)"})
         idn = task.idn
         uri = call.uri
-        self.store.report(jid=jid, idn=task.idn, uri=call.uri, errcode=127, output=output)
+        self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, errcode=127, output=output)
 
         job = self.store.get_by_jid(jid)
         for task in job.tasks:

@@ -60,7 +60,7 @@ class JobStorage:
                 for call in task.calls:
                     _task.calls.create(uri=call.uri, src=call.src)
 
-    def report(self, jid, idn, uri, errcode, output) -> None:
+    def report_call(self, jid, idn, uri, errcode, output) -> None:
         """
         Report job progress. Each time task is completed with any kind of result,
         this should update current status of it.
