@@ -154,9 +154,9 @@ class TestBasicJobStore:
         assert 7 > middle > 4
         assert len(self.store.get_later_then(end)) == 0
 
-    def test_get_not_finished(self, get_barestates_root):
+    def test_get_finished(self, get_barestates_root):
         """
-        Test get all tasks that are not finished.
+        Test get all tasks that are finished.
 
         :param get_barestates_root:
         :return:
@@ -180,7 +180,7 @@ class TestBasicJobStore:
                 for call in task.calls:
                     self.store.report_call(jid=jid, idn=task.idn, uri=call.uri,
                                            errcode=127, output=output, finished=datetime.datetime.now())
-        for job in self.store.get_not_finished():
+        for job in self.store.get_finished():
             assert job.jid in finished
             finished.pop(finished.index(job.jid))
         assert not finished
