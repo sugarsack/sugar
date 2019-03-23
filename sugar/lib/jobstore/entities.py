@@ -68,3 +68,5 @@ class Call(database.Entity, SerialisableEntity):
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     uri = orm.Required(str)                       # URI of the module/function
     src = orm.Optional(str)                       # Source of the call in YAML (params etc)
+    errcode = orm.Optional(int)                   # Error code
+    output = orm.Optional(str)                    # JSON results
