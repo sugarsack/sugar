@@ -153,3 +153,34 @@ class TestBasicJobStore:
         middle = len(self.store.get_later_then(middle))
         assert 7 > middle > 4
         assert len(self.store.get_later_then(end)) == 0
+
+    def test_get_not_finished(self, get_barestates_root):
+        """
+        Test get all tasks that are not finished.
+
+        :param get_barestates_root:
+        :return:
+        """
+        query = ":a"
+        clientslist = ["web.sugarsack.org", "docs.sugarsack.org"]
+        uri = "job_store.test_jobstore_register_job"
+        finished = []
+        for idx in range(10):
+            jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
+            state = StateCompiler(get_barestates_root).compile(uri)
+            self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+            if idx in [4, 7]:
+                finished.append(jid)
+
+        # Report two jobs (4th and 7th) as done
+        output = json.dumps({"error": "Sysadmin accidentally destroyed pager with a large hammer."})
+        for jid in finished:
+            job = self.store.get_by_jid(jid)
+            for task in job.tasks:
+                for call in task.calls:
+                    self.store.report_call(jid=jid, idn=task.idn, uri=call.uri,
+                                           errcode=127, output=output, finished=datetime.datetime.now())
+        for job in self.store.get_not_finished():
+            assert job.jid in finished
+            finished.pop(finished.index(job.jid))
+        assert not finished
