@@ -20,24 +20,10 @@ class Job(database.Entity, SerialisableEntity):
     created = orm.Required(datetime.datetime, default=datetime.datetime.now())
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     status = orm.Required(str, default=S_ISSUED)
-
     query = orm.Required(str)
     expr = orm.Required(str)                      # job expression (state name or function name)
-
-    tag = orm.Optional(str)                       # Tag/label of the job for better search for it
-    src = orm.Optional(str)                       # Source of the task (YAML)
-    tasks = orm.Set("Task")
-    results = orm.Set("Result")
-
-
-class Task(database.Entity, SerialisableEntity):
-    """
-    Task. Contains many calls.
-    """
-    job = orm.Required(Job)                       # Job object ID in the database, not JID
-    idn = orm.Required(str)                       # Task IDN (an id of the task in the compiler, a name)
-    finished = orm.Optional(datetime.datetime, nullable=True, default=None)
-    calls = orm.Set("Call")
+    tag = orm.Optional(str, nullable=True)        # Tag/label of the job for better search for it
+    results = orm.Set("Result")                   # Set of tasks per host. Job ID is the same across the set of hosts.
 
 
 class Result(database.Entity, SerialisableEntity):
@@ -53,11 +39,21 @@ class Result(database.Entity, SerialisableEntity):
     job = orm.Required(Job)
     hostname = orm.Required(str)
     status = orm.Required(int, default=R_NOT_SET)
-
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     src = orm.Optional(str)                       # Source of the task
     answer = orm.Optional(str)                    # Answer of the task (module return data)
     log = orm.Optional(str)                       # Log slice during the task performance
+    tasks = orm.Set("Task")
+
+
+class Task(database.Entity, SerialisableEntity):
+    """
+    Task. Contains many calls.
+    """
+    job = orm.Required(Result)                    # Job object ID in the database, not JID
+    idn = orm.Required(str)                       # Task IDN (an id of the task in the compiler, a name)
+    finished = orm.Optional(datetime.datetime, nullable=True, default=None)
+    calls = orm.Set("Call")
 
 
 class Call(database.Entity, SerialisableEntity):
