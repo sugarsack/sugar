@@ -174,6 +174,11 @@ class JobStorage:
         :return: list of succeeded jobs
         """
         jobs = []
+        with orm.db_session:
+            for job in orm.select(j for j in Job
+                                  for t in j.tasks
+                                  for c in t.calls if c.errcode == sugar.utils.exitcodes.EX_OK):
+                jobs.append(job.clone())
         return jobs
 
     def get_by_tag(self, tag) -> Job:
