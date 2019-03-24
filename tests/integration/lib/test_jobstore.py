@@ -331,3 +331,20 @@ class TestBasicJobStore:
             assert job.jid in tagged
             tagged.pop(tagged.index(job.jid))
         assert not tagged
+
+    def test_get_all_jobs(self, get_barestates_root):
+        """
+        Test get all jobs with pagination and offset.
+
+        :param get_barestates_root:
+        :return:
+        """
+        query = ":a"
+        clientslist = ["web.sugarsack.org", "docs.sugarsack.org"]
+        uri = "job_store.test_jobstore_register_job"
+        for idx in range(100):
+            self.store.new(query=query, clientslist=clientslist, expr=uri)
+
+        assert len(self.store.get_all_tasks(limit=None, offset=0)) == 100
+        assert len(self.store.get_all_tasks(limit=25, offset=0)) == 25
+
