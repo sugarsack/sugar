@@ -7,14 +7,20 @@ import errno
 import json
 import datetime
 import typing
+import tarfile
+import io
+
 from sugar.lib.compiler.objtask import StateTask
 from sugar.lib.jobstore.entities import Job, Task, Call
 from sugar.lib.jobstore.stats import JobStats
+from sugar.lib.jobstore.components import ResultDict
 from sugar.utils.db import database
 from sugar.utils.sanitisers import join_path
 from sugar.utils.jid import jidstore
+from sugar.lib.compat import yaml
 import sugar.utils.exitcodes
 import sugar.lib.exceptions
+
 from pony import orm
 
 
@@ -251,6 +257,68 @@ class JobStorage:
         :param path: path on the server to dump all the job data into an archive.
         :return: None
         """
+        os.makedirs(path, exist_ok=True)
+        path = "{}/sugar-job-{}.tar.gz".format(path, jid)
+
+        # This should not happen, but still.
+        if os.path.exists(path):
+            raise sugar.lib.exceptions.SugarJobStoreException("File '{}' already exists".format(path))
+
+        archive = tarfile.open(path, mode="w:gz")
+        data = []
+        with orm.db_session:
+            job = Job.get(jid=jid)
+
+            job_data = ResultDict()
+            job_data["jid"] = job.jid
+            job_data["created"] = job.created
+            job_data["finished"] = job.finished
+            job_data["status"] = job.status
+            job_data["query"] = job.query
+            job_data["identifier"] = job.expr
+            job_data["tag"] =job.tag
+
+            data.append(("job-info.yaml", job_data, False))
+
+            for result in job.results:
+                result_data = ResultDict()
+                result_data["status"] = result.status
+                result_data["finished"] = result.finished
+                result_data["tasks"] = []
+
+                for task in result.tasks:
+                    task_data = ResultDict()
+                    task_data["identifier"] = task.idn
+                    task_data["finished"] = task.finished
+                    task_data["calls"] = []
+
+                    for call in task.calls:
+                        call_data = ResultDict()
+                        call_data["finished"] = call.finished
+                        call_data["URI"] = call.uri
+                        call_data["errcode"] = call.errcode
+                        call_data["output"] = call.output
+
+                        task_data["calls"].append(call_data)
+                        if call.src:
+                            data.append(("{}/src-{}.{}.yaml".format(result.hostname, task.idn, call.uri), call.src, True))
+                    result_data["tasks"].append(task_data)
+
+                data.append(("{}/result.yaml".format(result.hostname), result_data.to_dict(), False))
+                data.append(("{}/source.yaml".format(result.hostname), result.src, True))
+                if result.answer:
+                    data.append(("{}/answer.yaml".format(result.hostname), result.answer, True))
+                if result.log:
+                    data.append(("{}/client.log".format(result.hostname), result.log, True))
+
+        for d_name, d_content, as_is in data:
+            body = yaml.dump(d_content, default_flow_style=False) if not as_is else d_content
+            src = io.BytesIO()
+            src.write(body.encode("utf-8"))
+            src.seek(0)
+            info = tarfile.TarInfo(name=d_name)
+            info.size = len(body)
+            archive.addfile(info, src)
 
     def flush(self) -> None:
         """
