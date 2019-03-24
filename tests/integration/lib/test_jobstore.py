@@ -7,7 +7,7 @@ import shutil
 import json
 import datetime
 import time
-import pytest
+import tarfile
 from sugar.lib.compiler import StateCompiler
 from sugar.lib.jobstore import JobStorage
 from sugar.config import get_config
@@ -332,7 +332,7 @@ class TestBasicJobStore:
             tagged.pop(tagged.index(job.jid))
         assert not tagged
 
-    def test_get_all_jobs(self, get_barestates_root):
+    def test_get_all_jobs(self):
         """
         Test get all jobs with pagination and offset.
 
@@ -370,3 +370,33 @@ class TestBasicJobStore:
         self.store.expire(middle)
         assert len(self.store.get_all_tasks()) == 2
         assert not bool(self.store.get_by_tag(tag="#outdated"))
+
+    def test_export_to_archive_jobs(self, get_barestates_root):
+        """
+        Test export to an archive jobs.
+
+        :return:
+        """
+        uri = "job_store.test_jobstore_register_job"
+        hostnames = ["foo.example.lan", "bar.example.lan"]
+
+        jid = self.store.new(query="*", clientslist=hostnames, expr=uri, tag="for exporting")
+        state = StateCompiler(get_barestates_root).compile(uri)
+        for hostname in hostnames:
+            self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
+
+        self.store.export(jid, path=get_config().cache.path)
+
+        archpath = "{}/sugar-job-{}.tar.gz".format(get_config().cache.path, jid)
+        assert os.path.exists(archpath)
+
+        arch_extracted_path = "{}/arch/".format(get_config().cache.path)
+        tar = tarfile.open(archpath)
+        tar.extractall(arch_extracted_path)
+        tar.close()
+
+        assert os.path.exists("{}job-info.yaml".format(arch_extracted_path))
+        for hostname in hostnames:
+            assert os.path.exists("{}{}".format(arch_extracted_path, hostname))
+            for f_gen in ["source", "result"]:
+                assert os.path.exists("{}{}/{}.yaml".format(arch_extracted_path, hostname, f_gen))
