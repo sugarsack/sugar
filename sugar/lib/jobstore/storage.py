@@ -23,6 +23,7 @@ import sugar.lib.exceptions
 
 from pony import orm
 
+# pylint: disable=R0201
 
 class JobStorage:
     """
