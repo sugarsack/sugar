@@ -348,3 +348,25 @@ class TestBasicJobStore:
         assert len(self.store.get_all_tasks(limit=None, offset=0)) == 100
         assert len(self.store.get_all_tasks(limit=25, offset=0)) == 25
 
+    def test_expire_jobs(self):
+        """
+        Test expire jobs.
+
+        :return:
+        """
+        query = ":a"
+        clientslist = ["web.sugarsack.org", "docs.sugarsack.org"]
+        uri = "job_store.test_jobstore_register_job"
+        print()
+        middle = None
+        tag = "#outdated"
+        for idx in range(10):
+            if idx == 8:
+                middle = datetime.datetime.now()
+                tag = None
+            jid = self.store.new(query=query, clientslist=clientslist, expr=uri, tag=tag)
+            print("Adding job", idx + 1, "of 10, JID:", jid)
+            time.sleep(1.5)
+        self.store.expire(middle)
+        assert len(self.store.get_all_tasks()) == 2
+        assert not bool(self.store.get_by_tag(tag="#outdated"))
