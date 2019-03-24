@@ -11,12 +11,13 @@ from twisted.internet import reactor, ssl
 from twisted.internet.threads import deferToThread
 
 from autobahn.twisted.websocket import listenWS
+from sugarapi.service import APIService
+from sugarapi import MasterRef
+
 from sugar.components.server.protocols import (SugarServerProtocol, SugarServerFactory,
                                                SugarConsoleServerProtocol, SugarConsoleServerFactory)
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
-from sugarapi.service import APIService
-from sugarapi import MasterRef
 
 
 class SugarServer(object):

@@ -10,8 +10,10 @@ import typing
 import tarfile
 import io
 
+from pony import orm
+
 from sugar.lib.compiler.objtask import StateTask
-from sugar.lib.jobstore.entities import Job, Task, Call
+from sugar.lib.jobstore.entities import Job
 from sugar.lib.jobstore.stats import JobStats
 from sugar.lib.jobstore.components import ResultDict
 from sugar.utils.db import database
@@ -20,8 +22,6 @@ from sugar.utils.jid import jidstore
 from sugar.lib.compat import yaml
 import sugar.utils.exitcodes
 import sugar.lib.exceptions
-
-from pony import orm
 
 # pylint: disable=R0201
 
