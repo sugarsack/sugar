@@ -215,14 +215,23 @@ class JobStorage:
         with orm.db_session:
             return [job.clone() for job in orm.select(job for job in Job if job.tag == tag)]
 
-    def all(self, limit=25, offset=0) -> list:
+    def get_all_tasks(self, limit=25, offset=0) -> list:
         """
         Get all existing jobs.
 
         :return: List of job objects.
         """
-        jobs = []
-        return jobs
+        if limit is None:
+            limit = 0
+        if offset is None:
+            offset = 0
+        with orm.db_session:
+            if limit + offset:
+                result = [job.clone() for job in orm.select(
+                    job for job in Job).limit(limit, offset=offset)]
+            else:
+                result = [job.clone() for job in orm.select(job for job in Job)]
+        return result
 
     def expire(self, dt=None) -> None:
         """
