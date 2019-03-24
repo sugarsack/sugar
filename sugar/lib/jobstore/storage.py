@@ -240,6 +240,8 @@ class JobStorage:
         :param dt: date/time threshold (default last five days)
         :return: None
         """
+        with orm.db_session:
+            orm.delete(job for job in Job if job.created < dt)
 
     def export(self, jid, path) -> None:
         """
