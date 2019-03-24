@@ -6,6 +6,7 @@ import os
 import errno
 import json
 import datetime
+import typing
 from sugar.lib.compiler.objtask import StateTask
 from sugar.lib.jobstore.entities import Job, Task, Call
 from sugar.lib.jobstore.stats import JobStats
@@ -43,7 +44,7 @@ class JobStorage:
                 job.results.create(hostname=hostname)
         return jid
 
-    def add_tasks(self, jid, hostname, src, *tasks: StateTask) -> None:
+    def add_tasks(self, jid, *tasks: StateTask, hostname=None, src=None) -> None:
         """
         Adds a completed task to the job per a hostname.
 
@@ -51,6 +52,9 @@ class JobStorage:
         :param tasks: List of tasks that has been completed
         :return: None
         """
+        if hostname is None:
+            raise sugar.lib.exceptions.SugarJobStoreException("Hostname or machine ID is required")
+
         with orm.db_session:
             job = Job.get(jid=jid)
             for result in job.results.select(lambda result: result.hostname == hostname):
@@ -149,9 +153,10 @@ class JobStorage:
         """
         jobs = []
         with orm.db_session:
-            for job in orm.select(j for j in Job
-                                  for t in j.tasks
-                                  for c in t.calls if c.finished is None):
+            for job in orm.select(job for job in Job
+                                  for result in job.results
+                                  for task in result.tasks
+                                  for call in task.calls if call.finished is None):
                 jobs.append(job.clone())
         return jobs
 
@@ -163,9 +168,10 @@ class JobStorage:
         """
         jobs = []
         with orm.db_session:
-            for job in orm.select(j for j in Job
-                                  for t in j.tasks
-                                  for c in t.calls if c.finished is not None):
+            for job in orm.select(job for job in Job
+                                  for result in job.results
+                                  for task in result.tasks
+                                  for call in task.calls if call.finished is not None):
                 jobs.append(job.clone())
         return jobs
 
@@ -177,9 +183,10 @@ class JobStorage:
         """
         jobs = []
         with orm.db_session:
-            for job in orm.select(j for j in Job
-                                  for t in j.tasks
-                                  for c in t.calls if c.errcode != sugar.utils.exitcodes.EX_OK):
+            for job in orm.select(job for job in Job
+                                  for result in job.results
+                                  for task in result.tasks
+                                  for call in task.calls if call.errcode != sugar.utils.exitcodes.EX_OK):
                 jobs.append(job.clone())
         return jobs
 
@@ -191,20 +198,22 @@ class JobStorage:
         """
         jobs = []
         with orm.db_session:
-            for job in orm.select(j for j in Job
-                                  for t in j.tasks
-                                  for c in t.calls if c.errcode == sugar.utils.exitcodes.EX_OK):
+            for job in orm.select(job for job in Job
+                                  for result in job.results
+                                  for task in result.tasks
+                                  for call in task.calls if call.errcode == sugar.utils.exitcodes.EX_OK):
                 jobs.append(job.clone())
         return jobs
 
-    def get_by_tag(self, tag) -> Job:
+    def get_by_tag(self, tag) -> typing.List[Job]:
         """
         Get a job by a tag.
 
         :param tag: Tag in the job, if job has been tagged.
         :return: Job object.
         """
-        return None
+        with orm.db_session:
+            return [job.clone() for job in orm.select(job for job in Job if job.tag == tag)]
 
     def all(self, limit=25, offset=0) -> list:
         """
