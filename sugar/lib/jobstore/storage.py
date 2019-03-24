@@ -276,7 +276,7 @@ class JobStorage:
             job_data["status"] = job.status
             job_data["query"] = job.query
             job_data["identifier"] = job.expr
-            job_data["tag"] =job.tag
+            job_data["tag"] = job.tag
 
             data.append(("job-info.yaml", job_data, False))
 
