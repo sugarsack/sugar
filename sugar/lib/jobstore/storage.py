@@ -25,6 +25,7 @@ import sugar.lib.exceptions
 
 # pylint: disable=R0201
 
+
 class JobStorage:
     """
     Store data in the database.
@@ -34,7 +35,7 @@ class JobStorage:
         self._db_path = None
         self.init()
 
-    def new(self, query: str, clientslist: list, expr: str, tag=None) -> str:
+    def new(self, query: str, clientslist: list, expr: str, tag: str = None) -> str:
         """
         Register a new job.
 
@@ -51,12 +52,13 @@ class JobStorage:
                 job.results.create(hostname=hostname)
         return jid
 
-    def add_tasks(self, jid, *tasks: StateTask, hostname=None, src=None) -> None:
+    def add_tasks(self, jid: str, *tasks: StateTask, hostname: str = None, src: str = None) -> None:
         """
         Adds a completed task to the job per a hostname.
 
         :param jid: job ID
         :param tasks: List of tasks that has been completed
+        :raises SugarJobStoreException: if hostname or machine ID was not specified.
         :return: None
         """
         if hostname is None:
@@ -71,17 +73,18 @@ class JobStorage:
                     for call in task.calls:
                         _task.calls.create(uri=call.uri, src=call.src)
 
-    def report_job(self, jid, idn, source):
+    def report_job(self, jid: str, idn: str, source: str) -> None:
         """
         Report compiled job source on the client.
 
-        :param jid:
-        :param idn:
-        :param source:
-        :return:
+        :param jid: Job id
+        :param idn: identification keyword of the job ID
+        :param source: source of the job (YAML)
+        :return: None
         """
 
-    def report_call(self, jid, hostname, idn, uri, errcode, output, finished) -> None:
+    def report_call(self, jid: str, hostname: str, idn: str,
+                    uri: str, errcode: int, output: str, finished: datetime) -> None:
         """
         Report job progress. Each time task is completed with any kind of result,
         this should update current status of it.
@@ -91,6 +94,9 @@ class JobStorage:
         :param uri: URI of the called function
         :param errcode: return code of the performed function
         :param output: output of the function
+        :param hostname: hostname of the machine that reports this call
+        :param finished: date/time when call has been finished
+        :raises SugarJobStoreException: if 'output' parameter is not a JSON string
         :return: None
         """
         with orm.db_session:
@@ -107,12 +113,12 @@ class JobStorage:
                     call.errcode = errcode
                     call.finished = finished
 
-    def get_done_stats(self, jid):
+    def get_done_stats(self, jid: str) -> JobStats:
         """
         Get status of done.
 
         :param jid: Job ID.
-        :return:
+        :return: stats object
         """
         job = self.get_by_jid(jid)
         tasks = 0
@@ -130,7 +136,7 @@ class JobStorage:
             stats.finished = len(finished)
         return stats
 
-    def get_by_jid(self, jid) -> Job:
+    def get_by_jid(self, jid: str) -> Job:
         """
         Get a job by jid.
 
@@ -142,15 +148,15 @@ class JobStorage:
             job.clone()
         return job
 
-    def get_later_then(self, dt) -> list:
+    def get_later_then(self, dtm: datetime) -> list:
         """
         Get a jobs that are later than specified datetime.
 
-        :param dt: datetime threshold.
+        :param dtm: datetime threshold.
         :return: list of Job objects
         """
         with orm.db_session:
-            return [job.clone() for job in orm.select(job for job in Job if job.created > dt)]
+            return [job.clone() for job in orm.select(job for job in Job if job.created > dtm)]
 
     def get_not_finished(self) -> list:
         """
@@ -226,6 +232,9 @@ class JobStorage:
         """
         Get all existing jobs.
 
+        :param limit: limit of amount of the returned objects.
+        :param offset: offset in the database.
+
         :return: List of job objects.
         """
         if limit is None:
@@ -240,15 +249,15 @@ class JobStorage:
                 result = [job.clone() for job in orm.select(job for job in Job)]
         return result
 
-    def expire(self, dt=None) -> None:
+    def expire(self, dtm=None) -> None:
         """
         Swipe over jobs and remove those that already outdated.
 
-        :param dt: date/time threshold (default last five days)
+        :param dtm: date/time threshold (default last five days)
         :return: None
         """
         with orm.db_session:
-            orm.delete(job for job in Job if job.created < dt)
+            orm.delete(job for job in Job if job.created < dtm)
 
     def export(self, jid, path) -> None:
         """
@@ -256,8 +265,10 @@ class JobStorage:
 
         :param jid: job id
         :param path: path on the server to dump all the job data into an archive.
+        :raises SugarJobStoreException: if an archive file already exists
         :return: None
         """
+        # pylint: disable=R0914
         os.makedirs(path, exist_ok=True)
         path = "{}/sugar-job-{}.tar.gz".format(path, jid)
 
@@ -320,6 +331,7 @@ class JobStorage:
             info = tarfile.TarInfo(name=d_name)
             info.size = len(body)
             archive.addfile(info, src)
+        # pylint: enable=R0914
 
     def flush(self) -> None:
         """
@@ -346,11 +358,11 @@ class JobStorage:
         database.bind(provider="sqlite", filename=self._db_path, create_db=True)
         database.generate_mapping(create_tables=True)
 
-    def close(self):
+    def close(self) -> None:
         """
         Close and detach database.
 
-        :return:
+        :return: None
         """
         database.disconnect()
         database.provider = None

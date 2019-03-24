@@ -28,6 +28,6 @@ class ResultDict(dict):
         """
         Kill self type, get just pure dictionary.
 
-        :return:
+        :return: pure dictionary class (via JSON)
         """
         return json.loads(json.dumps(self))

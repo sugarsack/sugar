@@ -6,7 +6,7 @@ from pony import orm
 from sugar.transport.serialisable import Serialisable
 
 
-database = orm.Database()
+database = orm.Database()  # pylint: disable=C0103
 
 
 class SerialisableEntity:
