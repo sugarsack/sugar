@@ -264,7 +264,9 @@ Other:
 
         :return: None
         """
-    def ui(self):
+
+    @staticmethod
+    def ui():  # pylint: disable=C0103
         """
         Sugar UI (terminal).
 
