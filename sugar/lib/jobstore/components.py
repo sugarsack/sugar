@@ -9,7 +9,8 @@ class ResultDict(dict):
     """
     Results dictionary.
     """
-    def _is_na(self, value) -> str:
+    @staticmethod
+    def _is_na(value) -> str:
         """
         If value is None, return "N/A".
 
