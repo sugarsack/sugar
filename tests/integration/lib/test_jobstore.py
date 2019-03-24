@@ -70,13 +70,12 @@ class TestBasicJobStore:
         state = StateCompiler(get_barestates_root).compile(uri)
 
         # Client updates the server
-        self.store.add_tasks(jid, clientslist[0], state.to_yaml(), *state.tasklist)
+        self.store.add_tasks(jid, *state.tasklist, hostname=clientslist[0], src=state.to_yaml(),)
 
         job = self.store.get_by_jid(jid)
         result = next(iter(job.results))
         assert result.src == state.to_yaml()
         assert len(result.tasks) == 2
-        #assert state.tasklist[0].idn == "install_packages" == next(iter(result.tasks)).idn
 
     def test_report_task(self, get_barestates_root):
         """
@@ -95,7 +94,7 @@ class TestBasicJobStore:
 
         # Client updates the server
         for hostname in clientslist:
-            self.store.add_tasks(jid, hostname, state.to_yaml(), *state.tasklist)
+            self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
 
         assert len(state.tasklist) == 2
         task = next(iter(state.tasklist))
@@ -149,7 +148,8 @@ class TestBasicJobStore:
                 middle = datetime.datetime.now()
             jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
             state = StateCompiler(get_barestates_root).compile(uri)
-            self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+            for hostname in clientslist:
+                self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
             print("Adding job", idx + 1, "of 10, JID:", jid)
             time.sleep(1)
         end = datetime.datetime.now()
@@ -173,7 +173,8 @@ class TestBasicJobStore:
         for idx in range(10):
             jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
             state = StateCompiler(get_barestates_root).compile(uri)
-            self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+            for hostname in clientslist:
+                self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
             if idx in [4, 7]:
                 finished.append(jid)
 
@@ -181,10 +182,12 @@ class TestBasicJobStore:
         output = json.dumps({"error": "Sysadmin accidentally destroyed pager with a large hammer."})
         for jid in finished:
             job = self.store.get_by_jid(jid)
-            for task in job.tasks:
-                for call in task.calls:
-                    self.store.report_call(jid=jid, idn=task.idn, uri=call.uri,
-                                           errcode=127, output=output, finished=datetime.datetime.now())
+            for result in job.results:
+                for task in result.tasks:
+                    for call in task.calls:
+                        for hostname in clientslist:
+                            self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, hostname=hostname,
+                                                   errcode=127, output=output, finished=datetime.datetime.now())
         for job in self.store.get_finished():
             assert job.jid in finished
             finished.pop(finished.index(job.jid))
@@ -205,7 +208,8 @@ class TestBasicJobStore:
         for idx in range(10):
             jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
             state = StateCompiler(get_barestates_root).compile(uri)
-            self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+            for hostname in clientslist:
+                self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
             if idx in [4, 7]:
                 finished.append(jid)
             else:
@@ -215,10 +219,12 @@ class TestBasicJobStore:
         output = json.dumps({"error": "Sysadmin accidentally destroyed pager with a large hammer."})
         for jid in finished:
             job = self.store.get_by_jid(jid)
-            for task in job.tasks:
-                for call in task.calls:
-                    self.store.report_call(jid=jid, idn=task.idn, uri=call.uri,
-                                           errcode=127, output=output, finished=datetime.datetime.now())
+            for result in job.results:
+                for task in result.tasks:
+                    for call in task.calls:
+                        for hostname in clientslist:
+                            self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, hostname=hostname,
+                                                   errcode=127, output=output, finished=datetime.datetime.now())
         for job in self.store.get_not_finished():
             assert job.jid in unfinished
             assert job.jid not in finished
@@ -240,7 +246,8 @@ class TestBasicJobStore:
         for idx in range(10):
             jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
             state = StateCompiler(get_barestates_root).compile(uri)
-            self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+            for hostname in clientslist:
+                self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
             if idx in [4, 7]:
                 failed.append(jid)
             else:
@@ -249,11 +256,13 @@ class TestBasicJobStore:
         output = json.dumps({"message": "Traffic jam on the Information Superhighway."})
         for jid in failed + succeed:
             job = self.store.get_by_jid(jid)
-            for task in job.tasks:
-                for call in task.calls:
-                    errcode = 1 if jid in failed else 0
-                    self.store.report_call(jid=jid, idn=task.idn, uri=call.uri,
-                                           errcode=errcode, output=output, finished=datetime.datetime.now())
+            for result in job.results:
+                for task in result.tasks:
+                    for call in task.calls:
+                        errcode = 1 if jid in failed else 0
+                        for hostname in clientslist:
+                            self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, hostname=hostname,
+                                                   errcode=errcode, output=output, finished=datetime.datetime.now())
         for job in self.store.get_failed():
             assert job.jid in failed
             assert job.jid not in succeed
@@ -275,7 +284,8 @@ class TestBasicJobStore:
         for idx in range(10):
             jid = self.store.new(query=query, clientslist=clientslist, expr=uri)
             state = StateCompiler(get_barestates_root).compile(uri)
-            self.store.add_tasks(jid, *state.tasklist, job_src=state.to_yaml())
+            for hostname in clientslist:
+                self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
             if idx in [4, 7]:
                 failed.append(jid)
             else:
@@ -284,11 +294,13 @@ class TestBasicJobStore:
         output = json.dumps({"message": "Traffic jam on the Information Superhighway."})
         for jid in failed + succeed:
             job = self.store.get_by_jid(jid)
-            for task in job.tasks:
-                for call in task.calls:
-                    errcode = 1 if jid in failed else 0
-                    self.store.report_call(jid=jid, idn=task.idn, uri=call.uri,
-                                           errcode=errcode, output=output, finished=datetime.datetime.now())
+            for result in job.results:
+                for task in result.tasks:
+                    for call in task.calls:
+                        errcode = 1 if jid in failed else 0
+                        for hostname in clientslist:
+                            self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, hostname=hostname,
+                                                   errcode=errcode, output=output, finished=datetime.datetime.now())
         for job in self.store.get_suceeded():
             assert job.jid in succeed
             assert job.jid not in failed
