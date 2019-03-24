@@ -307,3 +307,27 @@ class TestBasicJobStore:
             succeed.pop(succeed.index(job.jid))
         assert not succeed
 
+    def test_get_tagged_jobs(self, get_barestates_root):
+        """
+        Test get all tagged jobs
+
+        :param get_barestates_root:
+        :return:
+        """
+        query = ":a"
+        clientslist = ["web.sugarsack.org", "docs.sugarsack.org"]
+        uri = "job_store.test_jobstore_register_job"
+        _tag = "#everything_on_fire"
+        tagged = []
+        for idx in range(10):
+            tag = _tag if idx in [4, 7] else None
+            jid = self.store.new(query=query, clientslist=clientslist, expr=uri, tag=tag)
+            if tag is not None:
+                tagged.append(jid)
+            state = StateCompiler(get_barestates_root).compile(uri)
+            for hostname in clientslist:
+                self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
+        for job in self.store.get_by_tag(tag=_tag):
+            assert job.jid in tagged
+            tagged.pop(tagged.index(job.jid))
+        assert not tagged
