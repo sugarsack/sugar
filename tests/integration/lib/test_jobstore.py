@@ -23,9 +23,8 @@ class TestBasicJobStore:
         Perform setup before every test method.
         :return:
         """
-        self.store = JobStorage(get_config())
-        # Force to do this in temp directory
-        self.store._db_path = "/tmp{}".format(self.store._db_path)
+        self._path = "/tmp/jobstore"
+        self.store = JobStorage(get_config(), path=self._path)
 
     def teardown_method(self):
         """
@@ -33,9 +32,10 @@ class TestBasicJobStore:
         :return:
         """
         self.store.close()
+        if os.path.exists(self._path):
+            shutil.rmtree(self._path)
         del self.store
-        if os.path.exists(get_config().cache.path):
-            shutil.rmtree(get_config().cache.path)
+        del self._path
 
     def test_register_job(self):
         """
