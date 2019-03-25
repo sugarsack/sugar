@@ -24,6 +24,8 @@ class TestBasicJobStore:
         :return:
         """
         self.store = JobStorage(get_config())
+        # Force to do this in temp directory
+        self.store._db_path = "/tmp{}".format(self.store._db_path)
 
     def teardown_method(self):
         """
