@@ -30,9 +30,9 @@ class JobStorage:
     """
     Store data in the database.
     """
-    def __init__(self, config):
+    def __init__(self, config, path=None):
         self._config = config
-        self._db_path = None
+        self._db_path = self._config.cache.path if path is None else path
         self.init()
 
     def new(self, query: str, clientslist: list, expr: str, tag: str = None) -> str:
@@ -353,7 +353,7 @@ class JobStorage:
 
         :return: None
         """
-        self._db_path = join_path(self._config.cache.path, "/master/jobs.data")
+        self._db_path = join_path(self._db_path, "/master/jobs.data")
         os.makedirs(os.path.dirname(self._db_path), exist_ok=True)
         database.bind(provider="sqlite", filename=self._db_path, create_db=True)
         database.generate_mapping(create_tables=True)
