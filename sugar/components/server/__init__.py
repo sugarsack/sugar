@@ -12,7 +12,6 @@ from twisted.internet.threads import deferToThread
 
 from autobahn.twisted.websocket import listenWS
 from sugarapi.service import APIService
-from sugarapi import MasterRef
 
 from sugar.components.server.protocols import (SugarServerProtocol, SugarServerFactory,
                                                SugarConsoleServerProtocol, SugarConsoleServerFactory)

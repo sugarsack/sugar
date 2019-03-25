@@ -17,4 +17,6 @@ This serves to manage jobs:
   - Contains all other failures
 """
 
+# flake8: noqa
+
 from sugar.lib.jobstore.storage import JobStorage
