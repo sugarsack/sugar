@@ -72,12 +72,13 @@ class TestBasicJobStore:
         state = StateCompiler(get_barestates_root).compile(uri)
 
         # Client updates the server
-        self.store.add_tasks(jid, *state.tasklist, hostname=clientslist[0], src=state.to_yaml(),)
+        for hostname in clientslist:
+            self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
 
         job = self.store.get_by_jid(jid)
-        result = next(iter(job.results))
-        assert result.src == state.to_yaml()
-        assert len(result.tasks) == 2
+        for result in job.results:
+            assert result.src == state.to_yaml()
+            assert len(result.tasks) == 2
 
     def test_report_task(self, get_barestates_root):
         """
@@ -387,12 +388,12 @@ class TestBasicJobStore:
         for hostname in hostnames:
             self.store.add_tasks(jid, *state.tasklist, hostname=hostname, src=state.to_yaml())
 
-        self.store.export(jid, path=get_config().cache.path)
+        self.store.export(jid, path=self._path)
 
-        archpath = "{}/sugar-job-{}.tar.gz".format(get_config().cache.path, jid)
+        archpath = "{}/sugar-job-{}.tar.gz".format(self._path, jid)
         assert os.path.exists(archpath)
 
-        arch_extracted_path = "{}/arch/".format(get_config().cache.path)
+        arch_extracted_path = "{}/arch/".format(self._path)
         tar = tarfile.open(archpath)
         tar.extractall(arch_extracted_path)
         tar.close()
