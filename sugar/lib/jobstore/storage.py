@@ -270,6 +270,27 @@ class JobStorage:
         with orm.db_session:
             orm.delete(job for job in Job if job.created < dtm)
 
+    def delete_by_jid(self, jid: str) -> None:
+        """
+        Delete a particular job by JID.
+
+        :param jid: string job id
+        :return: None
+        """
+        if jid is not None:
+            with orm.db_session:
+                orm.delete(job for job in Job if job.jid == jid)
+
+    def delete_by_tag(self, tag: str) -> None:
+        """
+        Delete a particular job by tag
+        :param tag: string tag
+        :return: None
+        """
+        if tag is not None:
+            with orm.db_session:
+                orm.delete(job for job in Job if job.tag == tag)
+
     def export(self, jid, path) -> None:
         """
         Export job to some tar archive.
