@@ -124,6 +124,27 @@ class JobStorage:
                     call.errcode = errcode
                     call.finished = finished
 
+    def get_scheduled(self, hostname: str) -> list:
+        """
+        Get scheduled jobs for the hostname.
+
+        :param hostname:
+        :return: list of jobs
+        """
+        if hostname is None:
+            raise sugar.lib.exceptions.SugarJobStoreException("No hostname specified")
+
+        jobs = []
+        with orm.db_session:
+            for job in orm.select(job for job in Job
+                                  for result in job.results if result.started is None and result.hostname == hostname):
+                for result in job.results:
+                    if result.hostname == hostname:
+                        result.started = datetime.datetime.now()
+                jobs.append(job.clone())
+
+        return jobs
+
     def get_done_stats(self, jid: str) -> JobStats:
         """
         Get status of done.
