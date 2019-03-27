@@ -10,7 +10,8 @@ from collections import OrderedDict
 
 import yaml as pyyaml
 
-# pylint: disable=W0614,C0103,W0401,C0413
+# flake8: noqa
+# pylint: disable=W0614,C0103,W0401,C0413,E0102,E8020,E8010,E8016
 
 _items = 'viewitems' if sys.version_info < (3,) else 'items'
 

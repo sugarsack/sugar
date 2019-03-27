@@ -105,6 +105,7 @@ class RuntimeRegistry:
     def get_status(self):
         """
         Return clients minimal data (no p-data) and their status (offline/online).
+
         :return: list of machines with their statuses.
         """
         systems = {}

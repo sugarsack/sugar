@@ -27,6 +27,7 @@ over the same target:
 
 import collections
 import sugar.lib.exceptions
+from sugar.lib.compat import yaml
 
 
 class FunctionObject:
@@ -53,6 +54,30 @@ class FunctionObject:
             arg=self.args, kwr=self.kwargs
         )
 
+    @property
+    def src(self) -> str:
+        """
+        Get source definition of this function.
+
+        :return: string
+        """
+        data = {
+            "function": self.uri,
+            "arguments": self.args,
+            "keywords": self.kwargs,
+        }
+
+        return yaml.dump(data, default_flow_style=False)
+
+    @property
+    def uri(self) -> str:
+        """
+        Get function object call URI.
+
+        :return: string
+        """
+        return "{m}.{f}".format(m=self.module, f=self.function)
+
 
 class StateTask:
     """
@@ -66,6 +91,7 @@ class StateTask:
         """
         assert len(state_task) == 1, "Syntax error: should be one ID only."
 
+        self.idn = None
         self._state_task = state_task
         self._func_obs = None
         self._set_state_tasks()
@@ -106,39 +132,39 @@ class StateTask:
         """
         func_obj = FunctionObject()
 
-        idn = next(iter(self._state_task))
-        _target = next(iter(self._state_task[idn]))
+        self.idn = next(iter(self._state_task))
+        _target = next(iter(self._state_task[self.idn]))
         try:
             func_obj.module, func_obj.function = _target.rsplit(".", 1)
         except (ValueError, TypeError):
             raise sugar.lib.exceptions.SugarSCException(
                 "Module should contain function in {}".format(_target))
 
-        func_obj.args, func_obj.kwargs = self._get_arguments(self._state_task[idn][_target])
+        func_obj.args, func_obj.kwargs = self._get_arguments(self._state_task[self.idn][_target])
 
-        if idn.startswith("name:"):
+        if self.idn.startswith("name:"):
             if "name" in func_obj.kwargs:
                 raise sugar.lib.exceptions.SugarSCException("The 'name' cannot be defined both in ID "
-                                                            "section and keywords. Statement: {}".format(idn))
-            func_obj.args.insert(0, idn.split(":", 1)[-1])
+                                                            "section and keywords. Statement: {}".format(self.idn))
+            func_obj.args.insert(0, self.idn.split(":", 1)[-1])
         elif "name" in func_obj.kwargs:
             func_obj.args.insert(0, func_obj.kwargs.pop("name"))
         elif "name" not in func_obj.kwargs and not func_obj.args:
-            func_obj.args.append(idn)
+            func_obj.args.append(self.idn)
 
         self._func_obs.append(func_obj)
 
     def _add_multiple_tasks(self) -> None:
         """
-        Add a multiple tasks instances to the container.
+        Add a multiple tasks instances to the container (batch mode per Task ID).
 
         :return: None
         """
-        idn = next(iter(self._state_task))
+        self.idn = next(iter(self._state_task))
 
         # Three nested loops aren't bad here.
         # We expect only one or few items.
-        for _target in self._state_task[idn]:
+        for _target in self._state_task[self.idn]:
             assert len(_target) == 1, "Syntax error: should be only one task per a function call."
             for _module in _target:
                 for _task in _target[_module]:
@@ -148,11 +174,11 @@ class StateTask:
                     func_obj.function = next(iter(_task))
                     func_obj.args, func_obj.kwargs = self._get_arguments(_task[func_obj.function])
 
-                    idn_name = idn.split(":", 1)[-1] if idn.startswith("name:") else None
+                    idn_name = self.idn.split(":", 1)[-1] if self.idn.startswith("name:") else None
                     if "name" not in func_obj.kwargs and idn_name is not None:  # idn is forced to be a name,
                         func_obj.args.insert(0, idn_name)                       # unless overridden.
                     elif "name" not in func_obj.kwargs and not func_obj.args:   # idn is the name
-                        func_obj.args.append(idn)
+                        func_obj.args.append(self.idn)
                     self._func_obs.append(func_obj)
 
     def _set_state_tasks(self) -> None:

@@ -142,3 +142,11 @@ class SugarLoaderException(SugarException):
     General Sugar module loader exception.
     """
     __prefix__ = "Sugar Loader error"
+
+
+# Job store
+class SugarJobStoreException(SugarException):
+    """
+    Sugar JobStore general exception.
+    """
+    __prefix__ = "Sugar JobStore error"
