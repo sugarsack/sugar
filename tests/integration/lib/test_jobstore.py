@@ -443,3 +443,17 @@ Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/
                 assert result.src == state.to_yaml()
             else:
                 assert result.log == result.src == ""
+
+    def test_delete_job_by_jid(self):
+        """
+        Delete job by jid.
+
+        :return:
+        """
+        uri = "job_store.test_jobstore_register_job"
+        hostnames = ["foo.example.lan", "bar.example.lan"]
+        jid = self.store.new(query="*", clientslist=hostnames, expr=uri, tag="for exporting")
+        assert self.store.get_by_jid(jid=jid) is not None
+        self.store.delete_by_jid(jid=jid)
+        assert self.store.get_by_jid(jid=jid) is None
+
