@@ -23,7 +23,7 @@ from sugar.lib.compat import yaml
 import sugar.utils.exitcodes
 import sugar.lib.exceptions
 
-# pylint: disable=R0201
+# pylint: disable=R0201,R0904
 
 
 class JobStorage:
@@ -128,6 +128,7 @@ class JobStorage:
         """
         Get unpicked jobs.
 
+        :param hostname: hostname of the client
         :return: list of unpicked jobs or an empty list
         """
         jobs = []
@@ -149,7 +150,8 @@ class JobStorage:
         """
         Get scheduled jobs for the hostname.
 
-        :param hostname:
+        :param hostname: hostname of the client
+        :raises SugarJobStoreException: if no hostname has been specified.
         :return: list of jobs
         """
         if hostname is None:
