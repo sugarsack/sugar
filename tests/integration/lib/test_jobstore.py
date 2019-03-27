@@ -403,3 +403,43 @@ class TestBasicJobStore:
             assert os.path.exists("{}{}".format(arch_extracted_path, hostname))
             for f_gen in ["source", "result"]:
                 assert os.path.exists("{}{}/{}.yaml".format(arch_extracted_path, hostname, f_gen))
+
+    def test_report_job_result(self, get_barestates_root):
+        """
+        Test job reporting.
+
+        :param get_barestates_root:
+        :return:
+        """
+        uri = "job_store.test_jobstore_register_job"
+        hostnames = ["foo.example.lan", "bar.example.lan"]
+
+        state = StateCompiler(get_barestates_root).compile(uri)
+
+        jid = self.store.new(query="*", clientslist=hostnames, expr=uri, tag="for exporting")
+        hostname = hostnames[0]
+        answer = {
+            "some": "structure",
+            "value": 42,
+            "messages" : [
+                "first line",
+                "second line"
+            ]
+        }
+        log = """
+Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting due to inactivity
+Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting was requested
+Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: Quitting due to inactivity
+Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: Quitting was requested
+Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
+"""
+        self.store.report_job(jid=jid, hostname=hostname, src=state.to_yaml(),
+                              log=log, answer=json.dumps(answer))
+
+        job = self.store.get_by_jid(jid)
+        for result in job.results:
+            if result.hostname == hostname:
+                assert result.log == log.strip()
+                assert result.src == state.to_yaml()
+            else:
+                assert result.log == result.src == ""
