@@ -124,6 +124,27 @@ class JobStorage:
                     call.errcode = errcode
                     call.finished = finished
 
+    def get_unpicked(self, hostname: str = None) -> list:
+        """
+        Get unpicked jobs.
+
+        :return: list of unpicked jobs or an empty list
+        """
+        jobs = []
+        with orm.db_session:
+            if hostname is None:
+                job_selector = orm.select(job for job in Job
+                                          for result in job.results
+                                          if result.started is None)
+            else:
+                job_selector = orm.select(job for job in Job
+                                          for result in job.results
+                                          if result.started is None and result.hostname == hostname)
+            for job in job_selector:
+                jobs.append(job.clone())
+
+        return jobs
+
     def get_scheduled(self, hostname: str) -> list:
         """
         Get scheduled jobs for the hostname.
