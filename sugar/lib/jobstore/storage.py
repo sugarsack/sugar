@@ -73,15 +73,26 @@ class JobStorage:
                     for call in task.calls:
                         _task.calls.create(uri=call.uri, src=call.src)
 
-    def report_job(self, jid: str, idn: str, source: str) -> None:
+    def report_job(self, jid: str, hostname: str, src: str, log: str, answer: str) -> None:
         """
         Report compiled job source on the client.
 
         :param jid: Job id
-        :param idn: identification keyword of the job ID
-        :param source: source of the job (YAML)
+        :param hostname: hostname
+        :param src: source of the job (YAML)
+        :param log: text of the log snipped
+        :param answer: the entire (compiled) answer of the job
         :return: None
         """
+        if src is not None or log is not None or answer is not None:
+            with orm.db_session:
+                result = Job.get(jid=jid).results.select(lambda result: result.hostname == hostname).first()
+                if src is not None:
+                    result.src = src
+                if log is not None:
+                    result.log = log
+                if answer is not None:
+                    result.answer = answer
 
     def report_call(self, jid: str, hostname: str, idn: str,
                     uri: str, errcode: int, output: str, finished: datetime) -> None:
