@@ -507,3 +507,16 @@ Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/
             self.store.get_scheduled(None)
         assert "No hostname specified" in str(exc)
 
+    def test_get_unpicked(self):
+        """
+        Test getting unpicked jobs for one host or many.
+
+        :return:
+        """
+        hostnames = ["madcow.domain.foo", "flyingpig.domain.foo", "frozenhell.domain.foo"]
+        for idx in range(2):
+            self.store.new(query="*", clientslist=hostnames, expr="some.uri")
+        for idx in range(2):
+            self.store.new(query="*", clientslist=hostnames[1:], expr="some.uri")
+        assert len(self.store.get_unpicked()) == 4
+        assert len(self.store.get_unpicked(hostname=hostnames[0])) == 2
