@@ -156,7 +156,8 @@ class JobStorage:
         """
         with orm.db_session:
             job = Job.get(jid=jid)
-            job.clone()
+            if job is not None:
+                job.clone()
         return job
 
     def get_later_then(self, dtm: datetime) -> list:
