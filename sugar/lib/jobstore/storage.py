@@ -285,6 +285,7 @@ class JobStorage:
     def delete_by_tag(self, tag: str) -> None:
         """
         Delete a particular job by tag
+
         :param tag: string tag
         :return: None
         """
