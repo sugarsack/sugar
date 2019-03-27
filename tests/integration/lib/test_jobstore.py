@@ -457,3 +457,24 @@ Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/
         self.store.delete_by_jid(jid=jid)
         assert self.store.get_by_jid(jid=jid) is None
 
+    def test_delete_job_by_tag(self):
+        """
+        Delete job by tag.
+
+        :return:
+        """
+        uri = "job_store.test_jobstore_register_job"
+        tag = "test"
+        hostnames = ["foo.example.lan", "bar.example.lan"]
+        for x in range(10):
+            self.store.new(query="*", clientslist=hostnames, expr=uri, tag=None if x in [2, 4, 6] else tag)
+
+        assert len(self.store.get_all()) == 10
+
+        self.store.delete_by_tag(tag)
+        jobs = self.store.get_all()
+
+        assert len(jobs) == 3
+        for job in jobs:
+            assert job.tag is None
+
