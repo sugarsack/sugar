@@ -240,7 +240,7 @@ class JobStorage:
         with orm.db_session:
             return [job.clone() for job in orm.select(job for job in Job if job.tag == tag)]
 
-    def get_all_tasks(self, limit=25, offset=0) -> list:
+    def get_all(self, limit=25, offset=0) -> list:
         """
         Get all existing jobs.
 

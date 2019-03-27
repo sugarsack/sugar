@@ -348,8 +348,8 @@ class TestBasicJobStore:
         for idx in range(100):
             self.store.new(query=query, clientslist=clientslist, expr=uri)
 
-        assert len(self.store.get_all_tasks(limit=None, offset=0)) == 100
-        assert len(self.store.get_all_tasks(limit=25, offset=0)) == 25
+        assert len(self.store.get_all(limit=None, offset=0)) == 100
+        assert len(self.store.get_all(limit=25, offset=0)) == 25
 
     def test_expire_jobs(self):
         """
@@ -371,7 +371,7 @@ class TestBasicJobStore:
             print("Adding job", idx + 1, "of 10, JID:", jid)
             time.sleep(1.5)
         self.store.expire(middle)
-        assert len(self.store.get_all_tasks()) == 2
+        assert len(self.store.get_all()) == 2
         assert not bool(self.store.get_by_tag(tag="#outdated"))
 
     def test_export_to_archive_jobs(self, get_barestates_root):
@@ -452,7 +452,7 @@ Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/
         """
         uri = "job_store.test_jobstore_register_job"
         hostnames = ["foo.example.lan", "bar.example.lan"]
-        jid = self.store.new(query="*", clientslist=hostnames, expr=uri, tag="for exporting")
+        jid = self.store.new(query="*", clientslist=hostnames, expr=uri)
         assert self.store.get_by_jid(jid=jid) is not None
         self.store.delete_by_jid(jid=jid)
         assert self.store.get_by_jid(jid=jid) is None
