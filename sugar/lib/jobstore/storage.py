@@ -452,8 +452,9 @@ class JobStorage:
         """
         self._db_path = join_path(self._db_path, "/master/jobs.data")
         os.makedirs(os.path.dirname(self._db_path), exist_ok=True)
-        database.bind(provider="sqlite", filename=self._db_path, create_db=True)
-        database.generate_mapping(create_tables=True)
+        if database.provider is None:
+            database.bind(provider="sqlite", filename=self._db_path, create_db=True)
+            database.generate_mapping(create_tables=True)
 
     def close(self) -> None:
         """
