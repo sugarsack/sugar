@@ -40,6 +40,7 @@ class Result(database.Entity, SerialisableEntity):
     hostname = orm.Required(str)
     status = orm.Required(int, default=R_NOT_SET)
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
+    started = orm.Optional(datetime.datetime, nullable=True, default=None)  # When client picks up the job
     src = orm.Optional(str)                       # Source of the task
     answer = orm.Optional(str)                    # Answer of the task (module return data)
     log = orm.Optional(str)                       # Log slice during the task performance

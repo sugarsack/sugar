@@ -8,6 +8,10 @@ import json
 import datetime
 import time
 import tarfile
+
+import pytest
+
+import sugar.lib.exceptions
 from sugar.lib.compiler import StateCompiler
 from sugar.lib.jobstore import JobStorage
 from sugar.config import get_config
@@ -478,3 +482,41 @@ Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/
         for job in jobs:
             assert job.tag is None
 
+    def test_get_scheduled(self):
+        """
+        Get scheduled jobs for the offline client.
+
+        :return:
+        """
+        hostname = "foo"
+        self.store.new(query="*", clientslist=[hostname], expr="some.uri")
+        assert len(self.store.get_all()) == 1
+        assert len(self.store.get_scheduled(hostname)) == 1
+        assert len(self.store.get_scheduled(hostname)) == 0
+
+    def test_get_scheduled_no_hostname(self):
+        """
+        Raise an exception if hostname is not specified.
+
+        :return:
+        """
+        hostname = "foo"
+        self.store.new(query="*", clientslist=[hostname], expr="some.uri")
+        assert len(self.store.get_all()) == 1
+        with pytest.raises(sugar.lib.exceptions.SugarJobStoreException) as exc:
+            self.store.get_scheduled(None)
+        assert "No hostname specified" in str(exc)
+
+    def test_get_unpicked(self):
+        """
+        Test getting unpicked jobs for one host or many.
+
+        :return:
+        """
+        hostnames = ["madcow.domain.foo", "flyingpig.domain.foo", "frozenhell.domain.foo"]
+        for idx in range(2):
+            self.store.new(query="*", clientslist=hostnames, expr="some.uri")
+        for idx in range(2):
+            self.store.new(query="*", clientslist=hostnames[1:], expr="some.uri")
+        assert len(self.store.get_unpicked()) == 4
+        assert len(self.store.get_unpicked(hostname=hostnames[0])) == 2

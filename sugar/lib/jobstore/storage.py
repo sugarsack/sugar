@@ -23,7 +23,7 @@ from sugar.lib.compat import yaml
 import sugar.utils.exitcodes
 import sugar.lib.exceptions
 
-# pylint: disable=R0201
+# pylint: disable=R0201,R0904
 
 
 class JobStorage:
@@ -123,6 +123,50 @@ class JobStorage:
                     call.output = output
                     call.errcode = errcode
                     call.finished = finished
+
+    def get_unpicked(self, hostname: str = None) -> list:
+        """
+        Get unpicked jobs.
+
+        :param hostname: hostname of the client
+        :return: list of unpicked jobs or an empty list
+        """
+        jobs = []
+        with orm.db_session:
+            if hostname is None:
+                job_selector = orm.select(job for job in Job
+                                          for result in job.results
+                                          if result.started is None)
+            else:
+                job_selector = orm.select(job for job in Job
+                                          for result in job.results
+                                          if result.started is None and result.hostname == hostname)
+            for job in job_selector:
+                jobs.append(job.clone())
+
+        return jobs
+
+    def get_scheduled(self, hostname: str) -> list:
+        """
+        Get scheduled jobs for the hostname.
+
+        :param hostname: hostname of the client
+        :raises SugarJobStoreException: if no hostname has been specified.
+        :return: list of jobs
+        """
+        if hostname is None:
+            raise sugar.lib.exceptions.SugarJobStoreException("No hostname specified")
+
+        jobs = []
+        with orm.db_session:
+            for job in orm.select(job for job in Job
+                                  for result in job.results if result.started is None and result.hostname == hostname):
+                for result in job.results:
+                    if result.hostname == hostname:
+                        result.started = datetime.datetime.now()
+                jobs.append(job.clone())
+
+        return jobs
 
     def get_done_stats(self, jid: str) -> JobStats:
         """
