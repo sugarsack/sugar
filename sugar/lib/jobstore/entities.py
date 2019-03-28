@@ -4,22 +4,17 @@ Entities to be saved in the database.
 """
 import datetime
 from pony import orm
-from sugar.utils.db import database, SerialisableEntity
+from sugar.utils.db import database, SerialisableEntity, JobDefaults, ResultDefault
 
 
 class Job(database.Entity, SerialisableEntity):
     """
     Job object.
     """
-    # Job state
-    S_ISSUED = "Pending"                          # not a single machine yet got this
-    S_IN_PROGRESS = "Running"                     # at least one machine got it
-    S_FINISHED = "Finished"                       # all machines returned results
-
     jid = orm.Required(str)
     created = orm.Required(datetime.datetime, default=datetime.datetime.now())
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
-    status = orm.Required(str, default=S_ISSUED)
+    status = orm.Required(str, default=JobDefaults.S_ISSUED)
     query = orm.Required(str)
     expr = orm.Required(str)                      # job expression (state name or function name)
     tag = orm.Optional(str, nullable=True)        # Tag/label of the job for better search for it
@@ -30,15 +25,9 @@ class Result(database.Entity, SerialisableEntity):
     """
     Results of the client.
     """
-    R_NOT_SET = 0                                 # N/A. Not available yet
-    R_FAULTY = 1                                  # Faulty. Less than 20% machines failed
-    R_UNCLEAN = 2                                 # Unclean. At least one machine has warnings
-    R_OOPS = 3                                    # Fatal. All machines failed (100%).
-    R_DIRTY = 4                                   # Dirty. Most machines with warnings
-
     job = orm.Required(Job)
     hostname = orm.Required(str)
-    status = orm.Required(int, default=R_NOT_SET)
+    status = orm.Required(int, default=ResultDefault.R_NOT_SET)
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     started = orm.Optional(datetime.datetime, nullable=True, default=None)  # When client picks up the job
     fired = orm.Optional(datetime.datetime, nullable=True, default=None)    # When job is just fired by master

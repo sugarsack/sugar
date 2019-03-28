@@ -9,6 +9,26 @@ from sugar.transport.serialisable import Serialisable
 database = orm.Database()  # pylint: disable=C0103
 
 
+class JobDefaults:
+    """
+    Job defaults.
+    """
+    S_ISSUED = "Pending"                          # not a single machine yet got this
+    S_IN_PROGRESS = "Running"                     # at least one machine got it
+    S_FINISHED = "Finished"                       # all machines returned results
+
+
+class ResultDefault:
+    """
+    Results defaults.
+    """
+    R_NOT_SET = 0                                 # N/A. Not available yet
+    R_FAULTY = 1                                  # Faulty. Less than 20% machines failed
+    R_UNCLEAN = 2                                 # Unclean. At least one machine has warnings
+    R_OOPS = 3                                    # Fatal. All machines failed (100%).
+    R_DIRTY = 4                                   # Dirty. Most machines with warnings
+
+
 class SerialisableEntity:
     """
     Serialisable entity utils.
