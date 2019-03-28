@@ -35,7 +35,7 @@ class JobStorage:
         self._db_path = self._config.cache.path if path is None else path
         self.init()
 
-    def new(self, query: str, clientslist: list, expr: str, tag: str = None) -> str:
+    def new(self, query: str, clientslist: list, expr: str, tag: str = None, jid: str = None) -> str:
         """
         Register a new job.
 
@@ -43,9 +43,11 @@ class JobStorage:
         :param clientslist: Result of the matcher query
         :param expr: Expression of the job: either it is the name of the state or function etc. I.e. what was called.
         :param tag: Tag (label) of the job.
+        :param jid: reuse passed in JID.
         :return: jid (new job id)
         """
-        jid = jidstore.create()
+        if jid is None or not jidstore.is_jid(jid):
+            jid = jidstore.create()
         with orm.db_session:
             job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now(), tag=tag)
             for hostname in clientslist:
