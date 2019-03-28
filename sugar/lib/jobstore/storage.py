@@ -64,9 +64,7 @@ class JobStorage:
         :return: None
         """
         with orm.db_session:
-            jobs = orm.select(job for job in Job if job.jid == jid
-                              for result in job.results if result.hostname == hostname)
-            for job in jobs:
+            for job in orm.select(job for job in Job if job.jid == jid):
                 for result in job.results:
                     if result.hostname == hostname:
                         result.fired = datetime.datetime.now()
