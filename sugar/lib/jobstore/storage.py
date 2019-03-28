@@ -54,6 +54,23 @@ class JobStorage:
                 job.results.create(hostname=hostname)
         return jid
 
+    def set_as_fired(self, jid: str, hostname: str) -> None:
+        """
+        Mark job as "fired". Which means job is not necessary was picked up and accepted.
+        But it means that the master fired it over the network.
+
+        :param jid: Job ID
+        :param hostname: hostname or Machine ID
+        :return: None
+        """
+        with orm.db_session:
+            jobs = orm.select(job for job in Job if job.jid == jid
+                              for result in job.results if result.hostname == hostname)
+            for job in jobs:
+                for result in job.results:
+                    if result.hostname == hostname:
+                        result.fired = datetime.datetime.now()
+
     def add_tasks(self, jid: str, *tasks: StateTask, hostname: str = None, src: str = None) -> None:
         """
         Adds a completed task to the job per a hostname.

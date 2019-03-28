@@ -520,3 +520,21 @@ Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/
             self.store.new(query="*", clientslist=hostnames[1:], expr="some.uri")
         assert len(self.store.get_unpicked()) == 4
         assert len(self.store.get_unpicked(hostname=hostnames[0])) == 2
+
+    def test_fire_job(self):
+        """
+        Test fire job.
+        :return:
+        """
+        hostnames = ["some.hostname"]
+        jid = self.store.new(query=":a", clientslist=hostnames, expr="some.url")
+        for result in self.store.get_by_jid(jid=jid).results:
+            if result.hostname in hostnames:
+                assert result.fired is None
+
+        for hostname in hostnames:
+            self.store.set_as_fired(jid, hostname=hostname)
+
+        for result in self.store.get_by_jid(jid=jid).results:
+            if result.hostname in hostnames:
+                assert result.fired is not None
