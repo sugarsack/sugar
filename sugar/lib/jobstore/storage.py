@@ -304,6 +304,7 @@ class JobStorage:
     def get_all(self, limit=25, offset=0) -> list:
         """
         Get all existing jobs.
+        WARNING: This dumps literally everything!!
 
         :param limit: limit of amount of the returned objects.
         :param offset: offset in the database.
@@ -320,6 +321,30 @@ class JobStorage:
                     job for job in Job).limit(limit, offset=offset)]
             else:
                 result = [job.clone() for job in orm.select(job for job in Job)]
+        return result
+
+    def get_all_overview(self, limit=25, offset=0) -> list:
+        """
+        Get all existing jobs, without an actual results (count only).
+
+        :param limit: limit of amount of the returned objects.
+        :param offset: offset in the database.
+
+        :return:
+        """
+        if limit is None:
+            limit = 0
+        if offset is None:
+            offset = 0
+        with orm.db_session:
+            query = orm.select(job for job in Job)
+            if limit + offset:
+                query = query.limit(limit, offset=offset)
+            result = []
+            for job in query:
+                job = job.clone()
+                job.results = len(job.results)
+                result.append(job)
         return result
 
     def expire(self, dtm=None) -> None:
