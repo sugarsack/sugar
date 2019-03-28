@@ -17,6 +17,7 @@ from sugar.lib.pki import Crypto
 from sugar.lib.pki.keystore import KeyStore
 from sugar.components.server.registry import RuntimeRegistry
 from sugar.components.server.pdatastore import PDataContainer
+from sugar.lib.jobstore import JobStorage
 
 import sugar.transport
 import sugar.lib.pki.utils
@@ -42,6 +43,7 @@ class ServerCore(object):
         self.master_local_token = MasterLocalToken()
         self.peer_registry = RuntimeRegistry()
         self.peer_registry.keystore = self.keystore
+        self.jobstore = JobStorage(get_config())
 
     def verify_local_token(self, token):
         """
@@ -68,8 +70,9 @@ class ServerCore(object):
             "function": event.fun,
             "arguments": event.arg,
         }
-
+        self.jobstore.set_as_fired(jid=event.jid, hostname=target.id)
         self.get_client_protocol(target.id).sendMessage(ServerMsgFactory.pack(task_message), isBinary=True)
+        self.log.debug("Job '{}' has been fired successfully", event.jid)
 
     def on_broadcast_tasks(self, evt):
         """
@@ -80,10 +83,14 @@ class ServerCore(object):
         """
         self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\ttarget: {}\n\targs: {}",
                        evt.fun, evt.tgt, evt.arg)
+        clientlist = []
         for target in self.peer_registry.get_targets(query=evt.tgt):
+            clientlist.append(target.id)
             threads.deferToThread(self.fire_event, event=evt, target=target)
+        self.jobstore.new(query=evt.tgt, clientslist=clientlist, expr="runner:{}".format(evt.fun), jid=evt.jid)
+        self.log.debug("Created a new job: '{}'", evt.jid)
 
-    def refresh_client_pdata(self, machine_id, traits=None):
+    def refresh_client_pdata(self, machine_id: str, traits=None) -> None:
         """
         Register machine connection.
 
@@ -112,7 +119,7 @@ class ServerCore(object):
 
         self.peer_registry.unregister(proto.get_machine_id())
 
-    def get_client_protocol(self, machine_id):
+    def get_client_protocol(self, machine_id: str):
         """
         Get registered client protocol to send a message to the client.
 
