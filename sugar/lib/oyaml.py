@@ -77,3 +77,12 @@ def load(stream):
         return loader.get_single_data()
     finally:
         loader.dispose()
+
+
+def dump(data, stream=None, **kwargs):
+    """
+    Serialize a Python object into a YAML stream.
+    If stream is None, return the produced string instead.
+    """
+    kwargs["default_flow_style"] = False
+    return dump_all([data], stream, Dumper=Dumper, **kwargs)
