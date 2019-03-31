@@ -1,16 +1,19 @@
 """
 Core client operations.
 """
-
+import time
 import os
 
 from twisted.internet import reactor
+from twisted.internet import task as twisted_task
 import twisted.internet.error
+
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
 import sugar.utils.network
 import sugar.utils.process
 import sugar.lib.exceptions
+
 from sugar.config import get_config
 from sugar.lib.compat import queue
 from sugar.lib.logger.manager import get_logger
@@ -122,10 +125,12 @@ class TaskPool:
     """
     Task pool to collect, run them and get the output back.
     """
-    def __init__(self):
+    def __init__(self, core):
+        self.core = core
         self.processor = TaskProcessor(SugarModuleLoader())
         self.worker = sugar.utils.process.SignalHandlingMultiprocessingProcess(target=self.processor.run)
         self.worker.daemon = True
+        self._response_looper_marker = True
 
     def start(self) -> None:
         """
@@ -134,6 +139,7 @@ class TaskPool:
         :return: None
         """
         self.worker.start()
+        twisted_task.LoopingCall(self.next_response).start(0.1)
 
     def stop(self) -> None:
         """
@@ -159,6 +165,24 @@ class TaskPool:
             raise sugar.lib.exceptions.SugarRuntimeException("Task worker is not running")
 
         self.processor.schedule_task(task)
+
+    def next_response(self):
+        """
+        Get a response from the queue.
+        :return:
+        """
+        # TODO: This is ugly. Twisted repeats this each 0.1 seconds constantly reading disk.
+        #       This should definitely work in a separate daemonic thread and use get()
+        #       instead of get_nowait() and use notification pipe instead. While works
+        #       currently reliably, this approach is just as bad.
+        resp = None
+        try:
+            resp = self.processor.get_response(self._response_looper_marker)
+            self._response_looper_marker = False
+        except Exception as exc:
+            pass
+        if resp is not None:
+            self.core.broadcast_message(resp)
 
 
 @Singleton
@@ -190,6 +214,17 @@ class ClientCore(object):
         :return: None
         """
         self.reactor_connection = connection
+
+    def broadcast_message(self, data):
+        """
+        Send data to all protocols.
+
+        :param data:
+        :return:
+        """
+        for prt_id in self._proto:
+            proto = self._proto[prt_id]
+            proto.sendMessage(data, is_binary=True)
 
     def set_protocol(self, proto_id, proto):
         """
@@ -249,7 +284,7 @@ class ClientSystemEvents(object):
     def __init__(self, core: ClientCore):
         self.log = get_logger(self)
         self.core = core
-        self.task_pool = TaskPool()
+        self.task_pool = TaskPool(self.core)
         self.pki_path = os.path.join(self.core.config.config_path, "pki/{}".format(get_current_component()))
         if not os.path.exists(self.pki_path):
             self.log.info("creating directory for keys in: {}", self.pki_path)
