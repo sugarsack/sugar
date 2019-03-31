@@ -123,6 +123,16 @@ class SugarServerProtocol(WebSocketServerProtocol):
                 self.log.debug("Traits update on client connect")
                 self.factory.core.refresh_client_pdata(self.machine_id, traits=msg.internal)
 
+            elif msg.kind == ClientMsgFactory.KIND_NFO_RESP:
+                answer = msg.internal.get("answer")
+                if answer is not None:
+                    answer = answer.to_json()
+                self.factory.core.jobstore.report_job(jid=msg.jid, hostname=msg.machine_id,
+                                                      src=msg.internal.get("src"), log=msg.internal.get("log"),
+                                                      answer=answer)
+            else:
+                self.log.error("CAUTION: unknown message type:", msg.component)
+
     def onClose(self, wasClean, code, reason):
         self.log.debug("client's connection has been closed: {0}".format(reason))
         self.transport.loseConnection()
