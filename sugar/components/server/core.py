@@ -85,10 +85,15 @@ class ServerCore(object):
                        evt.fun, evt.tgt, evt.arg)
         clientlist = []
         for target in self.peer_registry.get_targets(query=evt.tgt):
-            clientlist.append(target.id)
-            threads.deferToThread(self.fire_event, event=evt, target=target)
-        self.jobstore.new(query=evt.tgt, clientslist=clientlist, expr="runner:{}".format(evt.fun), jid=evt.jid)
-        self.log.debug("Created a new job: '{}'", evt.jid)
+            clientlist.append(target)
+
+        if clientlist:
+            evt.jid = self.jobstore.new(query=evt.tgt, clientslist=clientlist, expr="runner:{}".format(evt.fun))
+            for target in clientlist:
+                threads.deferToThread(self.fire_event, event=evt, target=target)
+            self.log.debug("Created a new job: '{}'", evt.jid)
+        else:
+            self.log.error("No targets found for function '{}' on query '{}'.", evt.fun, evt.tgt)
 
     def refresh_client_pdata(self, machine_id: str, traits=None) -> None:
         """

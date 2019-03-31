@@ -113,6 +113,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
                         task.type = FunctionObject.TYPE_RUNNER
                         task.module, task.function = msg.internal.get("function").rsplit(".", 1)
                         task.args, task.kwargs = msg.internal.get("arguments")
+                        task.jid = msg.jid
                         self.factory.core.system.task_pool.add_task(task)
         else:
             self.log.debug("non-binary message: {}".format(payload))
