@@ -405,7 +405,7 @@ class ClientSystemEvents(object):
         if not self.check_master_pubkey():
             self.log.error("ERROR: Master public key not found")
             proto.sendMessage(ClientMsgFactory.pack(ClientMsgFactory().create(
-                ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ)), is_binary=True)
+                kind=ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ)), is_binary=True)
             reply = self.core.get_queue().get()  # This is blocking and is waiting for the master to continue
             if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP:
                 self.save_master_pubkey(reply.internal["payload"])
@@ -415,7 +415,7 @@ class ClientSystemEvents(object):
         # Phase 2: Tell Master client is authentic
         cipher = self.create_master_token()
         signature = self.create_master_signature(cipher)
-        msg = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ)
+        msg = ClientMsgFactory().create(kind=ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ)
         msg.internal["cipher"] = cipher
         msg.internal["signature"] = signature
         proto.sendMessage(ClientMsgFactory.pack(msg), is_binary=True)
@@ -426,7 +426,7 @@ class ClientSystemEvents(object):
 
         if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP:
             self.log.debug("key needs to be sent for the registration")
-            registration_request = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
+            registration_request = ClientMsgFactory().create(kind=ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
             registration_request.internal["payload"] = sugar.lib.pki.utils.get_public_key(self.pki_path)
             registration_request.internal["machine-id"] = self.core.traits.data.get('machine-id')
             registration_request.internal["host-fqdn"] = self.core.traits.data.get("host-fqdn")

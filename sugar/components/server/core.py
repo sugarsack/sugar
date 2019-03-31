@@ -64,7 +64,7 @@ class ServerCore(object):
         """
         self.log.debug("Sending event '{}({})' to host '{}' ({})", event.fun, event.arg, target.host, target.id)
 
-        task_message = ServerMsgFactory().create()
+        task_message = ServerMsgFactory().create(jid=event.jid)
         task_message.ret.message = "ping"
         task_message.internal = {
             "function": event.fun,
@@ -174,7 +174,7 @@ class KeyManagerEvents(object):
         self.core.log.info("Key Manager key update")
         client_proto = self.core.get_client_protocol(key.machine_id)
         if client_proto is not None:
-            reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
+            reply = ServerMsgFactory().create(kind=ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
             reply.internal["payload"] = key.status
             client_proto.sendMessage(ObjectGate(reply).pack(True), True)
             if key.status != KeyStore.STATUS_ACCEPTED:
@@ -215,7 +215,7 @@ class ServerSystemEvents(object):
 
         :return: Serialisable
         """
-        msg = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP)
+        msg = ServerMsgFactory().create(kind=ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP)
         with open(os.path.join(self.pki_path, self.KEY_PUBLIC)) as rsa_h:
             msg.internal["payload"] = rsa_h.read()
 
@@ -258,13 +258,13 @@ class ServerSystemEvents(object):
         if not client_key:
             # No key in the database yet. Request for RSA send, then repeat handshake
             self.log.error("RSA key not found for {} or client is not registered yet.".format(machine_id))
-            reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP)
+            reply = ServerMsgFactory().create(kind=ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP)
         elif client_key.status != KeyStore.STATUS_ACCEPTED:
-            reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
+            reply = ServerMsgFactory().create(kind=ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
             reply.internal["payload"] = client_key.status
         else:
             assert client_key.status == KeyStore.STATUS_ACCEPTED
-            reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP)
+            reply = ServerMsgFactory().create(kind=ServerMsgFactory.KIND_HANDSHAKE_TKEN_RESP)
             reply.internal["payload"] = client_key.status
 
         return reply
@@ -276,7 +276,7 @@ class ServerSystemEvents(object):
         :param msg: Serialisable
         :return: Serialisable
         """
-        reply = ServerMsgFactory().create(ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
+        reply = ServerMsgFactory().create(kind=ServerMsgFactory.KIND_HANDSHAKE_PKEY_STATUS_RESP)
 
         found = False
         for key in self.core.keystore.get_key_by_machine_id(msg.internal["machine-id"]):

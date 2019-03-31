@@ -86,7 +86,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
             return
 
         # Traits update
-        msg = ClientMsgFactory.create(ClientMsgFactory.KIND_TRAITS)
+        msg = ClientMsgFactory.create(kind=ClientMsgFactory.KIND_TRAITS)
         msg.internal.update(self.factory.core.traits.data)
         self.sendMessage(ClientMsgFactory.pack(msg), is_binary=True)
         self.log.debug("Client traits update")
