@@ -2,6 +2,7 @@
 """
 Abstract module bases
 """
+import json
 from sugar.lib.traits import Traits
 import sugar.modules.runners
 import sugar.lib.exceptions
@@ -85,6 +86,31 @@ class ActionResult(dict):
             self.__err.extend(self.pop(obj))
         else:
             self.__err.append(obj)
+
+    def to_json(self):
+        """
+        Export to JSON.
+
+        :return:
+        """
+        data = {
+            "info": self.info,
+            "warn": self.warn,
+            "error": self.error,
+        }
+        return json.dumps(data)
+
+    def from_json(self, data):
+        """
+        Import from JSON.
+
+        :param data:
+        :return:
+        """
+        data = json.loads(data)
+        self.__inf = data["info"]
+        self.__wrn = data["warn"]
+        self.__err = data["error"]
 
 
 class BaseModule:
