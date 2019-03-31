@@ -22,7 +22,7 @@ from sugar.utils.jid import jidstore
 from sugar.lib.compat import yaml
 import sugar.utils.exitcodes
 import sugar.lib.exceptions
-
+from sugar.components.server.pdatastore import PDataContainer
 # pylint: disable=R0201,R0904
 
 
@@ -35,67 +35,73 @@ class JobStorage:
         self._db_path = self._config.cache.path if path is None else path
         self.init()
 
-    def new(self, query: str, clientslist: list, expr: str, tag: str = None, jid: str = None) -> str:
+    def new(self, query: str, clientslist: typing.List[PDataContainer],
+            expr: str, tag: str = None, jid: str = None) -> str:
         """
         Register a new job.
 
         :param query: Issued matcher expression during the job state or runner.
-        :param clientslist: Result of the matcher query
+        :param clientslist: Result of the matcher query, list of PDataContainer class.
         :param expr: Expression of the job: either it is the name of the state or function etc. I.e. what was called.
         :param tag: Tag (label) of the job.
         :param jid: reuse passed in JID.
         :return: jid (new job id)
         """
+        if not clientslist:
+            raise sugar.lib.exceptions.SugarJobStoreException("Registering job with no target clients?")
+
         if jid is None or not jidstore.is_jid(jid):
             jid = jidstore.create()
         with orm.db_session:
             job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now(), tag=tag)
-            for hostname in clientslist:
-                job.results.create(hostname=hostname)
+            for target in clientslist:
+                job.results.create(hostname=target.id)
         return jid
 
-    def set_as_fired(self, jid: str, hostname: str) -> None:
+    def set_as_fired(self, jid: str, target: PDataContainer) -> None:
         """
         Mark job as "fired". Which means job is not necessary was picked up and accepted.
         But it means that the master fired it over the network.
 
         :param jid: Job ID
-        :param hostname: hostname or Machine ID
+        :param target: client target
         :return: None
         """
         with orm.db_session:
             for job in orm.select(job for job in Job if job.jid == jid):
                 for result in job.results:
-                    if result.hostname == hostname:
+                    if result.hostname == target.id:
                         result.fired = datetime.datetime.now()
 
-    def add_tasks(self, jid: str, *tasks: StateTask, hostname: str = None, src: str = None) -> None:
+    def add_tasks(self, jid: str, *tasks: StateTask, target: PDataContainer = None, src: str = None) -> None:
         """
-        Adds a completed task to the job per a hostname.
+        Adds a completed tasks to te job per a target (system ID).
 
-        :param jid: job ID
-        :param tasks: List of tasks that has been completed
+        :param jid: job id
+        :param tasks: list of tasks
+        :param target: machine to add tasks for
+        :param src: source of the compiled task on the machine
         :raises SugarJobStoreException: if hostname or machine ID was not specified.
         :return: None
         """
-        if hostname is None:
+        if target is None:
             raise sugar.lib.exceptions.SugarJobStoreException("Hostname or machine ID is required")
 
         with orm.db_session:
             job = Job.get(jid=jid)
-            for result in job.results.select(lambda result: result.hostname == hostname):
+            for result in job.results.select(lambda result: result.hostname == target.id):
                 result.src = src
                 for task in tasks:
                     _task = result.tasks.create(idn=task.idn)
                     for call in task.calls:
                         _task.calls.create(uri=call.uri, src=call.src)
 
-    def report_job(self, jid: str, hostname: str, src: str, log: str, answer: str) -> None:
+    def report_job(self, jid: str, target: PDataContainer, src: str, log: str, answer: str) -> None:
         """
         Report compiled job source on the client.
 
         :param jid: Job id
-        :param hostname: hostname
+        :param target: target machine
         :param src: source of the job (YAML)
         :param log: text of the log snipped
         :param answer: the entire (compiled) answer of the job
@@ -103,7 +109,7 @@ class JobStorage:
         """
         if src is not None or log is not None or answer is not None:
             with orm.db_session:
-                result = Job.get(jid=jid).results.select(lambda result: result.hostname == hostname).first()
+                result = Job.get(jid=jid).results.select(lambda result: result.hostname == target.id).first()
                 if src is not None:
                     result.src = src
                 if log is not None:
@@ -111,7 +117,7 @@ class JobStorage:
                 if answer is not None:
                     result.answer = answer
 
-    def report_call(self, jid: str, hostname: str, idn: str,
+    def report_call(self, jid: str, target: PDataContainer, idn: str,
                     uri: str, errcode: int, output: str, finished: datetime) -> None:
         """
         Report job progress. Each time task is completed with any kind of result,
@@ -122,13 +128,13 @@ class JobStorage:
         :param uri: URI of the called function
         :param errcode: return code of the performed function
         :param output: output of the function
-        :param hostname: hostname of the machine that reports this call
+        :param target: machine that reports this call
         :param finished: date/time when call has been finished
         :raises SugarJobStoreException: if 'output' parameter is not a JSON string
         :return: None
         """
         with orm.db_session:
-            result = Job.get(jid=jid).results.select(lambda result: result.hostname == hostname).first()
+            result = Job.get(jid=jid).results.select(lambda result: result.hostname == target.id).first()
             for task in result.tasks.select(lambda task: task.idn == idn):
                 for call in task.calls.select(lambda call: call.uri == uri):
                     if not isinstance(output, str):
@@ -141,45 +147,45 @@ class JobStorage:
                     call.errcode = errcode
                     call.finished = finished
 
-    def get_unpicked(self, hostname: str = None) -> list:
+    def get_unpicked(self, target: PDataContainer = None) -> list:
         """
         Get unpicked jobs.
 
-        :param hostname: hostname of the client
+        :param target: client
         :return: list of unpicked jobs or an empty list
         """
         jobs = []
         with orm.db_session:
-            if hostname is None:
+            if target is None or not target.id:
                 job_selector = orm.select(job for job in Job
                                           for result in job.results
                                           if result.started is None)
             else:
                 job_selector = orm.select(job for job in Job
                                           for result in job.results
-                                          if result.started is None and result.hostname == hostname)
+                                          if result.started is None and result.hostname == target.id)
             for job in job_selector:
                 jobs.append(job.clone())
 
         return jobs
 
-    def get_scheduled(self, hostname: str) -> list:
+    def get_scheduled(self, target: PDataContainer) -> list:
         """
         Get scheduled jobs for the hostname.
 
-        :param hostname: hostname of the client
+        :param target: target client
         :raises SugarJobStoreException: if no hostname has been specified.
         :return: list of jobs
         """
-        if hostname is None:
+        if target is None or not target.id:
             raise sugar.lib.exceptions.SugarJobStoreException("No hostname specified")
 
         jobs = []
         with orm.db_session:
             for job in orm.select(job for job in Job
-                                  for result in job.results if result.started is None and result.hostname == hostname):
+                                  for result in job.results if result.started is None and result.hostname == target.id):
                 for result in job.results:
-                    if result.hostname == hostname:
+                    if result.hostname == target.id:
                         result.started = datetime.datetime.now()
                 jobs.append(job.clone())
 
@@ -388,6 +394,10 @@ class JobStorage:
         :raises SugarJobStoreException: if an archive file already exists
         :return: None
         """
+        # TODO: currently result.hostname is actually a machine ID.
+        #       It thus exports per machine IDs and this is unreadale.
+        #       There should be a generally better conversion from ID to hostname in the DB.
+
         # pylint: disable=R0914
         os.makedirs(path, exist_ok=True)
         path = "{}/sugar-job-{}.tar.gz".format(path, jid)
