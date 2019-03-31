@@ -145,7 +145,7 @@ class ConsoleMsgFactory(_MessageFactory):
     })
 
     @classmethod
-    def create(cls):
+    def create(cls, jid=""):
         """
         Create message.
 
@@ -160,7 +160,7 @@ class ConsoleMsgFactory(_MessageFactory):
         obj.target = ''
         obj.function = ''
         obj.args = []
-        obj.jid = jidstore.create()
+        obj.jid = jid
 
         cls.validate(obj)
 
@@ -176,6 +176,7 @@ class ClientMsgFactory(_MessageFactory):
     KIND_HANDSHAKE_TKEN_REQ = 0xfb      # Signed token request
     KIND_HANDSHAKE_PKEY_REG_REQ = 0xfc  # Public key registration request
     KIND_OPR_RESP = 0xa1                # Operational response
+    KIND_NFO_RESP = 0xa2                # Information response (used for e.g. job status updates)
     KIND_TRAITS = 0x1                   # Contains traits
 
     scheme = Schema({
@@ -203,7 +204,7 @@ class ClientMsgFactory(_MessageFactory):
     })
 
     @classmethod
-    def create(cls, kind=KIND_OPR_RESP):
+    def create(cls, kind=KIND_OPR_RESP, jid=""):
         """
         Create message.
 
@@ -226,7 +227,7 @@ class ClientMsgFactory(_MessageFactory):
         obj.changes = {}
         obj.internal = {}
 
-        obj.jid = jidstore.create()
+        obj.jid = jid
 
         cls.validate(obj)
 
@@ -288,11 +289,12 @@ class ServerMsgFactory(_MessageFactory):
         obj.kind = cls.TASK_RESPONSE
         return obj
 
-    def create(self, kind=KIND_OPR_REQ):
+    def create(self, jid="", kind=KIND_OPR_REQ):
         """
         Create arbitrary message.
 
         :param kind: int
+        :param jid: Job ID
         :return: Serialisable
         """
         obj = Serialisable()
@@ -300,7 +302,7 @@ class ServerMsgFactory(_MessageFactory):
         obj.kind = kind
         obj.user = getpass.getuser()
         obj.uid = os.getuid()
-        obj.jid = jidstore.create()
+        obj.jid = jid
         obj.ret.errcode = exitcodes.EX_OK
         obj.ret.message = ''
         obj.ret.function = {}
