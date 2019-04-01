@@ -5,6 +5,7 @@ Job storage
 import os
 import errno
 import json
+import pytz
 import datetime
 import typing
 import tarfile
@@ -16,7 +17,7 @@ from sugar.lib.compiler.objtask import StateTask
 from sugar.lib.jobstore.entities import Job
 from sugar.lib.jobstore.stats import JobStats
 from sugar.lib.jobstore.components import ResultDict
-from sugar.utils.db import database
+from sugar.utils.db import database, JobDefaults
 from sugar.utils.sanitisers import join_path
 from sugar.utils.jid import jidstore
 from sugar.lib.compat import yaml
@@ -52,8 +53,8 @@ class JobStorage:
 
         if jid is None or not jidstore.is_jid(jid):
             jid = jidstore.create()
-        with orm.db_session:
-            job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now(), tag=tag)
+        with orm.db_session(optimistic=False):
+            job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now(tz=pytz.UTC), tag=tag)
             for target in clientslist:
                 job.results.create(hostname=target.id)
         return jid
@@ -67,11 +68,12 @@ class JobStorage:
         :param target: client target
         :return: None
         """
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             for job in orm.select(job for job in Job if job.jid == jid):
+                job.status = JobDefaults.S_ISSUED
                 for result in job.results:
                     if result.hostname == target.id:
-                        result.fired = datetime.datetime.now()
+                        result.fired = datetime.datetime.now(tz=pytz.UTC)
 
     def add_tasks(self, jid: str, *tasks: StateTask, target: PDataContainer = None, src: str = None) -> None:
         """
@@ -87,7 +89,7 @@ class JobStorage:
         if target is None:
             raise sugar.lib.exceptions.SugarJobStoreException("Hostname or machine ID is required")
 
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             job = Job.get(jid=jid)
             for result in job.results.select(lambda result: result.hostname == target.id):
                 result.src = src
@@ -108,14 +110,16 @@ class JobStorage:
         :return: None
         """
         if src is not None or log is not None or answer is not None:
-            with orm.db_session:
-                result = Job.get(jid=jid).results.select(lambda result: result.hostname == target.id).first()
+            with orm.db_session(optimistic=False):
+                job = Job.get(jid=jid)
+                result = job.results.select(lambda result: result.hostname == target.id).first()
                 if src is not None:
                     result.src = src
                 if log is not None:
                     result.log = log
                 if answer is not None:
                     result.answer = answer
+                    job.status = JobDefaults.S_FINISHED
 
     def report_call(self, jid: str, target: PDataContainer, idn: str,
                     uri: str, errcode: int, output: str, finished: datetime) -> None:
@@ -133,8 +137,10 @@ class JobStorage:
         :raises SugarJobStoreException: if 'output' parameter is not a JSON string
         :return: None
         """
-        with orm.db_session:
-            result = Job.get(jid=jid).results.select(lambda result: result.hostname == target.id).first()
+        with orm.db_session(optimistic=False):
+            job = Job.get(jid=jid)
+            job.status = JobDefaults.S_IN_PROGRESS
+            result = job.results.select(lambda result: result.hostname == target.id).first()
             for task in result.tasks.select(lambda task: task.idn == idn):
                 for call in task.calls.select(lambda call: call.uri == uri):
                     if not isinstance(output, str):
@@ -155,7 +161,7 @@ class JobStorage:
         :return: list of unpicked jobs or an empty list
         """
         jobs = []
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             if target is None or not target.id:
                 job_selector = orm.select(job for job in Job
                                           for result in job.results
@@ -181,12 +187,12 @@ class JobStorage:
             raise sugar.lib.exceptions.SugarJobStoreException("No hostname specified")
 
         jobs = []
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             for job in orm.select(job for job in Job
                                   for result in job.results if result.started is None and result.hostname == target.id):
                 for result in job.results:
                     if result.hostname == target.id:
-                        result.started = datetime.datetime.now()
+                        result.started = datetime.datetime.now(tz=pytz.UTC)
                 jobs.append(job.clone())
 
         return jobs
@@ -206,7 +212,7 @@ class JobStorage:
                 tasks = _tasks
         tasks = tasks * len(job.results)
         stats = JobStats(jid=jid, tasks=tasks)
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             finished = orm.select(job for job in Job if job.jid == jid
                                   for result in job.results
                                   for task in result.tasks
@@ -221,11 +227,10 @@ class JobStorage:
         :param jid: job id.
         :return: Job object.
         """
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             job = Job.get(jid=jid)
             if job is not None:
-                job.clone()
-        return job
+                return job.clone()
 
     def get_later_then(self, dtm: datetime) -> list:
         """
@@ -234,7 +239,7 @@ class JobStorage:
         :param dtm: datetime threshold.
         :return: list of Job objects
         """
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             return [job.clone() for job in orm.select(job for job in Job if job.created > dtm)]
 
     def get_not_finished(self) -> list:
@@ -244,7 +249,7 @@ class JobStorage:
         :return: list of unfinished jobs, where calls are not yet reported
         """
         jobs = []
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             for job in orm.select(job for job in Job
                                   for result in job.results
                                   for task in result.tasks
@@ -259,7 +264,7 @@ class JobStorage:
         :return: list of finished jobs, where calls are reported already
         """
         jobs = []
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             for job in orm.select(job for job in Job
                                   for result in job.results
                                   for task in result.tasks
@@ -274,7 +279,7 @@ class JobStorage:
         :return: list of failed jobs
         """
         jobs = []
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             for job in orm.select(job for job in Job
                                   for result in job.results
                                   for task in result.tasks
@@ -289,7 +294,7 @@ class JobStorage:
         :return: list of succeeded jobs
         """
         jobs = []
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             for job in orm.select(job for job in Job
                                   for result in job.results
                                   for task in result.tasks
@@ -304,7 +309,7 @@ class JobStorage:
         :param tag: Tag in the job, if job has been tagged.
         :return: Job object.
         """
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             return [job.clone() for job in orm.select(job for job in Job if job.tag == tag)]
 
     def get_all(self, limit=25, offset=0) -> list:
@@ -321,7 +326,7 @@ class JobStorage:
             limit = 0
         if offset is None:
             offset = 0
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             if limit + offset:
                 result = [job.clone() for job in orm.select(
                     job for job in Job).limit(limit, offset=offset)]
@@ -342,7 +347,7 @@ class JobStorage:
             limit = 0
         if offset is None:
             offset = 0
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             query = orm.select(job for job in Job)
             if limit + offset:
                 query = query.limit(limit, offset=offset)
@@ -360,8 +365,26 @@ class JobStorage:
         :param dtm: date/time threshold (default last five days)
         :return: None
         """
-        with orm.db_session:
-            orm.delete(job for job in Job if job.created < dtm)
+        if dtm is not None:
+            with orm.db_session(optimistic=False):
+                orm.delete(job for job in Job if job.created < dtm)
+        else:
+            raise sugar.lib.exceptions.SugarJobStoreException("Date/time should not be None")
+
+    def expire_to_count(self, cnt=30):
+        """
+        Remove jobs that are older than specific amount of jobs.
+
+        :param cnt:
+        :return:
+        """
+        alive = 0
+        with orm.db_session(optimistic=False):
+            for job in orm.select(job for job in Job).order_by(orm.desc(Job.created)):
+                if alive < cnt:
+                    alive += 1
+                else:
+                    job.delete()
 
     def delete_by_jid(self, jid: str) -> None:
         """
@@ -371,7 +394,7 @@ class JobStorage:
         :return: None
         """
         if jid is not None:
-            with orm.db_session:
+            with orm.db_session(optimistic=False):
                 orm.delete(job for job in Job if job.jid == jid)
 
     def delete_by_tag(self, tag: str) -> None:
@@ -382,7 +405,7 @@ class JobStorage:
         :return: None
         """
         if tag is not None:
-            with orm.db_session:
+            with orm.db_session(optimistic=False):
                 orm.delete(job for job in Job if job.tag == tag)
 
     def export(self, jid, path) -> None:
@@ -408,7 +431,7 @@ class JobStorage:
 
         archive = tarfile.open(path, mode="w:gz")
         data = []
-        with orm.db_session:
+        with orm.db_session(optimistic=False):
             job = Job.get(jid=jid)
 
             job_data = ResultDict()
