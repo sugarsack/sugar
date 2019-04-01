@@ -70,7 +70,7 @@ class ServerCore(object):
             "function": event.fun,
             "arguments": event.arg,
         }
-        self.jobstore.set_as_fired(jid=event.jid, hostname=target.id)
+        self.jobstore.set_as_fired(jid=event.jid, target=target)
         self.get_client_protocol(target.id).sendMessage(ServerMsgFactory.pack(task_message), isBinary=True)
         self.log.debug("Job '{}' has been fired successfully", event.jid)
 
