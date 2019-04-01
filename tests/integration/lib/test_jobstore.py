@@ -5,6 +5,7 @@ Job store tests.
 import os
 import shutil
 import json
+import pytz
 import datetime
 import time
 import tarfile
@@ -130,7 +131,7 @@ class TestBasicJobStore:
         idn = task.idn
         uri = call.uri
         self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, target=targets_list[0],
-                               errcode=127, output=output, finished=datetime.datetime.now())
+                               errcode=127, output=output, finished=datetime.datetime.now(tz=pytz.UTC))
 
         job = self.store.get_by_jid(jid)
         for result in job.results:
@@ -161,18 +162,18 @@ class TestBasicJobStore:
         uri = "job_store.test_jobstore_register_job"
 
         print()
-        begin = datetime.datetime.now()
+        begin = datetime.datetime.now(tz=pytz.UTC)
         middle = None
         for idx in range(10):
             if idx == 4:
-                middle = datetime.datetime.now()
+                middle = datetime.datetime.now(tz=pytz.UTC)
             jid = self.store.new(query=query, clientslist=targets_list, expr=uri)
             state = StateCompiler(get_barestates_root).compile(uri)
             for target in targets_list:
                 self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
             print("Adding job", idx + 1, "of 10, JID:", jid)
             time.sleep(1)
-        end = datetime.datetime.now()
+        end = datetime.datetime.now(tz=pytz.UTC)
 
         assert len(self.store.get_later_then(begin)) == 10
         middle = len(self.store.get_later_then(middle))
@@ -207,7 +208,8 @@ class TestBasicJobStore:
                     for call in task.calls:
                         for target in targets_list:
                             self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, target=target,
-                                                   errcode=127, output=output, finished=datetime.datetime.now())
+                                                   errcode=127, output=output,
+                                                   finished=datetime.datetime.now(tz=pytz.UTC))
         for job in self.store.get_finished():
             assert job.jid in finished
             finished.pop(finished.index(job.jid))
@@ -244,7 +246,8 @@ class TestBasicJobStore:
                     for call in task.calls:
                         for target in targets_list:
                             self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, target=target,
-                                                   errcode=127, output=output, finished=datetime.datetime.now())
+                                                   errcode=127, output=output,
+                                                   finished=datetime.datetime.now(tz=pytz.UTC))
         for job in self.store.get_not_finished():
             assert job.jid in unfinished
             assert job.jid not in finished
@@ -281,7 +284,8 @@ class TestBasicJobStore:
                         errcode = 1 if jid in failed else 0
                         for target in targets_list:
                             self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, target=target,
-                                                   errcode=errcode, output=output, finished=datetime.datetime.now())
+                                                   errcode=errcode, output=output,
+                                                   finished=datetime.datetime.now(tz=pytz.UTC))
         for job in self.store.get_failed():
             assert job.jid in failed
             assert job.jid not in succeed
@@ -318,7 +322,8 @@ class TestBasicJobStore:
                         errcode = 1 if jid in failed else 0
                         for target in targets_list:
                             self.store.report_call(jid=jid, idn=task.idn, uri=call.uri, target=target,
-                                                   errcode=errcode, output=output, finished=datetime.datetime.now())
+                                                   errcode=errcode, output=output,
+                                                   finished=datetime.datetime.now(tz=pytz.UTC))
         for job in self.store.get_suceeded():
             assert job.jid in succeed
             assert job.jid not in failed
@@ -377,7 +382,7 @@ class TestBasicJobStore:
         tag = "#outdated"
         for idx in range(10):
             if idx == 8:
-                middle = datetime.datetime.now()
+                middle = datetime.datetime.now(tz=pytz.UTC)
                 tag = None
             jid = self.store.new(query=query, clientslist=targets_list, expr=uri, tag=tag)
             print("Adding job", idx + 1, "of 10, JID:", jid)
