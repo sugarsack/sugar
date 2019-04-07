@@ -14,7 +14,7 @@ import io
 from pony import orm
 
 from sugar.lib.compiler.objtask import StateTask
-from sugar.lib.jobstore.entities import Job
+from sugar.lib.jobstore.entities import Job, Host
 from sugar.lib.jobstore.stats import JobStats
 from sugar.lib.jobstore.components import ResultDict
 from sugar.utils.db import database, JobDefaults
@@ -36,6 +36,24 @@ class JobStorage:
         self._db_path = self._config.cache.path if path is None else path
         self.init()
 
+    def add_host(self, fqdn: str, osid: str, ipv4: str, ipv6: str) -> None:
+        """
+        Add host to the cache or update if it changes.
+
+        :param fqdn: FQDN hostname
+        :param osid: machine ID (systemd or automatically generated)
+        :param ipv4: Primary IPv4 address, if any
+        :param ipv6: Primary IPv6 address, if any
+        :return: None
+        """
+        with orm.db_session(optimistic=False):
+            host = Host.get(osid=osid)
+            if host is None:
+                Host(fqdn=fqdn, osid=osid, ipv4=ipv4, ipv6=ipv6)
+            elif host.fqdn != fqdn or host.ipv4 != ipv4 or host.ipv6 != ipv6:
+                host.fqdn = fqdn
+                host.ipv4 = ipv4
+                host.ipv6 = ipv6
     def new(self, query: str, clientslist: typing.List[PDataContainer],
             expr: str, tag: str = None, jid: str = None) -> str:
         """
