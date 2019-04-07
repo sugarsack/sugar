@@ -54,6 +54,29 @@ class JobStorage:
                 host.fqdn = fqdn
                 host.ipv4 = ipv4
                 host.ipv6 = ipv6
+
+    def get_host(self, fqdn: str = None, osid: str = None, ipv4: str = None, ipv6: str = None, noid: bool = True):
+        """
+        Get host by any of the criteria.
+
+        :param fqdn: FQDN hostname
+        :param osid: machine ID (systemd or automatically generated)
+        :param ipv4: Primary IPv4 address, if any
+        :param ipv6: Primary IPv6 address, if any
+        :param remove record ID from the serialised result
+        :return: None
+        """
+        with orm.db_session(optimistic=False):
+            host = None
+            for argk, argv in [("fqdn", fqdn), ("osid", osid), ("ipv4", ipv4), ("ipv6", ipv6)]:
+                if argv:
+                    host = Host.get(**{argk: argv})
+            if host is not None:
+                host = host.clone()
+                if noid:
+                    del host.id
+            return host
+
     def new(self, query: str, clientslist: typing.List[PDataContainer],
             expr: str, tag: str = None, jid: str = None) -> str:
         """
