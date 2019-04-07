@@ -11,6 +11,7 @@ import shutil
 import collections
 
 import sugar.utils.files
+import sugar.utils.network
 from sugar.lib.logger.manager import get_logger
 
 # pylint: disable=C0103,W0622
@@ -30,6 +31,22 @@ class PDataContainer:
         self.host = host
         self.traits = {}
         self.pdata = {}
+
+    def get_primary_ipv4(self) -> str:
+        """
+        Get primary IPv4 address.
+
+        :return: IPv4 string address or None
+        """
+        return sugar.utils.network.get_ipv4(self.host)
+
+    def get_primary_ipv6(self) -> str:
+        """
+        Get primary IPv6 address.
+
+        :return: IPv6 string address or None
+        """
+        return sugar.utils.network.get_ipv6(self.host)
 
 
 # pylint: enable=C0103,W0622
