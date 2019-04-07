@@ -7,6 +7,18 @@ from pony import orm
 from sugar.utils.db import database, SerialisableEntity, JobDefaults, ResultDefault
 
 
+class Host(database.Entity, SerialisableEntity):
+    """
+    Host object.
+    """
+    osid = orm.Required(str, unique=True)         # machine ID
+    fqdn = orm.Required(str)                      # fqdn
+    ipv4 = orm.Optional(str, nullable=True,
+                        default=None)             # Primary IPv4 address
+    ipv6 = orm.Optional(str, nullable=True,
+                        default=None)             # Primary IPv6 address
+
+
 class Job(database.Entity, SerialisableEntity):
     """
     Job object.
