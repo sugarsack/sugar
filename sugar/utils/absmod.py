@@ -87,18 +87,28 @@ class ActionResult(dict):
         else:
             self.__err.append(obj)
 
+    def to_data(self):
+        """
+        Export to data.
+
+        :return:
+        """
+        return {
+            "module": dict(self),
+            "log": {
+                "info": self.info,
+                "warn": self.warn,
+                "error": self.error
+            }
+        }
+
     def to_json(self):
         """
         Export to JSON.
 
         :return:
         """
-        data = {
-            "info": self.info,
-            "warn": self.warn,
-            "error": self.error,
-        }
-        return json.dumps(data)
+        return json.dumps(self.to_data())
 
     def from_json(self, data):
         """
