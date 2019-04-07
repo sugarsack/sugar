@@ -11,6 +11,7 @@ from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory, Keym
 from sugar.utils import exitcodes
 from sugar.components.server.core import get_server_core
 from sugar.components.server.pdatastore import PDataContainer
+import sugar.utils.network
 
 
 class SugarConsoleServerProtocol(WebSocketServerProtocol):
@@ -126,8 +127,6 @@ class SugarServerProtocol(WebSocketServerProtocol):
 
             elif msg.kind == ClientMsgFactory.KIND_NFO_RESP:
                 answer = msg.internal.get("answer")
-                if answer is not None:
-                    answer = answer.to_json()
                 target = PDataContainer(id=msg.machine_id, host="")
                 self.factory.core.jobstore.report_job(jid=msg.jid, target=target,
                                                       src=msg.internal.get("src"), log=msg.internal.get("log"),
