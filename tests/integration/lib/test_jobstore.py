@@ -549,3 +549,17 @@ Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/
         for result in self.store.get_by_jid(jid=jid).results:
             if result.hostname in [targets_list[0].id]:
                 assert result.fired is not None
+
+    def test_add_host(self):
+        """
+        Add host several times that expected to be added only once.
+
+        :return:
+        """
+        for args in [{"fqdn": "gorilla.domain.lan", "osid": hashlib.md5(b"123").hexdigest(),
+                      "ipv4": "10.190.1.1", "ipv6": None}]:
+            for _ in range(10):
+                self.store.add_host(**args)
+        host = self.store.get_host(fqdn="gorilla.domain.lan")
+        assert host.fqdn == "gorilla.domain.lan"
+        assert host.ipv4 == "10.190.1.1"
