@@ -139,27 +139,26 @@ class JobStorage:
                     for call in task.calls:
                         _task.calls.create(uri=call.uri, src=call.src)
 
-    def report_job(self, jid: str, target: PDataContainer, src: str, log: str, answer: str) -> None:
+    def report_job(self, jid: str, target: PDataContainer, src: str, answer: str, uri: str = None) -> None:
         """
         Report compiled job source on the client.
 
         :param jid: Job id
         :param target: target machine
         :param src: source of the job (YAML)
-        :param log: text of the log snipped
         :param answer: the entire (compiled) answer of the job
+        :param uri: URI from the state. Otherwise None, which is a fallback of job.expr
         :return: None
         """
-        if src is not None or log is not None or answer is not None:
+        if src is not None or answer is not None:
             with orm.db_session(optimistic=False):
                 job = Job.get(jid=jid)
                 result = job.results.select(lambda result: result.hostname == target.id).first()
+                task = result.tasks.create(idn=uri or job.expr)
                 if src is not None:
-                    result.src = src
-                if log is not None:
-                    result.log = log
+                    task.src = src
                 if answer is not None:
-                    result.answer = answer
+                    task.answer = answer
                     job.status = JobDefaults.S_FINISHED
 
     def report_call(self, jid: str, target: PDataContainer, idn: str,
