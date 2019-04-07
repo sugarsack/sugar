@@ -14,6 +14,7 @@ import hashlib
 import pytest
 
 import sugar.lib.exceptions
+import sugar.utils.timeutils
 from sugar.lib.compiler import StateCompiler
 from sugar.config import get_config
 from tests.integration.fixtures import get_barestates_root
@@ -74,7 +75,8 @@ class TestBasicJobStore:
         obj = self.store.get_by_jid(jid)
         assert obj.jid == jid
         for result in obj.results:
-            assert result.hostname in [target.id for target in targets_list]
+            for task in result.tasks:
+                assert task.machineid in [target.id for target in targets_list]
 
     def test_add_tasks(self, get_barestates_root, targets_list):
         """
@@ -97,8 +99,8 @@ class TestBasicJobStore:
 
         job = self.store.get_by_jid(jid)
         for result in job.results:
-            assert result.src == state.to_yaml()
             assert len(result.tasks) == 2
+            assert result.src == state.to_yaml()
 
     def test_report_task(self, get_barestates_root, targets_list):
         """
@@ -436,30 +438,35 @@ class TestBasicJobStore:
         jid = self.store.new(query="*", clientslist=targets_list, expr=uri, tag="for exporting")
         target = targets_list[0]
         answer = {
-            "some": "structure",
-            "value": 42,
-            "messages" : [
-                "first line",
-                "second line"
-            ]
+            "module": {
+                "some": "structure",
+                "value": 42,
+                "messages": ["first line", "second line"]
+            },
+            "log": {
+                "info": [
+                    "Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting due to inactivity",
+                    "Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting was requested",
+                    "Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: "
+                    "Quitting due to inactivity",
+                    "Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: "
+                    "Quitting was requested",
+                    "Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: "
+                    "Quitting was requested",
+                    "Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)",
+                ],
+            }
         }
-        log = """
-Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting due to inactivity
-Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting was requested
-Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: Quitting due to inactivity
-Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: Quitting was requested
-Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
-"""
         self.store.report_job(jid=jid, target=target, src=state.to_yaml(),
-                              log=log, answer=json.dumps(answer))
+                              answer=json.dumps(answer), finished=datetime.datetime.now())
 
         job = self.store.get_by_jid(jid)
         for result in job.results:
             if result.hostname == target.id:
-                assert result.log == log.strip()
                 assert result.src == state.to_yaml()
             else:
-                assert result.log == result.src == ""
+                for task in result.tasks:
+                    assert task.answer == answer
 
     def test_delete_job_by_jid(self, targets_list):
         """
@@ -502,6 +509,7 @@ Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/
         self.store.new(query="*", clientslist=[targets_list[0]], expr="some.uri")
         assert len(self.store.get_all()) == 1
         assert len(self.store.get_scheduled(targets_list[0])) == 1
+        assert len(self.store.get_scheduled(targets_list[0], mark=True)) == 1
         assert len(self.store.get_scheduled(targets_list[0])) == 0
 
     def test_get_scheduled_no_hostname(self, targets_list):
