@@ -13,6 +13,7 @@ from sugar.lib.compiler.objtask import FunctionObject
 from sugar.lib.perq import QueueFactory
 from sugar.lib.perq.qexc import QueueEmpty
 from sugar.transport import ClientMsgFactory, ObjectGate
+import sugar.utils.timeutils
 
 
 class TaskProcessor:
@@ -57,6 +58,7 @@ class TaskProcessor:
             uri = "{module}.{function}".format(module=task.module, function=task.function)
             if task.type == FunctionObject.TYPE_RUNNER:
                 result = self.loader.runners[uri](*task.args, **task.kwargs)
+                self._add_response(task.jid, finished=True)
             else:
                 raise NotImplementedError("State running is not implemented yet")
         except Exception as exc:
@@ -86,8 +88,9 @@ class TaskProcessor:
         """
         jid, data = result
         self.log.debug("Task return: {}, jid: {}", data, jid)
-
-        self._add_response(jid, answer=data, log="not yet implemented")
+        self._add_response(jid, answer=data.to_json() if data is not None else {},
+                           finished=sugar.utils.timeutils.to_iso(),
+                           log="not yet implemented")
 
         # Decrease tasks counter
         if self.t_counter:
