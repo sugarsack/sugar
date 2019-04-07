@@ -222,11 +222,11 @@ class JobStorage:
             if target is None or not target.id:
                 job_selector = orm.select(job for job in Job
                                           for result in job.results
-                                          if result.started is None)
+                                          if result.fired is None)
             else:
                 job_selector = orm.select(job for job in Job
                                           for result in job.results
-                                          if result.started is None and result.hostname == target.id)
+                                          if result.fired is None and result.hostname == target.id)
             for job in job_selector:
                 jobs.append(job.clone())
 
