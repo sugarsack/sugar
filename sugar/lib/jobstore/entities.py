@@ -41,6 +41,7 @@ class Result(database.Entity, SerialisableEntity):
     machineid = orm.Required(str)
     status = orm.Required(int, default=ResultDefault.R_NOT_SET)
     fired = orm.Optional(datetime.datetime, nullable=True, default=None)    # When job is just fired by master
+    src = orm.Optional(str)                       # Source of the result (if it is a state)
     tasks = orm.Set("Task")
 
 
