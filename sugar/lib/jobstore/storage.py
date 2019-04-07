@@ -139,7 +139,8 @@ class JobStorage:
                     for call in task.calls:
                         _task.calls.create(uri=call.uri, src=call.src)
 
-    def report_job(self, jid: str, target: PDataContainer, src: str, answer: str, uri: str = None) -> None:
+    def report_job(self, jid: str, target: PDataContainer, src: str, answer: str,
+                   finished: str, uri: str = None) -> None:
         """
         Report compiled job source on the client.
 
@@ -147,6 +148,7 @@ class JobStorage:
         :param target: target machine
         :param src: source of the job (YAML)
         :param answer: the entire (compiled) answer of the job
+        :param finished: when particular task has been finished
         :param uri: URI from the state. Otherwise None, which is a fallback of job.expr
         :return: None
         """
@@ -154,12 +156,27 @@ class JobStorage:
             with orm.db_session(optimistic=False):
                 job = Job.get(jid=jid)
                 result = job.results.select(lambda result: result.hostname == target.id).first()
-                task = result.tasks.create(idn=uri or job.expr)
+                task = result.tasks.select(lambda task: task.idn == uri or job.expr).first()
+                if task is None:
+                    task = result.tasks.create(idn=uri or job.expr, finished=finished)
+                else:
+                    task.finished = finished
                 if src is not None:
                     task.src = src
                 if answer is not None:
                     task.answer = answer
                     job.status = JobDefaults.S_FINISHED
+
+    def report_job_finished(self, jid: str) -> None:
+        """
+        Report job finished completely.
+
+        :param jid: Job ID
+        :return: None
+        """
+        with orm.db_session(optimistic=False):
+            job = Job.get(jid=jid)
+            job.finished = datetime.datetime.now(tz=pytz.UTC)
 
     def report_call(self, jid: str, target: PDataContainer, idn: str,
                     uri: str, errcode: int, output: str, finished: datetime) -> None:
