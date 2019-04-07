@@ -44,14 +44,17 @@ class TaskProcessor:
         self.log.debug("Running task: {}. JID: {}", task, task.jid)
 
         # TODO: Send message back informing for accepting the task
+        uri = "{}.{}".format(task.module, task.function)
         task_source = {
             "command": {
-                "{}.{}:".format(task.module, task.function): [
-                    task.args,
-                    task.kwargs
-                ]
+                uri: []
             }
         }
+        if task.args:
+            task_source["command"][uri].append(task.args)
+        if task.kwargs:
+            task_source["command"][uri].append(task.kwargs)
+
         self._add_response(task.jid, src=yaml.dump(task_source))
 
         try:
