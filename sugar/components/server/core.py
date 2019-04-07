@@ -22,6 +22,7 @@ from sugar.lib.jobstore import JobStorage
 import sugar.transport
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
+import sugar.utils.network
 
 from sugar.utils.tokens import MasterLocalToken
 
@@ -257,6 +258,9 @@ class ServerSystemEvents(object):
                 client_key.status = KeyStore.STATUS_INVALID
             else:
                 self.log.info("Signature verification passed.")
+                self.core.jobstore.add_host(fqdn=key.hostname, osid=key.machine_id,
+                                            ipv4=sugar.utils.network.get_ipv4(key.hostname),
+                                            ipv6=sugar.utils.network.get_ipv6(key.hostname))
             # TODO: Check for duplicate machine id? This should never happen though
             break
 
