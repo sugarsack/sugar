@@ -260,17 +260,29 @@ class JobStorage:
             stats.finished = len(finished)
         return stats
 
-    def get_by_jid(self, jid: str) -> Job:
+    def get_by_jid(self, jid: str, noid: bool = True) -> Job:
         """
         Get a job by jid.
 
         :param jid: job id.
+        :param noid: remove database record ID
         :return: Job object.
         """
         with orm.db_session(optimistic=False):
             job = Job.get(jid=jid)
             if job is not None:
-                return job.clone()
+                job = job.clone()
+                for result in job.results:
+                    host = self.get_host(osid=result.hostname)
+                    if host is not None:
+                        result.host = host
+                    del result.hostname  # TODO: this should be renamed machine_id
+                    if noid:
+                        del result.id
+                    for task in result.tasks:
+                        if task.answer:
+                            task.answer = json.loads(task.answer)  # Convert string-stored in db JSON into data struct
+                return job
 
     def get_later_then(self, dtm: datetime) -> list:
         """
@@ -506,7 +518,8 @@ class JobStorage:
 
                         task_data["calls"].append(call_data)
                         if call.src:
-                            data.append(("{}/src-{}.{}.yaml".format(result.hostname, task.idn, call.uri), call.src, True))
+                            data.append(("{}/src-{}.{}.yaml".format(result.hostname, task.idn, call.uri),
+                                         call.src, True))
                     result_data["tasks"].append(task_data)
 
                 data.append(("{}/result.yaml".format(result.hostname), result_data.to_dict(), False))
