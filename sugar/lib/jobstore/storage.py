@@ -229,10 +229,7 @@ class JobStorage:
         jobs = []
         with orm.db_session(optimistic=False):
             for job in orm.select(job for job in Job
-                                  for result in job.results if result.started is None and result.hostname == target.id):
-                for result in job.results:
-                    if result.hostname == target.id:
-                        result.started = datetime.datetime.now(tz=pytz.UTC)
+                                  for result in job.results if result.fired is None and result.hostname == target.id):
                 jobs.append(job.clone())
 
         return jobs
