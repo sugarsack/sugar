@@ -43,9 +43,6 @@ class Result(database.Entity, SerialisableEntity):
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     started = orm.Optional(datetime.datetime, nullable=True, default=None)  # When client picks up the job
     fired = orm.Optional(datetime.datetime, nullable=True, default=None)    # When job is just fired by master
-    src = orm.Optional(str)                       # Source of the task
-    answer = orm.Optional(str)                    # Answer of the task (module return data)
-    log = orm.Optional(str)                       # Log slice during the task performance
     tasks = orm.Set("Task")
 
 
@@ -57,6 +54,8 @@ class Task(database.Entity, SerialisableEntity):
     idn = orm.Required(str)                       # Task IDN (an id of the task in the compiler, a name)
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     calls = orm.Set("Call")
+    answer = orm.Optional(str)                    # Answer of the task (module return data)
+    src = orm.Optional(str)                       # Source of the task
 
 
 class Call(database.Entity, SerialisableEntity):
