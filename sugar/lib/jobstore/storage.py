@@ -232,7 +232,7 @@ class JobStorage:
 
         return jobs
 
-    def get_scheduled(self, target: PDataContainer) -> list:
+    def get_scheduled(self, target: PDataContainer, mark: bool = False) -> list:
         """
         Get scheduled jobs for the hostname.
 
@@ -247,6 +247,10 @@ class JobStorage:
         with orm.db_session(optimistic=False):
             for job in orm.select(job for job in Job
                                   for result in job.results if result.fired is None and result.machineid == target.id):
+                if mark:
+                    for result in job.results:
+                        if result.fired is None:
+                            result.fired = datetime.datetime.now(tz=pytz.UTC)
                 jobs.append(job.clone())
 
         return jobs
