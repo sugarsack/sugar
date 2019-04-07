@@ -7,13 +7,16 @@ import datetime
 import pytz
 
 
-def to_iso(dtm: datetime.datetime) -> str:
+def to_iso(dtm: datetime.datetime = None) -> str:
     """
     Date/time to ISO format.
 
     :param dtm: date/time object.
     :return: ISO format with UTC zone
     """
+    if dtm is None:
+        dtm = datetime.datetime.now(tz=pytz.UTC)
+
     if dtm.tzinfo is None:
         dtm = pytz.utc.localize(dtm)
 
