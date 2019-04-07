@@ -38,7 +38,7 @@ class Result(database.Entity, SerialisableEntity):
     Results of the client.
     """
     job = orm.Required(Job)
-    hostname = orm.Required(str)
+    machineid = orm.Required(str)
     status = orm.Required(int, default=ResultDefault.R_NOT_SET)
     fired = orm.Optional(datetime.datetime, nullable=True, default=None)    # When job is just fired by master
     tasks = orm.Set("Task")

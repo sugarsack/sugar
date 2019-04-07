@@ -97,7 +97,7 @@ class JobStorage:
         with orm.db_session(optimistic=False):
             job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now(tz=pytz.UTC), tag=tag)
             for target in clientslist:
-                job.results.create(hostname=target.id)
+                job.results.create(machineid=target.id)
         return jid
 
     def set_as_fired(self, jid: str, target: PDataContainer) -> None:
@@ -113,7 +113,7 @@ class JobStorage:
             for job in orm.select(job for job in Job if job.jid == jid):
                 job.status = JobDefaults.S_ISSUED
                 for result in job.results:
-                    if result.hostname == target.id:
+                    if result.machineid == target.id:
                         result.fired = datetime.datetime.now(tz=pytz.UTC)
 
     def add_tasks(self, jid: str, *tasks: StateTask, target: PDataContainer = None, src: str = None) -> None:
@@ -132,7 +132,7 @@ class JobStorage:
 
         with orm.db_session(optimistic=False):
             job = Job.get(jid=jid)
-            for result in job.results.select(lambda result: result.hostname == target.id):
+            for result in job.results.select(lambda result: result.machineid == target.id):
                 result.src = src
                 for task in tasks:
                     _task = result.tasks.create(idn=task.idn)
@@ -155,7 +155,7 @@ class JobStorage:
         if src is not None or answer is not None:
             with orm.db_session(optimistic=False):
                 job = Job.get(jid=jid)
-                result = job.results.select(lambda result: result.hostname == target.id).first()
+                result = job.results.select(lambda result: result.machineid == target.id).first()
                 task = result.tasks.select(lambda task: task.idn == uri or job.expr).first()
                 if task is None:
                     task = result.tasks.create(idn=uri or job.expr, finished=finished)
@@ -197,7 +197,7 @@ class JobStorage:
         with orm.db_session(optimistic=False):
             job = Job.get(jid=jid)
             job.status = JobDefaults.S_IN_PROGRESS
-            result = job.results.select(lambda result: result.hostname == target.id).first()
+            result = job.results.select(lambda result: result.machineid == target.id).first()
             for task in result.tasks.select(lambda task: task.idn == idn):
                 for call in task.calls.select(lambda call: call.uri == uri):
                     if not isinstance(output, str):
@@ -226,7 +226,7 @@ class JobStorage:
             else:
                 job_selector = orm.select(job for job in Job
                                           for result in job.results
-                                          if result.fired is None and result.hostname == target.id)
+                                          if result.fired is None and result.machineid == target.id)
             for job in job_selector:
                 jobs.append(job.clone())
 
@@ -246,7 +246,7 @@ class JobStorage:
         jobs = []
         with orm.db_session(optimistic=False):
             for job in orm.select(job for job in Job
-                                  for result in job.results if result.fired is None and result.hostname == target.id):
+                                  for result in job.results if result.fired is None and result.machineid == target.id):
                 jobs.append(job.clone())
 
         return jobs
@@ -279,23 +279,29 @@ class JobStorage:
         Get a job by jid.
 
         :param jid: job id.
-        :param noid: remove database record ID
+        :param noid: remove database record IDs
         :return: Job object.
         """
         with orm.db_session(optimistic=False):
             job = Job.get(jid=jid)
             if job is not None:
                 job = job.clone()
+                if noid:
+                    del job.id
                 for result in job.results:
-                    host = self.get_host(osid=result.hostname)
+                    host = self.get_host(osid=result.machineid)
                     if host is not None:
                         result.host = host
-                    del result.hostname  # TODO: this should be renamed machine_id
+                    del result.machineid
                     if noid:
                         del result.id
                     for task in result.tasks:
                         if task.answer:
                             task.answer = json.loads(task.answer)  # Convert string-stored in db JSON into data struct
+                        if noid:
+                            del task.id
+                            for call in task.calls:
+                                del call.id
                 return job
 
     def get_later_then(self, dtm: datetime) -> list:
@@ -483,10 +489,6 @@ class JobStorage:
         :raises SugarJobStoreException: if an archive file already exists
         :return: None
         """
-        # TODO: currently result.hostname is actually a machine ID.
-        #       It thus exports per machine IDs and this is unreadale.
-        #       There should be a generally better conversion from ID to hostname in the DB.
-
         # pylint: disable=R0914
         os.makedirs(path, exist_ok=True)
         path = "{}/sugar-job-{}.tar.gz".format(path, jid)
@@ -532,16 +534,16 @@ class JobStorage:
 
                         task_data["calls"].append(call_data)
                         if call.src:
-                            data.append(("{}/src-{}.{}.yaml".format(result.hostname, task.idn, call.uri),
+                            data.append(("{}/src-{}.{}.yaml".format(result.machineid, task.idn, call.uri),
                                          call.src, True))
                     result_data["tasks"].append(task_data)
 
-                data.append(("{}/result.yaml".format(result.hostname), result_data.to_dict(), False))
-                data.append(("{}/source.yaml".format(result.hostname), result.src, True))
+                data.append(("{}/result.yaml".format(result.machineid), result_data.to_dict(), False))
+                data.append(("{}/source.yaml".format(result.machineid), result.src, True))
                 if result.answer:
-                    data.append(("{}/answer.yaml".format(result.hostname), result.answer, True))
+                    data.append(("{}/answer.yaml".format(result.machineid), result.answer, True))
                 if result.log:
-                    data.append(("{}/client.log".format(result.hostname), result.log, True))
+                    data.append(("{}/client.log".format(result.machineid), result.log, True))
 
         for d_name, d_content, as_is in data:
             body = yaml.dump(d_content, default_flow_style=False) if not as_is else d_content
