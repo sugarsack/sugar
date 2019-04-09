@@ -75,7 +75,7 @@ class ServerCore:
         self.get_client_protocol(target.id).sendMessage(ServerMsgFactory.pack(task_message), isBinary=True)
         self.log.debug("Job '{}' has been fired successfully", event.jid)
 
-    def on_broadcast_tasks(self, evt):
+    def on_broadcast_tasks(self, evt, proto):
         """
         Send task to clients.
 
@@ -88,13 +88,17 @@ class ServerCore:
         for target in self.peer_registry.get_targets(query=evt.tgt):
             clientlist.append(target)
 
+        msg = sugar.transport.ServerMsgFactory.create_console_msg()
         if clientlist:
             evt.jid = self.jobstore.new(query=evt.tgt, clientslist=clientlist, expr="runner:{}".format(evt.fun))
             for target in clientlist:
                 threads.deferToThread(self.fire_event, event=evt, target=target)
             self.log.debug("Created a new job: '{}'", evt.jid)
+            msg.ret.message = "Targeted {} machines. JID: {}".format(len(clientlist), evt.jid)
         else:
             self.log.error("No targets found for function '{}' on query '{}'.", evt.fun, evt.tgt)
+            msg.ret.message = "No targets found"
+        proto.sendMessage(ServerMsgFactory.pack(msg), isBinary=True)
 
     def refresh_client_pdata(self, machine_id: str, traits=None) -> None:
         """
@@ -134,19 +138,16 @@ class ServerCore:
         """
         return self.peer_registry.peers.get(machine_id)
 
-    def console_request(self, evt):
+    def console_request(self, evt, proto):
         """
         Accepts request from the console.
 
         :param evt: an event
+        :param proto: protocol of the connected console peer
         :return: immediate response
         """
         if evt.kind == sugar.transport.ServerMsgFactory.TASK_RESPONSE:
-            threads.deferToThread(self.on_broadcast_tasks, evt)
-
-        msg = sugar.transport.ServerMsgFactory.create_console_msg()
-        msg.ret.message = "Task has been accepted"
-        return evt
+            threads.deferToThread(self.on_broadcast_tasks, evt, proto)
 
     def client_request(self, evt):
         """

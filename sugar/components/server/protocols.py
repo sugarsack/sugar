@@ -25,7 +25,6 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
         self.log.debug("console connection has been opened")
 
     def onMessage(self, payload, binary):
-        reply = ServerMsgFactory.create_client_msg()
         if binary:
             msg = ObjectGate().load(payload, binary)
             if msg.component == KeymanagerMsgFactory.COMPONENT:
@@ -35,13 +34,12 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
                 else:
                     self.factory.core.keymanager.on_key_status(msg.internal)
             elif msg.component == ConsoleMsgFactory.COMPONENT:
-                # Console messages
-                self.factory.core.console_request(msg)
-                reply.ret.message = "accepted jid: {}".format(msg.jid)
+                self.factory.core.console_request(msg, self)
         else:
-            reply.ret.message = "Unknown message"
+            reply = ServerMsgFactory.create_client_msg()
+            reply.ret.message = "Unknown message type"
             reply.ret.errcode = exitcodes.EX_GENERIC
-        self.sendMessage(ServerMsgFactory.pack(reply), isBinary=True)
+            self.sendMessage(ServerMsgFactory.pack(reply), isBinary=True)
 
     def onClose(self, wasClean, code, reason):
         self.factory.unregister(self)
