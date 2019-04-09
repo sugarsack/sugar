@@ -28,7 +28,7 @@ from sugar.utils.tokens import MasterLocalToken
 
 
 @Singleton
-class ServerCore(object):
+class ServerCore:
     """
     Server core composite class.
     """
