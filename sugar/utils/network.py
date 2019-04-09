@@ -53,9 +53,11 @@ class _IPvX:
         :return:
         """
         addr = None
-        for struct in socket.getaddrinfo(fqdn, None, family):
-            addr = struct[-1][0]
-            break
+        for struct in socket.getaddrinfo(fqdn, None):
+            _family, _type, _proto, _canonname, _sockaddr = struct
+            if family == _family:
+                addr = _sockaddr[0]
+                break
         return addr
 
     def get_ipv4(self):
