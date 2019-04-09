@@ -53,6 +53,7 @@ class SugarClientFactory(WebSocketClientFactory, ClientFactory):
     def __init__(self, *args, **kwargs):
         WebSocketClientFactory.__init__(self, *args, **kwargs)
         self.maxDelay = 10  # pylint: disable=C0103
+        self.core = ConsoleCore()
 
     def clientConnectionFailed(self, connector, reason):
         """
