@@ -5,8 +5,10 @@ Core Server operations.
 from __future__ import unicode_literals, absolute_import
 
 import os
+import json
+import random
 from multiprocessing import Queue
-from twisted.internet import threads
+from twisted.internet import threads, reactor
 
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
@@ -45,6 +47,7 @@ class ServerCore:
         self.peer_registry = RuntimeRegistry()
         self.peer_registry.keystore = self.keystore
         self.jobstore = JobStorage(get_config())
+        self.__retry_calls = {}
 
     def verify_local_token(self, token):
         """
@@ -71,9 +74,23 @@ class ServerCore:
             "function": event.fun,
             "arguments": event.arg,
         }
-        self.jobstore.set_as_fired(jid=event.jid, target=target)
-        self.get_client_protocol(target.id).sendMessage(ServerMsgFactory.pack(task_message), isBinary=True)
-        self.log.debug("Job '{}' has been fired successfully", event.jid)
+        proto = self.get_client_protocol(target.id)  # This might be None due to the network issues (unregister fired)
+        if proto is None and self.__retry_calls.get(target.id) != 0:
+            self.__retry_calls.setdefault(target.id, 3)
+            self.__retry_calls[target.id] -= 1
+            pause = random.randint(3, 15)
+            self.log.debug("Peer temporarily unavailable for peer {} to fire job {}. Waiting {} seconds.",
+                           target.id, event.jid, pause)
+            reactor.callLater(pause, self.fire_event, event, target)
+        else:
+            if target.id in self.__retry_calls:
+                del self.__retry_calls[target.id]
+            if proto is not None:
+                proto.sendMessage(ServerMsgFactory.pack(task_message), isBinary=True)
+                self.jobstore.set_as_fired(jid=event.jid, target=target)
+                self.log.debug("Job '{}' has been fired successfully", event.jid)
+            else:
+                self.log.debug("Job '{}' temporarily cannot be fired to the client {}.", event.jid, target.id)
 
     def on_broadcast_tasks(self, evt, proto):
         """
@@ -82,19 +99,22 @@ class ServerCore:
         :param evt: an event
         :return: None
         """
-        self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\ttarget: {}\n\targs: {}",
+        self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\tquery: {}\n\targs: {}",
                        evt.fun, evt.tgt, evt.arg)
-        clientlist = []
-        for target in self.peer_registry.get_targets(query=evt.tgt):
-            clientlist.append(target)
+        clientlist = self.peer_registry.get_targets(query=evt.tgt)
+        offline_clientlist = self.peer_registry.get_offline_targets() if evt.offline else []
 
         msg = sugar.transport.ServerMsgFactory.create_console_msg()
-        if clientlist:
-            evt.jid = self.jobstore.new(query=evt.tgt, clientslist=clientlist, expr="runner:{}".format(evt.fun))
+        if clientlist or offline_clientlist:
+            evt.jid = self.jobstore.new(query=evt.tgt, clientslist=clientlist + offline_clientlist,
+                                        expr="runner:{}".format(evt.fun), uri=evt.fun, args=json.dumps(evt.arg),
+                                        job_type="runner")
             for target in clientlist:
                 threads.deferToThread(self.fire_event, event=evt, target=target)
-            self.log.debug("Created a new job: '{}'", evt.jid)
-            msg.ret.message = "Targeted {} machines. JID: {}".format(len(clientlist), evt.jid)
+            self.log.debug("Created a new job: '{}' for {} online and {} offline machines",
+                           evt.jid, len(clientlist), len(offline_clientlist))
+            msg.ret.message = "Targeted {} machines. JID: {}".format(
+                len(clientlist + offline_clientlist), evt.jid)
         else:
             self.log.error("No targets found for function '{}' on query '{}'.", evt.fun, evt.tgt)
             msg.ret.message = "No targets found"
@@ -135,7 +155,7 @@ class ServerCore:
         self.peer_registry.pdata_store.add(container=container)
         self.log.debug("Traits loaded from host '{}' ({})", container.host, container.id)
 
-    def remove_client_protocol(self, proto):
+    def remove_client_protocol(self, proto, tstamp):
         """
         Unregister machine connection.
 
@@ -144,7 +164,7 @@ class ServerCore:
         """
         # STOP: Do not ever remove peer here from the data store!
 
-        self.peer_registry.unregister(proto.get_machine_id())
+        self.peer_registry.unregister(proto.get_machine_id(), tstamp)
 
     def get_client_protocol(self, machine_id: str):
         """
@@ -153,7 +173,8 @@ class ServerCore:
         :param machine_id: string form of the machine ID
         :return: registered client protocol instance
         """
-        return self.peer_registry.peers.get(machine_id)
+        peer = self.peer_registry.peers.get(machine_id)
+        return peer.peer if peer is not None else None
 
     def console_request(self, evt, proto):
         """
