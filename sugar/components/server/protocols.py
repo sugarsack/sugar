@@ -3,7 +3,7 @@
 """
 Server protocols
 """
-
+import time
 from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
 from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory, KeymanagerMsgFactory, ConsoleMsgFactory
@@ -139,10 +139,11 @@ class SugarServerProtocol(WebSocketServerProtocol):
                 self.log.error("CAUTION: unknown message type:", msg.component)
 
     def onClose(self, wasClean, code, reason):
+        tstamp = time.time()
         self.log.debug("client's connection has been closed: {0}".format(reason))
         self.transport.loseConnection()
         self.factory.unregister(self)
-        self.factory.core.remove_client_protocol(self)
+        self.factory.core.remove_client_protocol(self, tstamp)
 
     def connectionLost(self, reason):
         """
