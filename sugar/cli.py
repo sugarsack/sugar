@@ -212,6 +212,7 @@ Other:
             description=__("Sugar Console, sends commants to a remote Sugar Master"),
             formatter_class=CapitalisedHelpFormatter)
         self.component_cli_parser.add_argument('query', nargs="+", help=__("Query"))
+        self.component_cli_parser.add_argument('-f', "--offline", action="store_true", help="Include offline clients")
         SugarCLI.add_common_params(self.component_cli_parser)
 
         self.setup()

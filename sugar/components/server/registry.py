@@ -93,7 +93,7 @@ class RuntimeRegistry:
         keyobj = self.keystore.get_key_by_machine_id(machine_id)
         return next(iter(keyobj)).hostname if keyobj is not None and keyobj else None
 
-    def get_targets(self, query: str) -> list:
+    def get_targets(self, query: str) -> typing.List[PDataStore]:
         """
         Return target clients for the given query.
 
@@ -101,6 +101,14 @@ class RuntimeRegistry:
         :return: list of machine-id to which target the messages by the query
         """
         return Query(query).filter(list(self.pdata_store.clients(active=self.__peers.keys())))
+
+    def get_offline_targets(self) -> typing.List[PDataStore]:
+        """
+        Return clients that are currently offline.
+
+        :return: list of PDataContainer targets to which target the messages by the query
+        """
+        return list(self.pdata_store.offline_clients(active=self.__peers.keys()))
 
     def get_status(self):
         """

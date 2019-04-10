@@ -100,6 +100,23 @@ class ServerCore:
             msg.ret.message = "No targets found"
         proto.sendMessage(ServerMsgFactory.pack(msg), isBinary=True)
 
+    def fire_pending_jobs(self, mid: str) -> None:
+        """
+        Check pending jobs for the particular machine.
+
+        :param mid: machine ID
+        :return:
+        """
+        self.log.debug("Checking for pending jobs on {}", mid)
+        target = PDataContainer(id=mid, host="")  # TODO: get a proper target with the hostname
+        if self.get_client_protocol(mid) is not None:
+            for job in self.jobstore.get_scheduled(target):
+                event = type("event", (), {})
+                event.jid = job.jid
+                event.fun = job.uri
+                event.arg = json.loads(job.args)
+                threads.deferToThread(self.fire_event, event=event, target=target)
+
     def refresh_client_pdata(self, machine_id: str, traits=None) -> None:
         """
         Register machine connection.
@@ -262,6 +279,7 @@ class ServerSystemEvents(object):
                 self.core.jobstore.add_host(fqdn=key.hostname, osid=key.machine_id,
                                             ipv4=sugar.utils.network.get_ipv4(key.hostname),
                                             ipv6=sugar.utils.network.get_ipv6(key.hostname))
+                self.core.fire_pending_jobs(key.machine_id)
             # TODO: Check for duplicate machine id? This should never happen though
             break
 

@@ -138,3 +138,14 @@ class PDataStore:
             if active is None or mid in active:
                 with sugar.utils.files.fopen(os.path.join(self.__r_path, mid_file), "rb") as nph:
                     yield pickle.load(nph)
+
+    def offline_clients(self, active: list) -> collections.Iterable:
+        """
+        Return offline clients.
+
+        :return: PDataContainer objects
+        """
+        for mid_file in os.listdir(self.__r_path):
+            if mid_file.split(".")[0] not in active:
+                with sugar.utils.files.fopen(os.path.join(self.__r_path, mid_file), "rb") as nph:
+                    yield pickle.load(nph)

@@ -141,6 +141,8 @@ class ConsoleMsgFactory(_MessageFactory):
         And('function'): str,
         And('args'): [],
 
+        And('offline'): bool,
+
         Optional('jid'): str,
     })
 
@@ -161,6 +163,7 @@ class ConsoleMsgFactory(_MessageFactory):
         obj.function = ''
         obj.args = []
         obj.jid = jid
+        obj.offline = False
 
         cls.validate(obj)
 

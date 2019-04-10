@@ -95,9 +95,10 @@ class SugarConsoleCore(object):
         cnt.fun = query.pop(0)
         cnt.arg = self._get_args(query)
 
-        self.log.debug("target: {}", cnt.tgt)
-        self.log.debug("function: {}", cnt.fun)
-        self.log.debug("query: {}", cnt.arg)
+        if self.args.offline:
+            cnt.offline = True
+
+        self.log.debug("query: {}, function: {}, args: {}, offline: {}", cnt.tgt, cnt.fun, cnt.arg, cnt.offline)
 
         return cnt
 
