@@ -78,7 +78,7 @@ class JobStorage:
             return host
 
     def new(self, query: str, clientslist: typing.List[PDataContainer],
-            expr: str, tag: str = None, jid: str = None) -> str:
+            expr: str, uri: str, args: str, job_type: str, tag: str = None, jid: str = None) -> str:
         """
         Register a new job.
 
@@ -95,7 +95,8 @@ class JobStorage:
         if jid is None or not jidstore.is_jid(jid):
             jid = jidstore.create()
         with orm.db_session(optimistic=False):
-            job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now(tz=pytz.UTC), tag=tag)
+            job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now(tz=pytz.UTC), tag=tag,
+                      type=job_type, uri=uri, args=args)
             for target in clientslist:
                 job.results.create(machineid=target.id)
         return jid
