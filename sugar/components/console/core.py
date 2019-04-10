@@ -6,7 +6,7 @@ Console app core
 from sugar.utils.objects import Singleton
 from sugar.config import get_config
 from sugar.lib.outputters import console
-from sugar.transport import ConsoleMsgFactory, ServerMsgFactory, any_binary
+from sugar.transport import any_binary
 
 
 @Singleton
