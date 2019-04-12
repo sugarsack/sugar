@@ -290,3 +290,11 @@ class FSQueue(Queue):
         :return: int, size of the Queue
         """
         return len(list(self._f_xlog()))
+
+    def pending(self) -> bool:
+        """
+        Returns True if anything is in the notification layer.
+
+        :return: bool
+        """
+        return self._mp_notify.empty()

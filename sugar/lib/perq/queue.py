@@ -11,6 +11,14 @@ class Queue(abc.ABC):
     """
 
     @abc.abstractmethod
+    def pending(self) -> bool:
+        """
+        Returns True if anything is in the notification layer.
+
+        :return: bool
+        """
+
+    @abc.abstractmethod
     def empty(self) -> bool:
         """
         Returns True if queue is empty.

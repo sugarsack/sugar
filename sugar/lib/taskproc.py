@@ -167,7 +167,7 @@ class TaskProcessor:
         Get response.
         :return:
         """
-        return self._ret_queue.get_nowait(force=force)
+        return self._ret_queue.get_nowait(force=force) if not self._ret_queue.pending() else None
 
     def run(self) -> None:
         """

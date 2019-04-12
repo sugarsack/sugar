@@ -139,7 +139,7 @@ class TaskPool:
         :return: None
         """
         self.worker.start()
-        twisted_task.LoopingCall(self.next_response).start(0.1)
+        twisted_task.LoopingCall(self.next_response).start(0.02)
 
     def stop(self) -> None:
         """
@@ -171,10 +171,6 @@ class TaskPool:
         Get a response from the queue.
         :return:
         """
-        # TODO: This is ugly. Twisted repeats this each 0.1 seconds constantly reading disk.
-        #       This should definitely work in a separate daemonic thread and use get()
-        #       instead of get_nowait() and use notification pipe instead. While works
-        #       currently reliably, this approach is just as bad.
         resp = None
         try:
             resp = self.processor.get_response(self._response_looper_marker)
