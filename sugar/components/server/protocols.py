@@ -145,16 +145,16 @@ class SugarServerProtocol(WebSocketServerProtocol):
             elif msg.kind == ClientMsgFactory.KIND_NFO_RESP:
                 answer = msg.internal.get("answer")
                 target = PDataContainer(id=msg.machine_id, host="")
-                if msg.internal.get("finished") is True:
+
+                # Update task status (called per each statement in the state or runner)
+                task_finished = msg.internal.get("task_finished")
+                if task_finished:
+                    self.factory.core.jobstore.report_job(jid=msg.jid, target=target, src=msg.internal.get("src"),
+                                                          finished=sugar.utils.timeutils.from_iso(task_finished),
+                                                          answer=answer, uri=msg.internal.get("uri"))
+                # Update job status (called once at the end of the whole job cycle)
+                if msg.internal.get("job_finished") is True:
                     self.factory.core.jobstore.report_job_finished(jid=msg.jid)
-                else:
-                    finished = msg.internal.get("finished") or None
-                    if finished is not None:
-                        finished = sugar.utils.timeutils.from_iso(finished)
-                    self.factory.core.jobstore.report_job(jid=msg.jid, target=target,
-                                                          src=msg.internal.get("src"),
-                                                          finished=finished,
-                                                          answer=answer)
             else:
                 self.log.error("CAUTION: unknown message type:", msg.component)
 
