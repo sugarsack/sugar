@@ -92,6 +92,10 @@ class SugarServerProtocol(WebSocketServerProtocol):
     """
     Sugar server protocol.
     """
+    def __init__(self, *args, **kwargs):
+        WebSocketServerProtocol.__init__(self, *args, **kwargs)
+        self.accepted = False
+
     def onConnect(self, request):
         self.log.debug("client connected: {0}".format(request.peer))
 
@@ -99,7 +103,15 @@ class SugarServerProtocol(WebSocketServerProtocol):
         self.factory.register(self)
         self.log.debug("client has opened a connection")
 
-    def onMessage(self, payload, binary):
+    def sendMessage(self,
+                    payload,
+                    isBinary=False,
+                    fragmentSize=None,
+                    sync=False,
+                    doNotCompress=False):
+        super(SugarServerProtocol, self).sendMessage(payload=payload, isBinary=isBinary, fragmentSize=fragmentSize,
+                                                     sync=sync, doNotCompress=doNotCompress)
+
     def onMessage(self, payload: bytes, binary: bool) -> None:
         """
         Event on incoming transport message.
