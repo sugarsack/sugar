@@ -13,6 +13,7 @@ from sugar.lib.compiler.objtask import FunctionObject
 from sugar.lib.perq import QueueFactory
 from sugar.lib.perq.qexc import QueueEmpty
 from sugar.transport import ClientMsgFactory, ObjectGate
+import sugar.utils.absmod
 import sugar.utils.timeutils
 
 
@@ -58,16 +59,20 @@ class TaskProcessor:
 
         self._add_response(task.jid, src=yaml.dump(task_source))
 
-        try:
+        if task.type == FunctionObject.TYPE_RUNNER:
             uri = "{module}.{function}".format(module=task.module, function=task.function)
-            if task.type == FunctionObject.TYPE_RUNNER:
+            try:
                 result = self.loader.runners[uri](*task.args, **task.kwargs)
-                self._add_response(task.jid, finished=True)
-            else:
-                raise NotImplementedError("State running is not implemented yet")
-        except Exception as exc:
-            self.log.error("Error running task '{}.{}': {}", task.module, task.function, str(exc))
-            result = {}
+            except Exception as exc:
+                err_msg = "Error running task '{}.{}': {}".format(task.module, task.function, str(exc))
+                self.log.error(err_msg)
+                result = sugar.utils.absmod.ActionResult()
+                result.error = err_msg
+            self._add_response(task.jid, answer=result.to_json() if result is not None else "{}",
+                               task_finished=sugar.utils.timeutils.to_iso(), log="N/A", job_finished=True,
+                               uri="runner:{}".format(uri))
+        else:
+            raise NotImplementedError("State running is not implemented yet")
 
         return task.jid, result
 
