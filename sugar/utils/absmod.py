@@ -22,7 +22,7 @@ class ActionResult(dict):
     @property
     def info(self) -> list:
         """
-        Return infos stream
+        Return info stream
 
         :return: list
         """
