@@ -34,7 +34,8 @@ class TaskProcessor:
 
     def on_task(self, task: FunctionObject) -> (str, dict):
         """
-        Process task.
+        Process a single task. This is either a task from the state sequence or one-shot runner command.
+        Runner URI must have a prefix "runner:" to it.
 
         :param task: FunctionObject
         :raises NotImplementedError: if state is called
