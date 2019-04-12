@@ -36,7 +36,7 @@ class ActionResult(dict):
         :param obj: an object for an info.
         :return: None
         """
-        if isinstance(obj, str):
+        if isinstance(obj, str) and obj in self:
             self.__inf.extend(self.pop(obj))
         else:
             self.__inf.append(obj)
@@ -58,7 +58,7 @@ class ActionResult(dict):
         :param obj: an object for a warning
         :return: None
         """
-        if isinstance(obj, str):
+        if isinstance(obj, str) and obj in self:
             self.__wrn.extend(self.pop(obj))
         else:
             self.__wrn.append(obj)
@@ -82,7 +82,7 @@ class ActionResult(dict):
         :param obj: Object for error
         :return: None
         """
-        if isinstance(obj, str):
+        if isinstance(obj, str) and obj in self:
             self.__err.extend(self.pop(obj))
         else:
             self.__err.append(obj)
