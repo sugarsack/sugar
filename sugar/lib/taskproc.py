@@ -96,10 +96,7 @@ class TaskProcessor:
         :return: None
         """
         jid, data = result
-        self.log.debug("Task return: {}, jid: {}", data, jid)
-        self._add_response(jid, answer=data.to_json() if data is not None else {},
-                           finished=sugar.utils.timeutils.to_iso(),
-                           log="not yet implemented")
+        self.log.debug("Task return: {} as '{}'. JID: {}", data, type(data), jid)
 
         # Decrease tasks counter
         if self.t_counter:
