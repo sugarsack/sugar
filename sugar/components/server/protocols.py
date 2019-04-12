@@ -100,6 +100,14 @@ class SugarServerProtocol(WebSocketServerProtocol):
         self.log.debug("client has opened a connection")
 
     def onMessage(self, payload, binary):
+    def onMessage(self, payload: bytes, binary: bool) -> None:
+        """
+        Event on incoming transport message.
+
+        :param payload: Body of the message.
+        :param binary: Boolean. True if message is binary. False otherwise.
+        :return: None
+        """
         if binary:
             msg = ObjectGate().load(payload, binary)
             if self.get_machine_id() is None:
