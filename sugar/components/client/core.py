@@ -166,10 +166,11 @@ class TaskPool:
 
         self.processor.schedule_task(task)
 
-    def next_response(self):
+    def next_response(self) -> None:
         """
         Get a response from the queue.
-        :return:
+
+        :return: None
         """
         resp = None
         try:
@@ -202,7 +203,7 @@ class ClientCore(object):
         self.hds = HandshakeStatus()
         self.rts = RuntimeStatus()
 
-    def set_reactor_connection(self, connection):
+    def set_reactor_connection(self, connection) -> None:
         """
         Set pointer to the reactor connection.
 
@@ -211,12 +212,12 @@ class ClientCore(object):
         """
         self.reactor_connection = connection
 
-    def broadcast_message(self, data):
+    def broadcast_message(self, data: bytes) -> None:
         """
         Send data to all protocols.
 
-        :param data:
-        :return:
+        :param data: message data (binary or text)
+        :return: None
         """
         for prt_id in self._proto:
             proto = self._proto[prt_id]
