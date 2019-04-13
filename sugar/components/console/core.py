@@ -27,5 +27,7 @@ class ConsoleCore:
         :return: None
         """
         event = any_binary(event)
-        self.console_messages.info(event.get("ret", {}).get("message", "No message..."))
+        msg_template = event.get("ret", {}).get("msg_template", "")
+        msg_args = event.get("ret", {}).get("msg_args", [])
+        self.console_messages.info(msg_template, *msg_args)
 

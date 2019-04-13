@@ -113,8 +113,8 @@ class ServerCore:
                 threads.deferToThread(self.fire_event, event=evt, target=target)
             self.log.debug("Created a new job: '{}' for {} online and {} offline machines",
                            evt.jid, len(clientlist), len(offline_clientlist))
-            msg.ret.message = "Targeted {} machines. JID: {}".format(
-                len(clientlist + offline_clientlist), evt.jid)
+            msg.ret.msg_template = "Targeted {} machines. JID: {}"
+            msg.ret.msg_args = [len(clientlist + offline_clientlist), evt.jid]
         else:
             self.log.error("No targets found for function '{}' on query '{}'.", evt.fun, evt.tgt)
             msg.ret.message = "No targets found"

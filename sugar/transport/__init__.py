@@ -264,7 +264,9 @@ class ServerMsgFactory(_MessageFactory):
         And('ret'): {
             Optional('.'): None,  # Marker
             And('errcode'): int,
-            Optional('message'): str,
+            Optional('message'): str,  # Todo: deprecate this!
+            Optional("msg_args"): list,
+            Optional("msg_template"): str,
             Optional('function'): {},
         },
         And('internal'): {},
@@ -309,6 +311,8 @@ class ServerMsgFactory(_MessageFactory):
         obj.ret.errcode = exitcodes.EX_OK
         obj.ret.message = ''
         obj.ret.function = {}
+        obj.ret.msg_template = ""
+        obj.ret.msg_args = []
         obj.internal = {}
 
         self.validate(obj)
