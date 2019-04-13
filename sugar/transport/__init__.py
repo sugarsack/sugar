@@ -11,7 +11,6 @@ from sugar.lib import six
 from sugar.transport.serialisable import Serialisable, ObjectGate
 from sugar.utils.tokens import MasterLocalToken
 from sugar.utils import exitcodes
-from sugar.utils.jid import jidstore
 from sugar.lib.traits import Traits
 
 
