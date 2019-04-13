@@ -38,3 +38,71 @@ def get_fqhostname():
         fqdn = socket.getfqdn()
 
     return fqdn
+
+
+class _IPvX:
+
+    def __init__(self, fqdn):
+        self._fqdn = fqdn
+
+    @staticmethod
+    def __get_ip(fqdn, family) -> str:  # TODO: ipaddr instead?
+        """
+        Get IP address by FQDN.
+
+        :param fqdn:
+        :return: ip address string
+        """
+        addr = None
+        for struct in socket.getaddrinfo(fqdn, None):
+            _family, _type, _proto, _canonname, _sockaddr = struct
+            if family == _family:
+                addr = _sockaddr[0]
+                break
+        return addr
+
+    def get_ipv4(self) -> str:
+        """
+        Get IPv4 primary address.
+
+        :return: ip address
+        """
+        return self.__get_ip(self._fqdn, socket.AF_INET)
+
+    def get_ipv6(self) -> str:
+        """
+        Get IPv6 primary address.
+
+        :return: ip address
+        """
+        return self.__get_ip(self._fqdn, socket.AF_INET6)
+
+
+def get_ipv4(fqdn) -> str:
+    """
+    Get IPv4 address from the fqdn.
+
+    :param fqdn: FQDN
+    :return: ip address
+    """
+    return _IPvX(fqdn).get_ipv4()
+
+
+def get_ipv6(fqdn) -> str:
+    """
+    Get IPv6 address from the fqdn.
+
+    :param fqdn: FQDN
+    :return: ip address
+    """
+    return _IPvX(fqdn).get_ipv6()
+
+
+def get_hostname(ipv) -> str:
+    """
+    Get hostname from IPv4 and IPv6.
+
+    :param ipv: ip address
+    :return: hostname
+    """
+    return socket.gethostbyaddr(ipv)[0]

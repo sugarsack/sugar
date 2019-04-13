@@ -11,7 +11,7 @@ from collections import OrderedDict
 import yaml as pyyaml
 
 # flake8: noqa
-# pylint: disable=W0614,C0103,W0401,C0413,E0102,E8020,E8010,E8016
+# pylint: disable=W0614,C0103,W0401,C0413,E0102,E8020,E8010,E8016,E8014
 
 _items = 'viewitems' if sys.version_info < (3,) else 'items'
 
@@ -77,3 +77,12 @@ def load(stream):
         return loader.get_single_data()
     finally:
         loader.dispose()
+
+
+def dump(data, stream=None, **kwargs):
+    """
+    Serialize a Python object into a YAML stream.
+    If stream is None, return the produced string instead.
+    """
+    kwargs["default_flow_style"] = False
+    return dump_all([data], stream, Dumper=Dumper, **kwargs)

@@ -2,6 +2,7 @@
 """
 Abstract module bases
 """
+import json
 from sugar.lib.traits import Traits
 import sugar.modules.runners
 import sugar.lib.exceptions
@@ -21,7 +22,7 @@ class ActionResult(dict):
     @property
     def info(self) -> list:
         """
-        Return infos stream
+        Return info stream
 
         :return: list
         """
@@ -35,7 +36,7 @@ class ActionResult(dict):
         :param obj: an object for an info.
         :return: None
         """
-        if isinstance(obj, str):
+        if isinstance(obj, str) and obj in self:
             self.__inf.extend(self.pop(obj))
         else:
             self.__inf.append(obj)
@@ -57,7 +58,7 @@ class ActionResult(dict):
         :param obj: an object for a warning
         :return: None
         """
-        if isinstance(obj, str):
+        if isinstance(obj, str) and obj in self:
             self.__wrn.extend(self.pop(obj))
         else:
             self.__wrn.append(obj)
@@ -81,10 +82,45 @@ class ActionResult(dict):
         :param obj: Object for error
         :return: None
         """
-        if isinstance(obj, str):
+        if isinstance(obj, str) and obj in self:
             self.__err.extend(self.pop(obj))
         else:
             self.__err.append(obj)
+
+    def to_data(self) -> dict:
+        """
+        Export to data.
+
+        :return: dictionary data
+        """
+        return {
+            "module": dict(self),
+            "log": {
+                "info": self.info,
+                "warn": self.warn,
+                "error": self.error
+            }
+        }
+
+    def to_json(self) -> str:
+        """
+        Export to JSON.
+
+        :return: JSON serialised string
+        """
+        return json.dumps(self.to_data())
+
+    def from_json(self, data: str) -> None:
+        """
+        Import from JSON.
+
+        :param data: JSON data string
+        :return: None
+        """
+        data = json.loads(data)
+        self.__inf = data["info"]
+        self.__wrn = data["warn"]
+        self.__err = data["error"]
 
 
 class BaseModule:

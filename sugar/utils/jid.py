@@ -47,10 +47,10 @@ class __JobID(object):
         """
         ret = False
         jid = six.text_type(jid)
-        if len(jid) > 21 and jid[21] == '_':
+        if len(jid) > 21 and jid[20] == '_':
             try:
                 jid, pid = jid.split('_', 1)
-                ret = int(jid) and int(pid)  # Pid cannot be 0.
+                ret = bool(int(jid) and int(pid))  # Pid cannot be 0.
             except ValueError:
                 pass
 

@@ -47,6 +47,7 @@ class FunctionObject:
     args = []          # Arguments to the function
     kwargs = []        # Keywords to the function
     type = TYPE_STATE  # Type of the function (state, runner or custom)
+    jid = None         # Job ID
 
     def __repr__(self):
         return "<{name} at {mem} Module: {mdl}, Function: {fnc}, Args: {arg}, Keywords: {kwr}>".format(

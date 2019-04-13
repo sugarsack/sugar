@@ -7,10 +7,14 @@ from twisted.internet import reactor, threads
 from twisted.internet import task as twisted_task
 import twisted.internet.error
 
+from sugar.lib.compat import yaml
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.compiler.objtask import FunctionObject
 from sugar.lib.perq import QueueFactory
 from sugar.lib.perq.qexc import QueueEmpty
+from sugar.transport import ClientMsgFactory, ObjectGate
+import sugar.utils.absmod
+import sugar.utils.timeutils
 
 
 class TaskProcessor:
@@ -18,46 +22,81 @@ class TaskProcessor:
     Concurrent task processor.
     """
     XLOG_PATH = "/var/cache/sugar/client/tasks"
+    XRET_PATH = "/var/cache/sugar/client/responses"
 
     def __init__(self, loader):
         self.t_counter = 0
         self.log = get_logger(self)
         self.loader = loader
         self._queue = QueueFactory.fs_queue(self.XLOG_PATH).use_notify()
+        self._ret_queue = QueueFactory.fs_queue(self.XRET_PATH).use_notify()
         self._d_stop = False
         self._task_looper_marker = True
 
-    def on_task(self, task: FunctionObject) -> dict:
+    def on_task(self, task: FunctionObject) -> (str, dict):
         """
-        Process task.
+        Process a single task. This is either a task from the state sequence or one-shot runner command.
+        Runner URI must have a prefix "runner:" to it.
 
         :param task: FunctionObject
         :raises NotImplementedError: if state is called
         :return dict: result data
         """
         # Todo: probably not FunctionObject, but StateTask *and* FunctionObject.
-        self.log.debug("Running task: {}", task)
-        try:
+        self.log.debug("Running task: {}. JID: {}", task, task.jid)
+
+        # TODO: Send message back informing for accepting the task
+        uri = "{}.{}".format(task.module, task.function)
+        task_source = {
+            "command": {
+                uri: []
+            }
+        }
+        if task.args:
+            task_source["command"][uri].append(task.args)
+        if task.kwargs:
+            task_source["command"][uri].append(task.kwargs)
+
+        self._add_response(task.jid, src=yaml.dump(task_source))
+
+        if task.type == FunctionObject.TYPE_RUNNER:
             uri = "{module}.{function}".format(module=task.module, function=task.function)
-            if task.type == FunctionObject.TYPE_RUNNER:
+            try:
                 result = self.loader.runners[uri](*task.args, **task.kwargs)
-            else:
-                raise NotImplementedError("State running is not implemented yet")
-        except Exception as exc:
-            self.log.error("Error running task '{}.{}': {}", task.module, task.function, str(exc))
-            result = {}
+            except Exception as exc:
+                err_msg = "Error running task '{}.{}': {}".format(task.module, task.function, str(exc))
+                self.log.error(err_msg)
+                result = sugar.utils.absmod.ActionResult()
+                result.error = err_msg
+            self._add_response(task.jid, answer=result.to_json() if result is not None else "{}",
+                               task_finished=sugar.utils.timeutils.to_iso(), log="N/A", job_finished=True,
+                               uri="runner:{}".format(uri))
+        else:
+            raise NotImplementedError("State running is not implemented yet")
 
-        return result
+        return task.jid, result
 
-    def on_task_result(self, data) -> None:
+    def _add_response(self, jid, **kwargs) -> None:
+        """
+        Add report xlog to the response queue for sending that back to the master.
+
+        :param kwargs: data container for the arbitrary response.
+        :return: None
+        """
+        task_update_info_msg = ClientMsgFactory.create(jid=jid, kind=ClientMsgFactory.KIND_NFO_RESP)
+        task_update_info_msg.internal.update(kwargs)
+        self._ret_queue.put_nowait(ObjectGate(task_update_info_msg).pack(binary=True))
+        self.log.debug("Task has been reported to return Queue")
+
+    def on_task_result(self, result: tuple) -> None:
         """
         Store task results to the returner facility.
 
-        :param data: Resulting data from the performed task.
+        :param result: Resulting data from the performed task, which is a tuple of "(jid, result)".
         :return: None
         """
-        self.log.debug("Task return: {}", data)
-        # TODO: Pass resulting data to the receiver (store)
+        jid, data = result
+        self.log.debug("Task return: {} as '{}'. JID: {}", data, type(data), jid)
 
         # Decrease tasks counter
         if self.t_counter:
@@ -122,6 +161,15 @@ class TaskProcessor:
         :return: None
         """
         self._queue.put(task)
+
+    def get_response(self, force: bool):
+        """
+        Get response.
+
+        :param force or not the first get (removes disk lock)
+        :return: A response payload
+        """
+        return self._ret_queue.get_nowait(force=force) if not self._ret_queue.pending() else None
 
     def run(self) -> None:
         """

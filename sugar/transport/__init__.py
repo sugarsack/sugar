@@ -11,7 +11,6 @@ from sugar.lib import six
 from sugar.transport.serialisable import Serialisable, ObjectGate
 from sugar.utils.tokens import MasterLocalToken
 from sugar.utils import exitcodes
-from sugar.utils.jid import jidstore
 from sugar.lib.traits import Traits
 
 
@@ -141,14 +140,17 @@ class ConsoleMsgFactory(_MessageFactory):
         And('function'): str,
         And('args'): [],
 
+        And('offline'): bool,
+
         Optional('jid'): str,
     })
 
     @classmethod
-    def create(cls):
+    def create(cls, jid=""):
         """
         Create message.
 
+        :param jid: Job ID
         :return: Serialisable
         """
         obj = Serialisable()
@@ -160,7 +162,8 @@ class ConsoleMsgFactory(_MessageFactory):
         obj.target = ''
         obj.function = ''
         obj.args = []
-        obj.jid = jidstore.create()
+        obj.jid = jid
+        obj.offline = False
 
         cls.validate(obj)
 
@@ -176,6 +179,7 @@ class ClientMsgFactory(_MessageFactory):
     KIND_HANDSHAKE_TKEN_REQ = 0xfb      # Signed token request
     KIND_HANDSHAKE_PKEY_REG_REQ = 0xfc  # Public key registration request
     KIND_OPR_RESP = 0xa1                # Operational response
+    KIND_NFO_RESP = 0xa2                # Information response (used for e.g. job status updates)
     KIND_TRAITS = 0x1                   # Contains traits
 
     scheme = Schema({
@@ -203,11 +207,12 @@ class ClientMsgFactory(_MessageFactory):
     })
 
     @classmethod
-    def create(cls, kind=KIND_OPR_RESP):
+    def create(cls, kind=KIND_OPR_RESP, jid=""):
         """
         Create message.
 
         :param kind: int
+        :param jid: job id
         :return: Serialisable
         """
         obj = Serialisable()
@@ -226,7 +231,7 @@ class ClientMsgFactory(_MessageFactory):
         obj.changes = {}
         obj.internal = {}
 
-        obj.jid = jidstore.create()
+        obj.jid = jid
 
         cls.validate(obj)
 
@@ -260,7 +265,9 @@ class ServerMsgFactory(_MessageFactory):
         And('ret'): {
             Optional('.'): None,  # Marker
             And('errcode'): int,
-            Optional('message'): str,
+            Optional('message'): str,  # Todo: deprecate this!
+            Optional("msg_args"): list,
+            Optional("msg_template"): str,
             Optional('function'): {},
         },
         And('internal'): {},
@@ -288,11 +295,12 @@ class ServerMsgFactory(_MessageFactory):
         obj.kind = cls.TASK_RESPONSE
         return obj
 
-    def create(self, kind=KIND_OPR_REQ):
+    def create(self, jid="", kind=KIND_OPR_REQ):
         """
         Create arbitrary message.
 
         :param kind: int
+        :param jid: Job ID
         :return: Serialisable
         """
         obj = Serialisable()
@@ -300,10 +308,12 @@ class ServerMsgFactory(_MessageFactory):
         obj.kind = kind
         obj.user = getpass.getuser()
         obj.uid = os.getuid()
-        obj.jid = jidstore.create()
+        obj.jid = jid
         obj.ret.errcode = exitcodes.EX_OK
         obj.ret.message = ''
         obj.ret.function = {}
+        obj.ret.msg_template = ""
+        obj.ret.msg_args = []
         obj.internal = {}
 
         self.validate(obj)

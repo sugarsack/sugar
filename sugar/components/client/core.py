@@ -1,16 +1,18 @@
 """
 Core client operations.
 """
-
 import os
 
 from twisted.internet import reactor
+from twisted.internet import task as twisted_task
 import twisted.internet.error
+
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
 import sugar.utils.network
 import sugar.utils.process
 import sugar.lib.exceptions
+
 from sugar.config import get_config
 from sugar.lib.compat import queue
 from sugar.lib.logger.manager import get_logger
@@ -122,10 +124,13 @@ class TaskPool:
     """
     Task pool to collect, run them and get the output back.
     """
-    def __init__(self):
+    def __init__(self, core):
+        self.core = core
         self.processor = TaskProcessor(SugarModuleLoader())
         self.worker = sugar.utils.process.SignalHandlingMultiprocessingProcess(target=self.processor.run)
         self.worker.daemon = True
+        self._response_looper_marker = True
+        self.log = get_logger(self)
 
     def start(self) -> None:
         """
@@ -134,6 +139,7 @@ class TaskPool:
         :return: None
         """
         self.worker.start()
+        twisted_task.LoopingCall(self.next_response).start(0.02)
 
     def stop(self) -> None:
         """
@@ -160,6 +166,21 @@ class TaskPool:
 
         self.processor.schedule_task(task)
 
+    def next_response(self) -> None:
+        """
+        Get a response from the queue.
+
+        :return: None
+        """
+        resp = None
+        try:
+            resp = self.processor.get_response(self._response_looper_marker)
+            self._response_looper_marker = False
+        except Exception as exc:
+            self.log.error("Error fetching next response: {}", str(exc))
+        if resp is not None:
+            self.core.broadcast_message(resp)
+
 
 @Singleton
 class ClientCore(object):
@@ -182,7 +203,7 @@ class ClientCore(object):
         self.hds = HandshakeStatus()
         self.rts = RuntimeStatus()
 
-    def set_reactor_connection(self, connection):
+    def set_reactor_connection(self, connection) -> None:
         """
         Set pointer to the reactor connection.
 
@@ -190,6 +211,17 @@ class ClientCore(object):
         :return: None
         """
         self.reactor_connection = connection
+
+    def broadcast_message(self, data: bytes) -> None:
+        """
+        Send data to all protocols.
+
+        :param data: message data (binary or text)
+        :return: None
+        """
+        for prt_id in self._proto:
+            proto = self._proto[prt_id]
+            proto.sendMessage(data, is_binary=True)
 
     def set_protocol(self, proto_id, proto):
         """
@@ -249,7 +281,7 @@ class ClientSystemEvents(object):
     def __init__(self, core: ClientCore):
         self.log = get_logger(self)
         self.core = core
-        self.task_pool = TaskPool()
+        self.task_pool = TaskPool(self.core)
         self.pki_path = os.path.join(self.core.config.config_path, "pki/{}".format(get_current_component()))
         if not os.path.exists(self.pki_path):
             self.log.info("creating directory for keys in: {}", self.pki_path)
@@ -405,7 +437,7 @@ class ClientSystemEvents(object):
         if not self.check_master_pubkey():
             self.log.error("ERROR: Master public key not found")
             proto.sendMessage(ClientMsgFactory.pack(ClientMsgFactory().create(
-                ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ)), is_binary=True)
+                kind=ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ)), is_binary=True)
             reply = self.core.get_queue().get()  # This is blocking and is waiting for the master to continue
             if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_RESP:
                 self.save_master_pubkey(reply.internal["payload"])
@@ -415,7 +447,7 @@ class ClientSystemEvents(object):
         # Phase 2: Tell Master client is authentic
         cipher = self.create_master_token()
         signature = self.create_master_signature(cipher)
-        msg = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ)
+        msg = ClientMsgFactory().create(kind=ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ)
         msg.internal["cipher"] = cipher
         msg.internal["signature"] = signature
         proto.sendMessage(ClientMsgFactory.pack(msg), is_binary=True)
@@ -426,7 +458,7 @@ class ClientSystemEvents(object):
 
         if reply.kind == ServerMsgFactory.KIND_HANDSHAKE_PKEY_NOT_FOUND_RESP:
             self.log.debug("key needs to be sent for the registration")
-            registration_request = ClientMsgFactory().create(ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
+            registration_request = ClientMsgFactory().create(kind=ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ)
             registration_request.internal["payload"] = sugar.lib.pki.utils.get_public_key(self.pki_path)
             registration_request.internal["machine-id"] = self.core.traits.data.get('machine-id')
             registration_request.internal["host-fqdn"] = self.core.traits.data.get("host-fqdn")

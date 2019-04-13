@@ -9,7 +9,8 @@ from __future__ import absolute_import, unicode_literals, print_function
 from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientFactory
 from twisted.internet.protocol import ClientFactory
 
-from sugar.transport import ConsoleMsgFactory, ServerMsgFactory, any_binary
+from sugar.transport import ConsoleMsgFactory, ServerMsgFactory
+from sugar.components.console.core import ConsoleCore
 
 
 class SugarConsoleProtocol(WebSocketClientProtocol):
@@ -30,15 +31,12 @@ class SugarConsoleProtocol(WebSocketClientProtocol):
         if binary:
             response = ServerMsgFactory.unpack(payload)
             self.log.debug('reply: {}'.format(response.ret.message))
-            self.log.debug('response from the master accepted. Stopping.')
-
-            print('-' * 80)
-            print(any_binary(payload))
-            print('-' * 80)
-
-            self.factory.reactor.stop()
+            self.factory.core.display_response(payload)
         else:
             self.log.error("Non-binary message: {}".format(payload))
+
+        self.log.debug('response from the master accepted. Stopping.')
+        self.factory.reactor.stop()
 
     def onClose(self, wasClean, code, reason):
         self.log.debug("socket closed: {0}".format(reason))
@@ -53,6 +51,7 @@ class SugarClientFactory(WebSocketClientFactory, ClientFactory):
     def __init__(self, *args, **kwargs):
         WebSocketClientFactory.__init__(self, *args, **kwargs)
         self.maxDelay = 10  # pylint: disable=C0103
+        self.core = ConsoleCore()
 
     def clientConnectionFailed(self, connector, reason):
         """

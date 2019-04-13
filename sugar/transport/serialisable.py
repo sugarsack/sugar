@@ -3,6 +3,8 @@ General objects for the serialisation.
 """
 from __future__ import absolute_import, unicode_literals
 
+import json
+import datetime
 import collections
 import pickle
 
@@ -83,9 +85,55 @@ class ObjectGate(object):
         data = self._dumper(self.__obj)
         return pickle.dumps(data) if binary else data
 
+    def _json(self, ref, data=None):
+        """
+        Dump data recursively.
+
+        :param ref: reference object
+        :param data: data to dump. Default: None
+        :return: Serialisable
+        """
+        if data is None:
+            data = {}
+
+        for attr_name, attr in ref.__dict__.items():
+            if isinstance(attr, (list, tuple)):
+                content = []
+                for obj in attr:
+                    content.append(self._json(obj))
+                attr = content
+            if isinstance(attr, Serialisable):
+                data[attr_name] = {}
+                self._json(attr, data[attr_name])
+            if isinstance(attr, datetime.datetime):
+                attr = attr.isoformat()
+
+            # Filter unknown away
+            if isinstance(attr, (dict, list, tuple, str,
+                                 int, float, bool, type(None))):
+                data.setdefault(attr_name, attr)
+
+        return data
+
+    def to_json(self) -> str:
+        """
+        To JSON.
+
+        :return: json string
+        """
+        return json.dumps(self._json(self.__obj))
+
+    def to_dict(self) -> dict:
+        """
+        To dictionary, that later will be dumped to JSON.
+
+        :return: serialised object as dictionary
+        """
+        return self._json(self.__obj)
+
 
 # pylint: disable=R0902
-class Serialisable(object):
+class Serialisable:
     """
     Serialisable container.
     """

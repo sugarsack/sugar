@@ -86,7 +86,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
             return
 
         # Traits update
-        msg = ClientMsgFactory.create(ClientMsgFactory.KIND_TRAITS)
+        msg = ClientMsgFactory.create(kind=ClientMsgFactory.KIND_TRAITS)
         msg.internal.update(self.factory.core.traits.data)
         self.sendMessage(ClientMsgFactory.pack(msg), is_binary=True)
         self.log.debug("Client traits update")
@@ -113,6 +113,7 @@ class SugarClientProtocol(WebSocketClientProtocol):
                         task.type = FunctionObject.TYPE_RUNNER
                         task.module, task.function = msg.internal.get("function").rsplit(".", 1)
                         task.args, task.kwargs = msg.internal.get("arguments")
+                        task.jid = msg.jid
                         self.factory.core.system.task_pool.add_task(task)
         else:
             self.log.debug("non-binary message: {}".format(payload))

@@ -23,5 +23,6 @@ partd
 mock
 pudb
 pony
+pytz
 
 #pip install service_identity --force --upgrade

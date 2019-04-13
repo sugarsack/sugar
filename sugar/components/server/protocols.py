@@ -3,13 +3,14 @@
 """
 Server protocols
 """
-
-from __future__ import absolute_import, unicode_literals, print_function
+import time
 from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
 from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory, KeymanagerMsgFactory, ConsoleMsgFactory
 from sugar.utils import exitcodes
 from sugar.components.server.core import get_server_core
+from sugar.components.server.pdatastore import PDataContainer
+import sugar.utils.timeutils
 
 
 class SugarConsoleServerProtocol(WebSocketServerProtocol):
@@ -24,7 +25,6 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
         self.log.debug("console connection has been opened")
 
     def onMessage(self, payload, binary):
-        reply = ServerMsgFactory.create_client_msg()
         if binary:
             msg = ObjectGate().load(payload, binary)
             if msg.component == KeymanagerMsgFactory.COMPONENT:
@@ -34,13 +34,12 @@ class SugarConsoleServerProtocol(WebSocketServerProtocol):
                 else:
                     self.factory.core.keymanager.on_key_status(msg.internal)
             elif msg.component == ConsoleMsgFactory.COMPONENT:
-                # Console messages
-                self.factory.core.console_request(msg)
-                reply.ret.message = "accepted jid: {}".format(msg.jid)
+                self.factory.core.console_request(msg, self)
         else:
-            reply.ret.message = "Unknown message"
+            reply = ServerMsgFactory.create_client_msg()
+            reply.ret.message = "Unknown message type"
             reply.ret.errcode = exitcodes.EX_GENERIC
-        self.sendMessage(ServerMsgFactory.pack(reply), isBinary=True)
+            self.sendMessage(ServerMsgFactory.pack(reply), isBinary=True)
 
     def onClose(self, wasClean, code, reason):
         self.factory.unregister(self)
@@ -93,6 +92,10 @@ class SugarServerProtocol(WebSocketServerProtocol):
     """
     Sugar server protocol.
     """
+    def __init__(self, *args, **kwargs):
+        WebSocketServerProtocol.__init__(self, *args, **kwargs)
+        self.accepted = False
+
     def onConnect(self, request):
         self.log.debug("client connected: {0}".format(request.peer))
 
@@ -100,7 +103,23 @@ class SugarServerProtocol(WebSocketServerProtocol):
         self.factory.register(self)
         self.log.debug("client has opened a connection")
 
-    def onMessage(self, payload, binary):
+    def sendMessage(self,
+                    payload,
+                    isBinary=False,
+                    fragmentSize=None,
+                    sync=False,
+                    doNotCompress=False):
+        super(SugarServerProtocol, self).sendMessage(payload=payload, isBinary=isBinary, fragmentSize=fragmentSize,
+                                                     sync=sync, doNotCompress=doNotCompress)
+
+    def onMessage(self, payload: bytes, binary: bool) -> None:
+        """
+        Event on incoming transport message.
+
+        :param payload: Body of the message.
+        :param binary: Boolean. True if message is binary. False otherwise.
+        :return: None
+        """
         if binary:
             msg = ObjectGate().load(payload, binary)
             if self.get_machine_id() is None:
@@ -123,11 +142,28 @@ class SugarServerProtocol(WebSocketServerProtocol):
                 self.log.debug("Traits update on client connect")
                 self.factory.core.refresh_client_pdata(self.machine_id, traits=msg.internal)
 
+            elif msg.kind == ClientMsgFactory.KIND_NFO_RESP:
+                answer = msg.internal.get("answer")
+                target = PDataContainer(id=msg.machine_id, host="")
+
+                # Update task status (called per each statement in the state or runner)
+                task_finished = msg.internal.get("task_finished")
+                if task_finished:
+                    self.factory.core.jobstore.report_job(jid=msg.jid, target=target, src=msg.internal.get("src"),
+                                                          finished=sugar.utils.timeutils.from_iso(task_finished),
+                                                          answer=answer, uri=msg.internal.get("uri"))
+                # Update job status (called once at the end of the whole job cycle)
+                if msg.internal.get("job_finished") is True:
+                    self.factory.core.jobstore.report_job_finished(jid=msg.jid)
+            else:
+                self.log.error("CAUTION: unknown message type:", msg.component)
+
     def onClose(self, wasClean, code, reason):
+        tstamp = time.time()
         self.log.debug("client's connection has been closed: {0}".format(reason))
         self.transport.loseConnection()
         self.factory.unregister(self)
-        self.factory.core.remove_client_protocol(self)
+        self.factory.core.remove_client_protocol(self, tstamp)
 
     def connectionLost(self, reason):
         """
