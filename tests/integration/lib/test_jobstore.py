@@ -405,28 +405,30 @@ class TestBasicJobStore:
         :return:
         """
         uri = "job_store.test_jobstore_register_job"
+        for target in targets_list:
+            self.store.add_host(fqdn=target.host, osid=target.id, ipv4="127.0.0.1", ipv6="::1")
 
         jid = self.store.new(query="*", clientslist=targets_list, uri=uri, args="",
                              job_type=JobTypes.RUNNER, tag="for exporting")
         state = StateCompiler(get_barestates_root).compile(uri)
         for target in targets_list:
             self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
+            self.store.report_job(jid=jid, target=target, src=state.to_yaml(), answer="{}",
+                                  finished=datetime.datetime.now(), uri=uri)
 
         self.store.export(jid, path=self._path)
 
         archpath = "{}/sugar-job-{}.tar.gz".format(self._path, jid)
-        assert os.path.exists(archpath)
-
-        arch_extracted_path = "{}/arch/".format(self._path)
+        arch_extracted_path = "{}/archive/".format(self._path)
         tar = tarfile.open(archpath)
         tar.extractall(arch_extracted_path)
         tar.close()
 
         assert os.path.exists("{}job-info.yaml".format(arch_extracted_path))
         for target in targets_list:
-            assert os.path.exists("{}{}".format(arch_extracted_path, target.id))
+            assert os.path.exists("{}{}".format(arch_extracted_path, target.host))
             for f_gen in ["source", "result"]:
-                assert os.path.exists("{}{}/{}.yaml".format(arch_extracted_path, target.id, f_gen))
+                assert os.path.exists("{}{}/{}.yaml".format(arch_extracted_path, target.host, f_gen))
 
     def test_report_job_result(self, get_barestates_root, targets_list):
         """
