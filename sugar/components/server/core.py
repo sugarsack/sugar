@@ -107,7 +107,7 @@ class ServerCore:
         msg = sugar.transport.ServerMsgFactory.create_console_msg()
         if clientlist or offline_clientlist:
             evt.jid = self.jobstore.new(query=evt.tgt, clientslist=clientlist + offline_clientlist,
-                                        expr="runner:{}".format(evt.fun), uri=evt.fun, args=json.dumps(evt.arg),
+                                        uri=evt.fun, args=json.dumps(evt.arg),
                                         job_type="runner")
             for target in clientlist:
                 threads.deferToThread(self.fire_event, event=evt, target=target)

@@ -28,10 +28,9 @@ class Job(database.Entity, SerialisableEntity):
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     status = orm.Required(str, default=JobDefaults.S_ISSUED)
     query = orm.Required(str)
-    expr = orm.Required(str)                      # job expression (state name or function name) TODO: deprecate
     tag = orm.Optional(str, nullable=True)        # Tag/label of the job for better search for it
     results = orm.Set("Result")                   # Set of tasks per host. Job ID is the same across the set of hosts.
-    args = orm.Required(str)
+    args = orm.Optional(str, nullable=True, default=None)
     uri = orm.Required(str)
     type = orm.Required(str)                      # Type: "runner" or "state"
 

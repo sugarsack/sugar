@@ -17,6 +17,7 @@ from sugar.lib.compiler.objtask import StateTask
 from sugar.lib.jobstore.entities import Job, Host
 from sugar.lib.jobstore.stats import JobStats
 from sugar.lib.jobstore.components import ResultDict
+from sugar.lib.jobstore.const import JobTypes
 from sugar.utils.db import database, JobDefaults
 from sugar.utils.sanitisers import join_path
 from sugar.utils.jid import jidstore
@@ -78,24 +79,27 @@ class JobStorage:
             return host
 
     def new(self, query: str, clientslist: typing.List[PDataContainer],
-            expr: str, uri: str, args: str, job_type: str, tag: str = None, jid: str = None) -> str:
+            uri: str, args: str, job_type: str, tag: str = None, jid: str = None) -> str:
         """
         Register a new job.
 
         :param query: Issued matcher expression during the job state or runner.
         :param clientslist: Result of the matcher query, list of PDataContainer class.
-        :param expr: Expression of the job: either it is the name of the state or function etc. I.e. what was called.
+        :param uri: URI of the state or function etc.
         :param tag: Tag (label) of the job.
+        :param job_type: one of the "runner", "state"
+        :param args: Arguments of the job (usually for the "runner")
         :param jid: reuse passed in JID.
         :return: jid (new job id)
         """
+        JobTypes.validate(job_type=job_type)
         if not clientslist:
             raise sugar.lib.exceptions.SugarJobStoreException("Registering job with no target clients?")
 
         if jid is None or not jidstore.is_jid(jid):
             jid = jidstore.create()
         with orm.db_session(optimistic=False):
-            job = Job(jid=jid, query=query, expr=expr, created=datetime.datetime.now(tz=pytz.UTC), tag=tag,
+            job = Job(jid=jid, query=query, created=datetime.datetime.now(tz=pytz.UTC), tag=tag,
                       type=job_type, uri=uri, args=args)
             for target in clientslist:
                 job.results.create(machineid=target.id)
@@ -150,16 +154,16 @@ class JobStorage:
         :param src: source of the job (YAML)
         :param answer: the entire (compiled) answer of the job
         :param finished: when particular task has been finished
-        :param uri: URI from the state. Otherwise None, which is a fallback of job.expr
+        :param uri: URI from the state. Otherwise None, which is a fallback of job.uri
         :return: None
         """
         if src is not None or answer is not None:
             with orm.db_session(optimistic=False):
                 job = Job.get(jid=jid)
                 result = job.results.select(lambda result: result.machineid == target.id).first()
-                task = result.tasks.select(lambda task: task.idn == uri or job.expr).first()
+                task = result.tasks.select(lambda task: task.idn == uri or job.uri).first()
                 if task is None:
-                    task = result.tasks.create(idn=uri or job.expr, finished=finished)
+                    task = result.tasks.create(idn=uri or job.uri, finished=finished)
                 else:
                     task.finished = finished
                 if src is not None:
@@ -513,7 +517,7 @@ class JobStorage:
             job_data["finished"] = job.finished
             job_data["status"] = job.status
             job_data["query"] = job.query
-            job_data["identifier"] = job.expr
+            job_data["identifier"] = job.uri
             job_data["tag"] = job.tag
 
             data.append(("job-info.yaml", job_data, False))
