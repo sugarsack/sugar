@@ -30,4 +30,3 @@ class ConsoleCore:
         msg_template = event.get("ret", {}).get("msg_template", "")
         msg_args = event.get("ret", {}).get("msg_args", [])
         self.console_messages.info(msg_template, *msg_args)
-
