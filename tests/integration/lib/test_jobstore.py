@@ -19,6 +19,7 @@ from sugar.lib.compiler import StateCompiler
 from sugar.config import get_config
 from tests.integration.fixtures import get_barestates_root
 from sugar.components.server.pdatastore import PDataContainer
+from sugar.lib.jobstore.const import JobTypes
 
 
 @pytest.fixture
@@ -46,6 +47,7 @@ class TestBasicJobStore:
         :return:
         """
         from sugar.lib.jobstore import JobStorage
+
         self._path = "/tmp/jobstore"
         self.store = JobStorage(get_config(), path=self._path)
 
@@ -71,7 +73,7 @@ class TestBasicJobStore:
         query = ":a"
         uri = "job_store.test_jobstore_register_job"
 
-        jid = self.store.new(query=query, clientslist=targets_list, expr=uri)
+        jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
         obj = self.store.get_by_jid(jid)
         assert obj.jid == jid
         for result in obj.results:
@@ -88,7 +90,7 @@ class TestBasicJobStore:
         uri = "job_store.test_jobstore_register_job"
 
         # Create task
-        jid = self.store.new(query=query, clientslist=targets_list, expr=uri)
+        jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
 
         # Client compiles it
         state = StateCompiler(get_barestates_root).compile(uri)
@@ -112,7 +114,7 @@ class TestBasicJobStore:
         uri = "job_store.test_jobstore_register_job"
 
         # Create task
-        jid = self.store.new(query=query, clientslist=targets_list, expr=uri)
+        jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
         # Client compiles it
         state = StateCompiler(get_barestates_root).compile(uri)
 
@@ -169,7 +171,7 @@ class TestBasicJobStore:
         for idx in range(10):
             if idx == 4:
                 middle = datetime.datetime.now(tz=pytz.UTC)
-            jid = self.store.new(query=query, clientslist=targets_list, expr=uri)
+            jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
             state = StateCompiler(get_barestates_root).compile(uri)
             for target in targets_list:
                 self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
@@ -194,7 +196,7 @@ class TestBasicJobStore:
         uri = "job_store.test_jobstore_register_job"
         finished = []
         for idx in range(10):
-            jid = self.store.new(query=query, clientslist=targets_list, expr=uri)
+            jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
             state = StateCompiler(get_barestates_root).compile(uri)
             for target in targets_list:
                 self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
@@ -230,7 +232,7 @@ class TestBasicJobStore:
         finished = []
         unfinished = []
         for idx in range(10):
-            jid = self.store.new(query=query, clientslist=targets_list, expr=uri)
+            jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
             state = StateCompiler(get_barestates_root).compile(uri)
             for target in targets_list:
                 self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
@@ -268,7 +270,7 @@ class TestBasicJobStore:
         failed = []
         succeed = []
         for idx in range(10):
-            jid = self.store.new(query=query, clientslist=targets_list, expr=uri)
+            jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
             state = StateCompiler(get_barestates_root).compile(uri)
             for target in targets_list:
                 self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
@@ -306,7 +308,7 @@ class TestBasicJobStore:
         failed = []
         succeed = []
         for idx in range(10):
-            jid = self.store.new(query=query, clientslist=targets_list, expr=uri)
+            jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
             state = StateCompiler(get_barestates_root).compile(uri)
             for target in targets_list:
                 self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
@@ -345,7 +347,8 @@ class TestBasicJobStore:
         tagged = []
         for idx in range(10):
             tag = _tag if idx in [4, 7] else None
-            jid = self.store.new(query=query, clientslist=targets_list, expr=uri, tag=tag)
+            jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="",
+                                 job_type=JobTypes.RUNNER, tag=tag)
             if tag is not None:
                 tagged.append(jid)
             state = StateCompiler(get_barestates_root).compile(uri)
@@ -366,7 +369,7 @@ class TestBasicJobStore:
         query = ":a"
         uri = "job_store.test_jobstore_register_job"
         for idx in range(100):
-            self.store.new(query=query, clientslist=targets_list, expr=uri)
+            self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
 
         assert len(self.store.get_all(limit=None, offset=0)) == 100
         assert len(self.store.get_all(limit=25, offset=0)) == 25
@@ -386,7 +389,8 @@ class TestBasicJobStore:
             if idx == 8:
                 middle = datetime.datetime.now(tz=pytz.UTC)
                 tag = None
-            jid = self.store.new(query=query, clientslist=targets_list, expr=uri, tag=tag)
+            jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="",
+                                 job_type=JobTypes.RUNNER, tag=tag)
             print("Adding job", idx + 1, "of 10, JID:", jid)
             time.sleep(1.5)
         self.store.expire(middle)
@@ -402,7 +406,8 @@ class TestBasicJobStore:
         """
         uri = "job_store.test_jobstore_register_job"
 
-        jid = self.store.new(query="*", clientslist=targets_list, expr=uri, tag="for exporting")
+        jid = self.store.new(query="*", clientslist=targets_list, uri=uri, args="",
+                             job_type=JobTypes.RUNNER, tag="for exporting")
         state = StateCompiler(get_barestates_root).compile(uri)
         for target in targets_list:
             self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
@@ -435,7 +440,8 @@ class TestBasicJobStore:
 
         state = StateCompiler(get_barestates_root).compile(uri)
 
-        jid = self.store.new(query="*", clientslist=targets_list, expr=uri, tag="for exporting")
+        jid = self.store.new(query="*", clientslist=targets_list, uri=uri, args="",
+                             job_type=JobTypes.RUNNER, tag="for exporting")
         target = targets_list[0]
         answer = {
             "module": {
@@ -475,7 +481,7 @@ class TestBasicJobStore:
         :return:
         """
         uri = "job_store.test_jobstore_register_job"
-        jid = self.store.new(query="*", clientslist=targets_list, expr=uri)
+        jid = self.store.new(query="*", clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
         assert self.store.get_by_jid(jid=jid) is not None
         self.store.delete_by_jid(jid=jid)
         assert self.store.get_by_jid(jid=jid) is None
@@ -489,7 +495,8 @@ class TestBasicJobStore:
         uri = "job_store.test_jobstore_register_job"
         tag = "test"
         for x in range(10):
-            self.store.new(query="*", clientslist=targets_list, expr=uri, tag=None if x in [2, 4, 6] else tag)
+            self.store.new(query="*", clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER,
+                           tag=None if x in [2, 4, 6] else tag)
 
         assert len(self.store.get_all()) == 10
 
@@ -506,7 +513,7 @@ class TestBasicJobStore:
 
         :return:
         """
-        self.store.new(query="*", clientslist=[targets_list[0]], expr="some.uri")
+        self.store.new(query="*", clientslist=[targets_list[0]], uri="some.uri", args="", job_type=JobTypes.RUNNER)
         assert len(self.store.get_all()) == 1
         assert len(self.store.get_scheduled(targets_list[0])) == 1
         assert len(self.store.get_scheduled(targets_list[0], mark=True)) == 1
@@ -518,7 +525,7 @@ class TestBasicJobStore:
 
         :return:
         """
-        self.store.new(query="*", clientslist=[targets_list[0]], expr="some.uri")
+        self.store.new(query="*", clientslist=[targets_list[0]], uri="some.uri", args="", job_type=JobTypes.RUNNER)
         assert len(self.store.get_all()) == 1
         with pytest.raises(sugar.lib.exceptions.SugarJobStoreException) as exc:
             self.store.get_scheduled(None)
@@ -535,9 +542,9 @@ class TestBasicJobStore:
             targets_list.append(PDataContainer(id=hashlib.md5(hostname.encode("utf-8")).hexdigest(), host=hostname))
 
         for idx in range(2):
-            self.store.new(query="*", clientslist=targets_list, expr="some.uri")
+            self.store.new(query="*", clientslist=targets_list, uri="some.uri", args="", job_type=JobTypes.RUNNER)
         for idx in range(2):
-            self.store.new(query="*", clientslist=targets_list[1:], expr="some.uri")
+            self.store.new(query="*", clientslist=targets_list[1:], uri="some.uri", args="", job_type=JobTypes.RUNNER)
         assert len(self.store.get_unpicked()) == 4
         assert len(self.store.get_unpicked(target=targets_list[0])) == 2
 
@@ -546,7 +553,8 @@ class TestBasicJobStore:
         Test fire job.
         :return:
         """
-        jid = self.store.new(query=":a", clientslist=[targets_list[0]], expr="some.url")
+        jid = self.store.new(query=":a", clientslist=[targets_list[0]], uri="some.url",
+                             args="", job_type=JobTypes.RUNNER)
         for result in self.store.get_by_jid(jid=jid).results:
             if result.hostname in [targets_list[0].id]:
                 assert result.fired is None
