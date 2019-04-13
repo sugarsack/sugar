@@ -1,7 +1,6 @@
 """
 Core client operations.
 """
-import time
 import os
 
 from twisted.internet import reactor
@@ -131,6 +130,7 @@ class TaskPool:
         self.worker = sugar.utils.process.SignalHandlingMultiprocessingProcess(target=self.processor.run)
         self.worker.daemon = True
         self._response_looper_marker = True
+        self.log = get_logger(self)
 
     def start(self) -> None:
         """
@@ -176,7 +176,7 @@ class TaskPool:
             resp = self.processor.get_response(self._response_looper_marker)
             self._response_looper_marker = False
         except Exception as exc:
-            pass
+            self.log.error("Error fetching next response: {}", str(exc))
         if resp is not None:
             self.core.broadcast_message(resp)
 
