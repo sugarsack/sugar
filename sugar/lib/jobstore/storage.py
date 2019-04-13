@@ -23,6 +23,7 @@ from sugar.utils.sanitisers import join_path
 from sugar.utils.jid import jidstore
 from sugar.lib.compat import yaml
 import sugar.utils.exitcodes
+import sugar.utils.timeutils
 import sugar.lib.exceptions
 from sugar.components.server.pdatastore import PDataContainer
 # pylint: disable=R0201,R0904
@@ -525,34 +526,34 @@ class JobStorage:
             for result in job.results:
                 result_data = ResultDict()
                 result_data["status"] = result.status
-                result_data["finished"] = result.finished
+                result_data["fired"] = result.fired
+                result_data["src"] = result.src
                 result_data["tasks"] = []
-
+                host = self.get_host(osid=result.machineid)
                 for task in result.tasks:
                     task_data = ResultDict()
                     task_data["identifier"] = task.idn
-                    task_data["finished"] = task.finished
+                    task_data["finished"] = sugar.utils.timeutils.to_iso(task.finished)
+                    task_data["answer"] = task.answer
+                    task_data["src"] = task.src
                     task_data["calls"] = []
-
+                    if task.answer:
+                        data.append(("{}/{}-answer.yaml".format(host.fqdn, task.idn), task.answer, True))
                     for call in task.calls:
                         call_data = ResultDict()
                         call_data["finished"] = call.finished
                         call_data["URI"] = call.uri
+                        call_data["src"] = call.src
                         call_data["errcode"] = call.errcode
                         call_data["output"] = call.output
-
                         task_data["calls"].append(call_data)
                         if call.src:
-                            data.append(("{}/src-{}.{}.yaml".format(result.machineid, task.idn, call.uri),
+                            data.append(("{}/src-{}.{}.yaml".format(host.fqdn, task.idn, call.uri),
                                          call.src, True))
                     result_data["tasks"].append(task_data)
 
-                data.append(("{}/result.yaml".format(result.machineid), result_data.to_dict(), False))
-                data.append(("{}/source.yaml".format(result.machineid), result.src, True))
-                if result.answer:
-                    data.append(("{}/answer.yaml".format(result.machineid), result.answer, True))
-                if result.log:
-                    data.append(("{}/client.log".format(result.machineid), result.log, True))
+                data.append(("{}/result.yaml".format(host.fqdn), result_data.to_dict(), False))
+                data.append(("{}/source.yaml".format(host.fqdn), result.src, True))
 
         for d_name, d_content, as_is in data:
             body = yaml.dump(d_content, default_flow_style=False) if not as_is else d_content
