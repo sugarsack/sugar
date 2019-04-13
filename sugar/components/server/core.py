@@ -92,11 +92,12 @@ class ServerCore:
             else:
                 self.log.debug("Job '{}' temporarily cannot be fired to the client {}.", event.jid, target.id)
 
-    def on_broadcast_tasks(self, evt, proto):
+    def on_broadcast_tasks(self, evt, proto) -> None:
         """
         Send task to clients.
 
         :param evt: an event
+        :param proto: peer protocol
         :return: None
         """
         self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\tquery: {}\n\targs: {}",
@@ -125,7 +126,7 @@ class ServerCore:
         Check pending jobs for the particular machine.
 
         :param mid: machine ID
-        :return:
+        :return: None
         """
         self.log.debug("Checking for pending jobs on {}", mid)
         target = PDataContainer(id=mid, host="")  # TODO: get a proper target with the hostname
@@ -155,11 +156,12 @@ class ServerCore:
         self.peer_registry.pdata_store.add(container=container)
         self.log.debug("Traits loaded from host '{}' ({})", container.host, container.id)
 
-    def remove_client_protocol(self, proto, tstamp):
+    def remove_client_protocol(self, proto, tstamp: float) -> None:
         """
         Unregister machine connection.
 
         :param proto: current protocol instance
+        :param tstamp: timestamp
         :return: None
         """
         # STOP: Do not ever remove peer here from the data store!

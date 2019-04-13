@@ -162,10 +162,12 @@ class TaskProcessor:
         """
         self._queue.put(task)
 
-    def get_response(self, force):
+    def get_response(self, force: bool):
         """
         Get response.
-        :return:
+
+        :param force or not the first get (removes disk lock)
+        :return: A response payload
         """
         return self._ret_queue.get_nowait(force=force) if not self._ret_queue.pending() else None
 

@@ -143,6 +143,7 @@ class PDataStore:
         """
         Return offline clients.
 
+        :param active: list of active client machines to be filtered out.
         :return: PDataContainer objects
         """
         for mid_file in os.listdir(self.__r_path):

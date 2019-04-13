@@ -55,7 +55,7 @@ class Peer:
         """
         Return timestamp when the peer was registered.
 
-        :return:
+        :return: current timestamp
         """
         return self.__registered
 
@@ -119,6 +119,7 @@ class RuntimeRegistry:
         Unregister peer.
 
         :param machine_id: Machine ID string
+        :param timestamp: current timestamp
         :return: None
         """
         try:

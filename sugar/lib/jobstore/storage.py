@@ -5,11 +5,11 @@ Job storage
 import os
 import errno
 import json
-import pytz
 import datetime
 import typing
 import tarfile
 import io
+import pytz
 
 from pony import orm
 
@@ -65,7 +65,7 @@ class JobStorage:
         :param osid: machine ID (systemd or automatically generated)
         :param ipv4: Primary IPv4 address, if any
         :param ipv6: Primary IPv6 address, if any
-        :param remove record ID from the serialised result
+        :param noid: Remove database's record host ID
         :return: None
         """
         with orm.db_session(optimistic=False):
@@ -91,6 +91,7 @@ class JobStorage:
         :param job_type: one of the "runner", "state"
         :param args: Arguments of the job (usually for the "runner")
         :param jid: reuse passed in JID.
+        :raises SugarJobStoreException: if job is attempted to be registered without target clients.
         :return: jid (new job id)
         """
         JobTypes.validate(job_type=job_type)
@@ -125,11 +126,11 @@ class JobStorage:
     def add_tasks(self, jid: str, *tasks: StateTask, target: PDataContainer = None, src: str = None) -> None:
         """
         Adds a completed tasks to te job per a target (system ID).
+        target: machine to add tasks for
+        src: source of the compiled task on the machine
 
         :param jid: job id
         :param tasks: list of tasks
-        :param target: machine to add tasks for
-        :param src: source of the compiled task on the machine
         :raises SugarJobStoreException: if hostname or machine ID was not specified.
         :return: None
         """
@@ -243,6 +244,7 @@ class JobStorage:
         Get scheduled jobs for the hostname.
 
         :param target: target client
+        :param mark: Mark all found scheduled jobs as fired.
         :raises SugarJobStoreException: if no hostname has been specified.
         :return: list of jobs
         """
@@ -312,7 +314,7 @@ class JobStorage:
                             del task.id
                             for call in task.calls:
                                 del call.id
-                return job
+            return job
 
     def get_later_then(self, dtm: datetime) -> list:
         """
@@ -423,7 +425,7 @@ class JobStorage:
         :param limit: limit of amount of the returned objects.
         :param offset: offset in the database.
 
-        :return:
+        :return: list of job entities
         """
         if limit is None:
             limit = 0
@@ -445,6 +447,7 @@ class JobStorage:
         Swipe over jobs and remove those that already outdated.
 
         :param dtm: date/time threshold (default last five days)
+        :raises SugarJobStoreException: if date/time is None
         :return: None
         """
         if dtm is not None:
@@ -453,12 +456,12 @@ class JobStorage:
         else:
             raise sugar.lib.exceptions.SugarJobStoreException("Date/time should not be None")
 
-    def expire_to_count(self, cnt=30):
+    def expire_to_count(self, cnt=30) -> None:
         """
         Remove jobs that are older than specific amount of jobs.
 
-        :param cnt:
-        :return:
+        :param cnt: count of jobs still be preserved (last)
+        :return: None
         """
         alive = 0
         with orm.db_session(optimistic=False):
