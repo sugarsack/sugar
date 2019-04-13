@@ -87,11 +87,11 @@ class ActionResult(dict):
         else:
             self.__err.append(obj)
 
-    def to_data(self):
+    def to_data(self) -> dict:
         """
         Export to data.
 
-        :return:
+        :return: dictionary data
         """
         return {
             "module": dict(self),
@@ -102,20 +102,20 @@ class ActionResult(dict):
             }
         }
 
-    def to_json(self):
+    def to_json(self) -> str:
         """
         Export to JSON.
 
-        :return:
+        :return: JSON serialised string
         """
         return json.dumps(self.to_data())
 
-    def from_json(self, data):
+    def from_json(self, data: str) -> None:
         """
         Import from JSON.
 
-        :param data:
-        :return:
+        :param data: JSON data string
+        :return: None
         """
         data = json.loads(data)
         self.__inf = data["info"]

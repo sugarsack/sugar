@@ -41,16 +41,17 @@ def get_fqhostname():
 
 
 class _IPvX:
+
     def __init__(self, fqdn):
         self._fqdn = fqdn
 
     @staticmethod
-    def __get_ip(fqdn, family):
+    def __get_ip(fqdn, family) -> str:  # TODO: ipaddr instead?
         """
         Get IP address by FQDN.
 
         :param fqdn:
-        :return:
+        :return: ip address string
         """
         addr = None
         for struct in socket.getaddrinfo(fqdn, None):
@@ -60,19 +61,19 @@ class _IPvX:
                 break
         return addr
 
-    def get_ipv4(self):
+    def get_ipv4(self) -> str:
         """
         Get IPv4 primary address.
 
-        :return:
+        :return: ip address
         """
         return self.__get_ip(self._fqdn, socket.AF_INET)
 
-    def get_ipv6(self):
+    def get_ipv6(self) -> str:
         """
         Get IPv6 primary address.
 
-        :return:
+        :return: ip address
         """
         return self.__get_ip(self._fqdn, socket.AF_INET6)
 
@@ -80,8 +81,9 @@ class _IPvX:
 def get_ipv4(fqdn) -> str:
     """
     Get IPv4 address from the fqdn.
-    :param fqdn:
-    :return:
+
+    :param fqdn: FQDN
+    :return: ip address
     """
     return _IPvX(fqdn).get_ipv4()
 
@@ -91,16 +93,16 @@ def get_ipv6(fqdn) -> str:
     Get IPv6 address from the fqdn.
 
     :param fqdn: FQDN
-    :return:
+    :return: ip address
     """
     return _IPvX(fqdn).get_ipv6()
 
 
-def get_hostname(ipv):
+def get_hostname(ipv) -> str:
     """
     Get hostname from IPv4 and IPv6.
 
-    :param ipv4:
-    :return:
+    :param ipv: ip address
+    :return: hostname
     """
     return socket.gethostbyaddr(ipv)[0]

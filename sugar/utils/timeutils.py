@@ -30,7 +30,7 @@ def from_iso(dtm: str) -> datetime.datetime:
     :param dtm: date/time string in ISO format
     :return: datetime object.
     """
-    if ":" == dtm[-3:-2]:
+    if dtm[-3:-2] == ":":
         dtm = dtm[:-3] + dtm[-2:]
     else:
         dtm += "+0000"

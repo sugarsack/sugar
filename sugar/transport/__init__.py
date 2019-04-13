@@ -150,6 +150,7 @@ class ConsoleMsgFactory(_MessageFactory):
         """
         Create message.
 
+        :param jid: Job ID
         :return: Serialisable
         """
         obj = Serialisable()
@@ -211,6 +212,7 @@ class ClientMsgFactory(_MessageFactory):
         Create message.
 
         :param kind: int
+        :param jid: job id
         :return: Serialisable
         """
         obj = Serialisable()

@@ -123,11 +123,11 @@ class ObjectGate(object):
         """
         return json.dumps(self._json(self.__obj))
 
-    def to_dict(self) -> str:
+    def to_dict(self) -> dict:
         """
         To dictionary, that later will be dumped to JSON.
 
-        :return:
+        :return: serialised object as dictionary
         """
         return self._json(self.__obj)
 
