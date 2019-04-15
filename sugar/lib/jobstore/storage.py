@@ -552,11 +552,11 @@ class JobStorage:
                     task_data = ResultDict()
                     task_data["identifier"] = task.idn
                     task_data["finished"] = sugar.utils.timeutils.to_iso(task.finished)
-                    task_data["answer"] = task.answer
+                    task_data["return_data"] = task.return_data
                     task_data["src"] = task.src
                     task_data["calls"] = []
-                    if task.answer:
-                        data.append(("{}/{}-answer.yaml".format(host.fqdn, task.idn), task.answer, True))
+                    if task.return_data:
+                        data.append(("{}/{}-return.yaml".format(host.fqdn, task.idn), task.return_data, True))
                     for call in task.calls:
                         call_data = ResultDict()
                         call_data["finished"] = call.finished
