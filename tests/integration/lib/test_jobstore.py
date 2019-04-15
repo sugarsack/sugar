@@ -411,7 +411,7 @@ class TestBasicJobStore:
         state = StateCompiler(get_barestates_root).compile(uri)
         for target in targets_list:
             self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
-            self.store.report_job(jid=jid, target=target, src=state.to_yaml(), answer="{}",
+            self.store.report_job(jid=jid, target=target, src=state.to_yaml(), return_data="{}",
                                   finished=datetime.datetime.now(), uri=uri)
 
         self.store.export(jid, path=self._path)
