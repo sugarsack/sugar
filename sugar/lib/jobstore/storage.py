@@ -156,6 +156,10 @@ class JobStorage:
         :param target: target machine
         :param src: source of the job (YAML)
         :param finished: when particular task has been finished
+        :param return_data: JSON data what module/task is returning
+        :param log_info: JSON data of the information log
+        :param log_warn: JSON data of the warning log
+        :param log_err: JSON data of the error log
         :param uri: URI from the state. Otherwise None, which is a fallback of job.uri
         :return: None
         """

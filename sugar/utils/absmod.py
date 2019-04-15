@@ -23,6 +23,7 @@ class ActionArray(list):
     def from_json(self, data: str) -> None:
         """
         Import from json string
+
         :param data: json string
         :return: None
         """
@@ -144,8 +145,9 @@ class ActionResult(dict):
     def set_run_response(self, response):
         """
         Sets runner response
-        :param response:
-        :return:
+
+        :param response: Serialisable object
+        :return: self
         """
         response.return_data = self.to_json()
         response.infos = self.info.to_json()

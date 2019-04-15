@@ -350,6 +350,9 @@ class RunnerModulesMsgFactory(_MessageFactory):
         """
         Create state modules return message.
 
+        :param jid: Job ID
+        :param task: FunctionObject type
+        :param src: task source (string)
         :return: Serialisable
         """
         obj = Serialisable()
