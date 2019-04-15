@@ -12,6 +12,8 @@ from sugar.transport.serialisable import Serialisable, ObjectGate
 from sugar.utils.tokens import MasterLocalToken
 from sugar.utils import exitcodes
 from sugar.lib.traits import Traits
+import sugar.utils.timeutils
+from sugar.lib.compiler.objtask import FunctionObject
 
 
 class ErrorLevel(object):
@@ -331,23 +333,35 @@ class RunnerModulesMsgFactory(_MessageFactory):
         Optional("."): None,  # Marker
         And('component'): int,
         And("errcode"): int,
-        And("payload"): {},
+        And("errmsg"): str,
+        And("machine_id"): str,
+        And("jid"): str,
+        And("uri"): str,
+        And("src"): str,
+        And("finished"): str,
+        And("return_data"): {},
         And("infos"): [],
         And("warnings"): [],
         And("errors"): [],
     })
 
     @classmethod
-    def create(cls):
+    def create(cls, jid: str = "", task: FunctionObject = None, src: str = None):
         """
         Create state modules return message.
 
         :return: Serialisable
         """
         obj = Serialisable()
+        obj.jid = jid
+        obj.machine_id = Traits().data["machine-id"]
+        obj.uri = "{module}.{function}".format(module=task.module, function=task.function) if task is not None else ""
+        obj.src = src or ""
         obj.component = cls.COMPONENT
         obj.errcode = 0
-        obj.payload = {}
+        obj.errmsg = ""
+        obj.finished = sugar.utils.timeutils.to_iso()
+        obj.return_data = {}
         obj.infos = []
         obj.warnings = []
         obj.errors = []
