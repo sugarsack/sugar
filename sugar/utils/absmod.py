@@ -8,15 +8,37 @@ import sugar.modules.runners
 import sugar.lib.exceptions
 
 
+class ActionArray(list):
+    """
+    List with export to JSON
+    """
+    def to_json(self) -> str:
+        """
+        Export to JSON.
+
+        :return: JSON string
+        """
+        return json.dumps(self)
+
+    def from_json(self, data: str) -> None:
+        """
+        Import from json string
+        :param data: json string
+        :return: None
+        """
+        self.clear()
+        self.extend(json.loads(data))
+
+
 class ActionResult(dict):
     """
     Task status collector.
     """
     def __init__(self, **kwargs):
         dict.__init__(self, **kwargs)
-        self.__inf = []
-        self.__wrn = []
-        self.__err = []
+        self.__inf = ActionArray()
+        self.__wrn = ActionArray()
+        self.__err = ActionArray()
         self.errcode = 0
 
     @property
@@ -108,7 +130,7 @@ class ActionResult(dict):
 
         :return: JSON serialised string
         """
-        return json.dumps(self.to_data())
+        return json.dumps(dict(self))
 
     def from_json(self, data: str) -> None:
         """
@@ -117,10 +139,20 @@ class ActionResult(dict):
         :param data: JSON data string
         :return: None
         """
-        data = json.loads(data)
-        self.__inf = data["info"]
-        self.__wrn = data["warn"]
-        self.__err = data["error"]
+        self.update(json.loads(data))
+
+    def set_run_response(self, response):
+        """
+        Sets runner response
+        :param response:
+        :return:
+        """
+        response.return_data = self.to_json()
+        response.infos = self.info.to_json()
+        response.warnings = self.warn.to_json()
+        response.errors = self.error.to_json()
+
+        return self
 
 
 class BaseModule:
