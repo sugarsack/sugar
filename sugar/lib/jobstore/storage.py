@@ -322,9 +322,9 @@ class JobStorage:
                     for task in result.tasks:
                         if task.return_data:
                             task.return_data = json.loads(task.return_data)  # Convert string-stored in db JSON into data struct
-                        task.log_info = json.loads(task.log_info)
-                        task.log_warn = json.loads(task.log_warn)
-                        task.log_err = json.loads(task.log_err)
+                        task.log_info = json.loads(task.log_info or "[]")
+                        task.log_warn = json.loads(task.log_warn or "[]")
+                        task.log_err = json.loads(task.log_err or "[]")
                         if noid:
                             del task.id
                             for call in task.calls:
