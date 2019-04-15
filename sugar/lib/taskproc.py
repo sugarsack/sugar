@@ -13,8 +13,6 @@ from sugar.lib.compiler.objtask import FunctionObject
 from sugar.lib.perq import QueueFactory
 from sugar.lib.perq.qexc import QueueEmpty
 from sugar.transport import RunnerModulesMsgFactory, ObjectGate
-import sugar.utils.absmod
-import sugar.utils.timeutils
 
 
 class TaskProcessor:
