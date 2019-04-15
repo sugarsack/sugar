@@ -58,17 +58,15 @@ class TaskProcessor:
         if task.type == FunctionObject.TYPE_RUNNER:
             response = RunnerModulesMsgFactory.create(jid=task.jid, task=task, src=yaml.dump(task_source))
             try:
-                result = self.loader.runners[response.uri](*task.args, **task.kwargs).set_run_response(response)
+                self.loader.runners[response.uri](*task.args, **task.kwargs).set_run_response(response)
             except Exception as exc:
                 response.errmsg = "Error running task '{}.{}': {}".format(task.module, task.function, str(exc))
                 self.log.error(response.errmsg)
-                result = sugar.utils.absmod.ActionResult()
-                result.error = response.errmsg
             self._ret_queue.put_nowait(ObjectGate(response).pack(binary=True))
         else:
             raise NotImplementedError("State running is not implemented yet")
 
-        return task.jid, result
+        return task.jid, response
 
     def on_task_result(self, result: tuple) -> None:
         """
@@ -77,8 +75,8 @@ class TaskProcessor:
         :param result: Resulting data from the performed task, which is a tuple of "(jid, result)".
         :return: None
         """
-        jid, data = result
-        self.log.debug("Task return: {} as '{}'. JID: {}", data, type(data), jid)
+        jid, response = result
+        self.log.debug("Task return: {}. JID: {}", response.return_data, jid)
 
         # Decrease tasks counter
         if self.t_counter:
