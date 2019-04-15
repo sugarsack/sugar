@@ -12,7 +12,7 @@ from sugar.lib.logger.manager import get_logger
 from sugar.lib.compiler.objtask import FunctionObject
 from sugar.lib.perq import QueueFactory
 from sugar.lib.perq.qexc import QueueEmpty
-from sugar.transport import ClientMsgFactory, ObjectGate
+from sugar.transport import ClientMsgFactory, RunnerModulesMsgFactory, ObjectGate
 import sugar.utils.absmod
 import sugar.utils.timeutils
 
@@ -57,36 +57,20 @@ class TaskProcessor:
         if task.kwargs:
             task_source["command"][uri].append(task.kwargs)
 
-        self._add_response(task.jid, src=yaml.dump(task_source))
-
         if task.type == FunctionObject.TYPE_RUNNER:
-            uri = "{module}.{function}".format(module=task.module, function=task.function)
+            response = RunnerModulesMsgFactory.create(jid=task.jid, task=task, src=yaml.dump(task_source))
             try:
-                result = self.loader.runners[uri](*task.args, **task.kwargs)
+                result = self.loader.runners[response.uri](*task.args, **task.kwargs).set_run_response(response)
             except Exception as exc:
-                err_msg = "Error running task '{}.{}': {}".format(task.module, task.function, str(exc))
-                self.log.error(err_msg)
+                response.errmsg = "Error running task '{}.{}': {}".format(task.module, task.function, str(exc))
+                self.log.error(response.errmsg)
                 result = sugar.utils.absmod.ActionResult()
-                result.error = err_msg
-            self._add_response(task.jid, answer=result.to_json() if result is not None else "{}",
-                               task_finished=sugar.utils.timeutils.to_iso(), log="N/A", job_finished=True,
-                               uri="runner:{}".format(uri))
+                result.error = response.errmsg
+            self._ret_queue.put_nowait(ObjectGate(response).pack(binary=True))
         else:
             raise NotImplementedError("State running is not implemented yet")
 
         return task.jid, result
-
-    def _add_response(self, jid, **kwargs) -> None:
-        """
-        Add report xlog to the response queue for sending that back to the master.
-
-        :param kwargs: data container for the arbitrary response.
-        :return: None
-        """
-        task_update_info_msg = ClientMsgFactory.create(jid=jid, kind=ClientMsgFactory.KIND_NFO_RESP)
-        task_update_info_msg.internal.update(kwargs)
-        self._ret_queue.put_nowait(ObjectGate(task_update_info_msg).pack(binary=True))
-        self.log.debug("Task has been reported to return Queue")
 
     def on_task_result(self, result: tuple) -> None:
         """
