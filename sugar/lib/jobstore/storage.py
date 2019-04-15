@@ -146,20 +146,20 @@ class JobStorage:
                     for call in task.calls:
                         _task.calls.create(uri=call.uri, src=call.src)
 
-    def report_job(self, jid: str, target: PDataContainer, src: str, answer: str,
-                   finished: str, uri: str = None) -> None:
+    def report_job(self, jid: str, target: PDataContainer, src: str, return_data: str,
+                   finished: str, uri: str = None, log_info: str = None,
+                   log_warn: str = None, log_err: str = None) -> None:
         """
         Report compiled job source on the client.
 
         :param jid: Job id
         :param target: target machine
         :param src: source of the job (YAML)
-        :param answer: the entire (compiled) answer of the job
         :param finished: when particular task has been finished
         :param uri: URI from the state. Otherwise None, which is a fallback of job.uri
         :return: None
         """
-        if src is not None or answer is not None:
+        if src is not None or return_data is not None:
             with orm.db_session(optimistic=False):
                 job = Job.get(jid=jid)
                 result = job.results.select(lambda result: result.machineid == target.id).first()
@@ -168,10 +168,22 @@ class JobStorage:
                     task = result.tasks.create(idn=uri or job.uri, finished=finished)
                 else:
                     task.finished = finished
+
+                # Log
+                if log_info:
+                    task.log_info = log_info
+                if log_warn:
+                    task.log_warn = log_warn
+                if log_err:
+                    task.log_err = log_err
+
+                # Source
                 if src is not None:
                     task.src = src
-                if answer is not None:
-                    task.answer = answer
+
+                # Data
+                if return_data is not None:
+                    task.return_data = return_data
                     job.status = JobDefaults.S_FINISHED
 
     def report_job_finished(self, jid: str) -> None:
@@ -308,8 +320,11 @@ class JobStorage:
                     if noid:
                         del result.id
                     for task in result.tasks:
-                        if task.answer:
-                            task.answer = json.loads(task.answer)  # Convert string-stored in db JSON into data struct
+                        if task.return_data:
+                            task.return_data = json.loads(task.return_data)  # Convert string-stored in db JSON into data struct
+                        task.log_info = json.loads(task.log_info)
+                        task.log_warn = json.loads(task.log_warn)
+                        task.log_err = json.loads(task.log_err)
                         if noid:
                             del task.id
                             for call in task.calls:

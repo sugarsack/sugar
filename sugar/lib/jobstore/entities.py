@@ -55,8 +55,11 @@ class Task(database.Entity, SerialisableEntity):
     idn = orm.Required(str)                       # Task IDN (an id of the task in the compiler, a name)
     finished = orm.Optional(datetime.datetime, nullable=True, default=None)
     calls = orm.Set("Call")
-    answer = orm.Optional(str)                    # Answer of the task (module return data)
+    return_data = orm.Optional(str)               # Answer of the task (module return data)
     src = orm.Optional(str)                       # Source of the task
+    log_info = orm.Optional(str)                  # Source of the task
+    log_warn = orm.Optional(str)                  # Source of the task
+    log_err = orm.Optional(str)                   # Source of the task
 
 
 class Call(database.Entity, SerialisableEntity):
