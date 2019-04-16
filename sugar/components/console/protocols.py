@@ -11,6 +11,7 @@ from twisted.internet.protocol import ClientFactory
 
 from sugar.transport import ConsoleMsgFactory, ServerMsgFactory
 from sugar.components.console.core import ConsoleCore
+import sugar.lib.exceptions
 
 
 class SugarConsoleProtocol(WebSocketClientProtocol):
@@ -24,8 +25,12 @@ class SugarConsoleProtocol(WebSocketClientProtocol):
         self.log.debug("console connected: {0}".format(response.peer))
 
     def onOpen(self):
-        msg_obj = self.factory.console.get_task()
-        self.sendMessage(ConsoleMsgFactory.pack(msg_obj), isBinary=True)
+        try:
+            msg_obj = self.factory.console.get_task()
+            self.sendMessage(ConsoleMsgFactory.pack(msg_obj), isBinary=True)
+        except sugar.lib.exceptions.SugarConsoleException as exc:
+            self.log.error(str(exc))
+            self.factory.reactor.stop()
 
     def onMessage(self, payload, binary):
         if binary:
