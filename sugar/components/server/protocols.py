@@ -6,7 +6,8 @@ Server protocols
 import time
 from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
-from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory, KeymanagerMsgFactory, ConsoleMsgFactory
+from sugar.transport import (ObjectGate, ServerMsgFactory, ClientMsgFactory, KeymanagerMsgFactory,
+                             ConsoleMsgFactory, RunnerModulesMsgFactory)
 from sugar.utils import exitcodes
 from sugar.components.server.core import get_server_core
 from sugar.components.server.pdatastore import PDataContainer
@@ -142,21 +143,14 @@ class SugarServerProtocol(WebSocketServerProtocol):
                 self.log.debug("Traits update on client connect")
                 self.factory.core.refresh_client_pdata(self.machine_id, traits=msg.internal)
 
-            elif msg.kind == ClientMsgFactory.KIND_NFO_RESP:
-                answer = msg.internal.get("answer")
-                target = PDataContainer(id=msg.machine_id, host="")
-
-                # Update task status (called per each statement in the state or runner)
-                task_finished = msg.internal.get("task_finished")
-                if task_finished:
-                    self.factory.core.jobstore.report_job(jid=msg.jid, target=target, src=msg.internal.get("src"),
-                                                          finished=sugar.utils.timeutils.from_iso(task_finished),
-                                                          answer=answer, uri=msg.internal.get("uri"))
-                # Update job status (called once at the end of the whole job cycle)
-                if msg.internal.get("job_finished") is True:
-                    self.factory.core.jobstore.report_job_finished(jid=msg.jid)
+            elif msg.component == RunnerModulesMsgFactory.COMPONENT:
+                self.factory.core.jobstore.report_job(jid=msg.jid, target=PDataContainer(id=msg.machine_id, host=""),
+                                                      finished=sugar.utils.timeutils.from_iso(msg.finished),
+                                                      src=msg.src, return_data=msg.return_data, uri=msg.uri,
+                                                      log_info=msg.infos, log_warn=msg.warnings, log_err=msg.errors)
+                self.factory.core.jobstore.report_job_finished(jid=msg.jid)
             else:
-                self.log.error("CAUTION: unknown message type:", msg.component)
+                self.log.error("CAUTION: unknown message type")
 
     def onClose(self, wasClean, code, reason):
         tstamp = time.time()

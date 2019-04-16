@@ -88,10 +88,8 @@ class TestBasicJobStore:
         """
         query = ":a"
         uri = "job_store.test_jobstore_register_job"
-
         # Create task
         jid = self.store.new(query=query, clientslist=targets_list, uri=uri, args="", job_type=JobTypes.RUNNER)
-
         # Client compiles it
         state = StateCompiler(get_barestates_root).compile(uri)
 
@@ -413,7 +411,7 @@ class TestBasicJobStore:
         state = StateCompiler(get_barestates_root).compile(uri)
         for target in targets_list:
             self.store.add_tasks(jid, *state.tasklist, target=target, src=state.to_yaml())
-            self.store.report_job(jid=jid, target=target, src=state.to_yaml(), answer="{}",
+            self.store.report_job(jid=jid, target=target, src=state.to_yaml(), return_data="{}",
                                   finished=datetime.datetime.now(), uri=uri)
 
         self.store.export(jid, path=self._path)
@@ -445,28 +443,34 @@ class TestBasicJobStore:
         jid = self.store.new(query="*", clientslist=targets_list, uri=uri, args="",
                              job_type=JobTypes.RUNNER, tag="for exporting")
         target = targets_list[0]
-        answer = {
-            "module": {
-                "some": "structure",
-                "value": 42,
-                "messages": ["first line", "second line"]
-            },
-            "log": {
-                "info": [
-                    "Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting due to inactivity",
-                    "Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting was requested",
-                    "Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: "
-                    "Quitting due to inactivity",
-                    "Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: "
-                    "Quitting was requested",
-                    "Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: "
-                    "Quitting was requested",
-                    "Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)",
-                ],
-            }
+        return_data = {
+            "some": "structure",
+            "value": 42,
+            "messages": ["first line", "second line"]
         }
+
+        log = {
+            "info": [
+                "Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting due to inactivity",
+                "Mar 27 18:16:47 zeus AptDaemon: INFO: Quitting was requested",
+                "Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: "
+                "Quitting due to inactivity",
+                "Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [INFO]: "
+                "Quitting was requested",
+            ],
+            "warn": [
+                "Mar 27 18:16:47 zeus org.freedesktop.PackageKit[1052]: 18:16:47 AptDaemon [WARN]: "
+                "Quitting probaby did not succeed",
+            ],
+            "err": [
+                "Mar 27 18:17:01 zeus CRON[4890]: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)",
+            ],
+        }
+
         self.store.report_job(jid=jid, target=target, src=state.to_yaml(),
-                              answer=json.dumps(answer), finished=datetime.datetime.now())
+                              return_data=json.dumps(return_data), finished=datetime.datetime.now(),
+                              log_info=json.dumps(log["info"]), log_warn=json.dumps(log["warn"]),
+                              log_err=json.dumps(log["err"]))
 
         job = self.store.get_by_jid(jid)
         for result in job.results:
@@ -474,7 +478,10 @@ class TestBasicJobStore:
                 assert result.src == state.to_yaml()
             else:
                 for task in result.tasks:
-                    assert task.answer == answer
+                    assert task.return_data == return_data
+                    assert task.log_info == log["info"]
+                    assert task.log_warn == log["warn"]
+                    assert task.log_err == log["err"]
 
     def test_delete_job_by_jid(self, targets_list):
         """
