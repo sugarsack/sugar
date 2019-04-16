@@ -89,26 +89,30 @@ class SugarConsoleCore(object):
         :raises SugarConsoleException when syntax is not compliant.
         :return: Serialisable
         """
-        if "state" in sys.argv[2:]:
-            raise SugarConsoleException("State is not yet implemented")
-        elif "orch" in sys.argv[2:]:
-            raise SugarConsoleException("Orchestration subsystem is not yet implemented")
-        else:
-            target = sys.argv[1:2]
-            query = self.args.query[::]
+        target = sys.argv[1:2]
+        query = self.args.query[::]
+        args = self._get_args(query)
 
-            cnt = ConsoleMsgFactory.create()
+        if "state" in sys.argv[2:]:
+            cnt = ConsoleMsgFactory.create(kind=ConsoleMsgFactory.STATE_REQUEST)
             cnt.target = target[0] if target else ':'
             cnt.uri = query.pop(0)
             cnt.arg = self._get_args(query)
-
-            if self.args.offline:
-                cnt.offline = True
+        elif "orch" in sys.argv[2:]:
+            raise SugarConsoleException("Orchestration subsystem is not yet implemented")
+        else:
+            cnt = ConsoleMsgFactory.create()
+            cnt.target = target[0] if target else ':'
+            cnt.uri = query.pop(0)
+            cnt.arg = args
 
             if "." not in cnt.uri:
                 raise SugarConsoleException("Target should contain function with the namespace.")
 
             self.log.debug("query: {}, function: {}, args: {}, offline: {}", cnt.target, cnt.uri, cnt.arg, cnt.offline)
+
+        if self.args.offline:
+            cnt.offline = True
 
         return cnt
 

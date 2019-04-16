@@ -92,6 +92,20 @@ class ServerCore:
             else:
                 self.log.debug("Job '{}' temporarily cannot be fired to the client {}.", event.jid, target.id)
 
+    def on_broadcast_state(self, evt, proto) -> None:
+        """
+        Send state metadata to clients.
+
+        :param evt: an event
+        :param proto: peer protocol
+        :return: None
+        """
+        print(">>> Sending state: TODO")
+        msg = sugar.transport.ServerMsgFactory.create_console_msg()
+        msg.ret.msg_template = "State JID: {}"
+        msg.ret.msg_args = [evt.jid]
+        proto.sendMessage(ServerMsgFactory.pack(msg), isBinary=True)
+
     def on_broadcast_tasks(self, evt, proto) -> None:
         """
         Send task to clients.
@@ -186,8 +200,10 @@ class ServerCore:
         :param proto: protocol of the connected console peer
         :return: immediate response
         """
-        if evt.kind == sugar.transport.ServerMsgFactory.TASK_RESPONSE:
+        if evt.kind == sugar.transport.ConsoleMsgFactory.TASK_REQUEST:
             threads.deferToThread(self.on_broadcast_tasks, evt, proto)
+        elif evt.kind == sugar.transport.ConsoleMsgFactory.STATE_REQUEST:
+            threads.deferToThread(self.on_broadcast_state, evt, proto)
 
     def client_request(self, evt):
         """
