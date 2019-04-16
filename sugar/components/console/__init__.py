@@ -98,17 +98,17 @@ class SugarConsoleCore(object):
             query = self.args.query[::]
 
             cnt = ConsoleMsgFactory.create()
-            cnt.tgt = target[0] if target else ':'
-            cnt.fun = query.pop(0)
+            cnt.target = target[0] if target else ':'
+            cnt.uri = query.pop(0)
             cnt.arg = self._get_args(query)
 
             if self.args.offline:
                 cnt.offline = True
 
-            if "." not in cnt.fun:
+            if "." not in cnt.uri:
                 raise SugarConsoleException("Target should contain function with the namespace.")
 
-            self.log.debug("query: {}, function: {}, args: {}, offline: {}", cnt.tgt, cnt.fun, cnt.arg, cnt.offline)
+            self.log.debug("query: {}, function: {}, args: {}, offline: {}", cnt.target, cnt.uri, cnt.arg, cnt.offline)
 
         return cnt
 

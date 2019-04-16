@@ -66,12 +66,12 @@ class ServerCore:
         :param target: Selected target
         :return: None
         """
-        self.log.debug("Sending event '{}({})' to host '{}' ({})", event.fun, event.arg, target.host, target.id)
+        self.log.debug("Sending event '{}({})' to host '{}' ({})", event.uri, event.arg, target.host, target.id)
 
         task_message = ServerMsgFactory().create(jid=event.jid)
         task_message.ret.message = "ping"
         task_message.internal = {
-            "function": event.fun,
+            "function": event.uri,
             "arguments": event.arg,
         }
         proto = self.get_client_protocol(target.id)  # This might be None due to the network issues (unregister fired)
@@ -101,14 +101,14 @@ class ServerCore:
         :return: None
         """
         self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\tquery: {}\n\targs: {}",
-                       evt.fun, evt.tgt, evt.arg)
-        clientlist = self.peer_registry.get_targets(query=evt.tgt)
+                       evt.uri, evt.target, evt.arg)
+        clientlist = self.peer_registry.get_targets(query=evt.target)
         offline_clientlist = self.peer_registry.get_offline_targets() if evt.offline else []
 
         msg = sugar.transport.ServerMsgFactory.create_console_msg()
         if clientlist or offline_clientlist:
-            evt.jid = self.jobstore.new(query=evt.tgt, clientslist=clientlist + offline_clientlist,
-                                        uri=evt.fun, args=json.dumps(evt.arg),
+            evt.jid = self.jobstore.new(query=evt.target, clientslist=clientlist + offline_clientlist,
+                                        uri=evt.uri, args=json.dumps(evt.arg),
                                         job_type="runner")
             for target in clientlist:
                 threads.deferToThread(self.fire_event, event=evt, target=target)
@@ -117,7 +117,7 @@ class ServerCore:
             msg.ret.msg_template = "Targeted {} machines. JID: {}"
             msg.ret.msg_args = [len(clientlist + offline_clientlist), evt.jid]
         else:
-            self.log.error("No targets found for function '{}' on query '{}'.", evt.fun, evt.tgt)
+            self.log.error("No targets found for function '{}' on query '{}'.", evt.uri, evt.target)
             msg.ret.message = "No targets found"
         proto.sendMessage(ServerMsgFactory.pack(msg), isBinary=True)
 
@@ -134,7 +134,7 @@ class ServerCore:
             for job in self.jobstore.get_scheduled(target):
                 event = type("event", (), {})
                 event.jid = job.jid
-                event.fun = job.uri
+                event.uri = job.uri
                 event.arg = json.loads(job.args)
                 threads.deferToThread(self.fire_event, event=event, target=target)
 
