@@ -48,17 +48,27 @@ class SugarCLI(object):
         parser = argparse.ArgumentParser(
             description=__("Sugar allows for commands to be executed across a space of remote systems in parallel, "
                            "so they can be both controlled and queried with ease."),
-            usage=__("""sugar [<target>] [<component>] [<args>]
+            usage=__("""sugar [<target>] [<mode>] [<component>] [<args>]
 
 Target is a name or a pattern in Unix shell-style
 wildcard that matches client names.
+
+To invoke a state or call a runner, use target pattern,
+mode and a component. For runner mode is not needed. Example:
+
+    sugar :a system.test.ping
+    sugar :a state my.great.formula
+
+Modes:
+
+     state     To invoke a state
+      orch     To run orchestration
 
 Available components:
 
     master     Used to control Sugar Clients
     client     Receives commands from a remote Sugar Master
       keys     Used to manage Sugar authentication keys
-     local     Local orchestration
 
 Other:
        doc     Built-in documentation, manuals
