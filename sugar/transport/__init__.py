@@ -130,6 +130,8 @@ class ConsoleMsgFactory(_MessageFactory):
     """
     COMPONENT = 0xf1
     TASK_REQUEST = 1
+    STATE_REQUEST = 2
+    ORCHETRATION_REQUEST = 3
 
     scheme = Schema({
         Optional('.'): None,  # Marker
@@ -139,7 +141,7 @@ class ConsoleMsgFactory(_MessageFactory):
         And('uid'): int,
 
         And('target'): str,
-        And('function'): str,
+        And('uri'): str,
         And('args'): [],
 
         And('offline'): bool,
@@ -148,21 +150,22 @@ class ConsoleMsgFactory(_MessageFactory):
     })
 
     @classmethod
-    def create(cls, jid=""):
+    def create(cls, jid="", kind=TASK_REQUEST):
         """
         Create message.
 
         :param jid: Job ID
+        :param kind: Message type
         :return: Serialisable
         """
         obj = Serialisable()
         obj.component = cls.COMPONENT
-        obj.kind = cls.TASK_REQUEST
+        obj.kind = kind
         obj.user = getpass.getuser()
         obj.uid = os.getuid()
 
         obj.target = ''
-        obj.function = ''
+        obj.uri = ''
         obj.args = []
         obj.jid = jid
         obj.offline = False
