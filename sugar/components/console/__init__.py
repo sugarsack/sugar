@@ -17,6 +17,7 @@ from sugar.transport import ConsoleMsgFactory
 from sugar.config import get_config
 from sugar.lib.logger.manager import get_logger
 from sugar.lib import six
+from sugar.lib.exceptions import SugarConsoleException
 
 
 class SugarConsoleCore(object):
@@ -85,20 +86,29 @@ class SugarConsoleCore(object):
         Parse command line command.
         This finds target, function and parameters.
 
+        :raises SugarConsoleException when syntax is not compliant.
         :return: Serialisable
         """
-        target = sys.argv[1:2]
-        query = self.args.query[::]
+        if "state" in sys.argv[2:]:
+            raise SugarConsoleException("State is not yet implemented")
+        elif "orch" in sys.argv[2:]:
+            raise SugarConsoleException("Orchestration subsystem is not yet implemented")
+        else:
+            target = sys.argv[1:2]
+            query = self.args.query[::]
 
-        cnt = ConsoleMsgFactory.create()
-        cnt.tgt = target[0] if target else ':'
-        cnt.fun = query.pop(0)
-        cnt.arg = self._get_args(query)
+            cnt = ConsoleMsgFactory.create()
+            cnt.tgt = target[0] if target else ':'
+            cnt.fun = query.pop(0)
+            cnt.arg = self._get_args(query)
 
-        if self.args.offline:
-            cnt.offline = True
+            if self.args.offline:
+                cnt.offline = True
 
-        self.log.debug("query: {}, function: {}, args: {}, offline: {}", cnt.tgt, cnt.fun, cnt.arg, cnt.offline)
+            if "." not in cnt.fun:
+                raise SugarConsoleException("Target should contain function with the namespace.")
+
+            self.log.debug("query: {}, function: {}, args: {}, offline: {}", cnt.tgt, cnt.fun, cnt.arg, cnt.offline)
 
         return cnt
 
