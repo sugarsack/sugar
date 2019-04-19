@@ -56,9 +56,11 @@ class TestStateCollector:
         shutil.rmtree(self.root)
         self.jid = self.root = None
 
-    def test_hop(self):
+    def test_next_uri_requested(self):
         """
-        Test hops
+        Test next URI requested. No source added at all,
+        therefore next hop will request the original URI
         :return:
         """
-        collector = StateCollector(jid=self.jid)
+        assert StateCollector(jid=self.jid, uri="test.state").next_hop() == "test.state"
+
