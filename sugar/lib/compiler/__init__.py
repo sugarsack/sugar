@@ -18,6 +18,7 @@ class StateCompiler(object):
         self._root = root
         self._environment = environment
         self._tasks = self._object_tree = None
+        self.__callbacks = {}
 
     def _get_state_tasks(self) -> list:
         """
@@ -31,6 +32,26 @@ class StateCompiler(object):
 
         return tasks
 
+    def add_callback(self, callback: typing.Callable, section: str, dest: str = "resolver") -> typing.ClassVar:
+        """
+        Add callback to a compiler component. Callbacks are reactions on
+        specific exception at specific places.
+
+        Supported callbacks:
+
+          - tree:
+              uri_error: add callback on URI exception.
+
+        :param callback: callable function.
+        :param section: specific secion on the destination.
+        :param dest:
+        :return: None
+        """
+        self.__callbacks.setdefault(dest, {})
+        self.__callbacks[dest].setdefault(section, callback)
+
+        return self
+
     def compile(self, uri: str) -> 'StateCompiler':  # Will be deprecated in Python 4.0!
         """
         Compile state tree for the given URI.
@@ -39,7 +60,13 @@ class StateCompiler(object):
         :return: self
         """
         self._tasks = None
-        self._object_tree = ObjectTree(ObjectResolver(path=self._root, env=self._environment))
+        resolver = ObjectResolver(path=self._root, env=self._environment)
+        self._object_tree = ObjectTree(resolver)
+        for cb_dest in self.__callbacks:
+            if cb_dest == "resolver":
+                for cb_sect, cb_func in self.__callbacks[cb_dest].items():
+                    if cb_sect == "uri_error":
+                        resolver.on_uri_error(cb_func)
         self._object_tree.load(uri)
 
         return self

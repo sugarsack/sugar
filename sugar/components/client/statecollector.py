@@ -16,9 +16,10 @@ the server.
 """
 import os
 import shutil
+import typing
 
 from sugar.lib.logger.manager import get_logger
-from sugar.lib.compiler import ObjectResolver, ObjectTree
+from sugar.lib.compiler import StateCompiler
 import sugar.utils.files
 from sugar.lib.compat import yaml
 import sugar.lib.exceptions
@@ -45,6 +46,7 @@ class StateCollector:
         self._base_root = root or self.DEFAULT_ROOT
         self._jid = jid
         self.log = get_logger(self)
+        self.__compiled_data = None
 
         if uri:
             self.meta = {
@@ -58,7 +60,6 @@ class StateCollector:
                 yaml.dump(self.meta, meta_fh)
         else:
             self.meta = self.get_meta()
-
 
     def get_meta(self) -> dict:
         """
@@ -92,13 +93,24 @@ class StateCollector:
             container["uri"] = uri
 
         meta = self.get_meta()
-        tree = ObjectTree(resolver=ObjectResolver(path=self.state_root(), env=meta.get("env")).on_uri_error(collect))
+        compiler = StateCompiler(root=self.state_root(),
+                                 environment=meta.get("env")).add_callback(collect, section="uri_error")
         try:
-            tree.load(meta.get("uri"))
+            compiler.compile(meta.get("uri"))
+            self.__compiled_data = compiler.tasklist
         except sugar.lib.exceptions.SugarSCResolverException as ex:
             self.log.debug("Request for URI: {}", container.get("uri"))
 
         return container.get("uri")
+
+    @property
+    def tasks(self) -> typing.Tuple:
+        """
+        Return compiled tasks.
+
+        :return:
+        """
+        return self.__compiled_data
 
     def state_root(self) -> str:
         """
