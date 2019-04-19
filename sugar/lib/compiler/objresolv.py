@@ -111,7 +111,11 @@ class ObjectResolver:
         :param subpath: Relative path to the state.
         :return: URI
         """
-        return ".".join(subpath.split(os.path.sep))
+        path = []
+        for node in subpath.split(os.path.sep):
+            path.append(node.split(".")[0])
+
+        return ".".join(path)
 
     @staticmethod
     def uri_to_subpath(uri):
