@@ -62,5 +62,24 @@ class TestStateCollector:
         therefore next hop will request the original URI
         :return:
         """
-        assert StateCollector(jid=self.jid, uri="test.state").next_hop() == "test.state"
+        assert StateCollector(jid=self.jid, uri="test.state", root=self.root).next_hop() == "test.state"
 
+    def test_single_resource_added(self):
+        """
+        Test next URI is not requested on single source add.
+        The resource is added with the newline.
+
+        :return:
+        """
+        src = """
+httpd_installed:
+  pkg.installed:
+    name: nginx
+        """
+        collector = StateCollector(jid=self.jid, uri="test.state", root=self.root)
+        collector.add_resource("test/state.st", source=src)
+        target_file = os.path.join(self.root, self.jid, "main/test/state.st")
+        assert collector.next_hop() is None
+        assert os.path.exists(target_file)
+        with open(target_file, "r") as target_fh:
+            assert (src.strip() + os.linesep) == target_fh.read()
