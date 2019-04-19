@@ -7,6 +7,7 @@ on the disk following the URI syntax.
 """
 
 import os
+import typing
 import sugar.utils.sanitisers
 from sugar.lib.logger.manager import get_logger
 import sugar.lib.exceptions
@@ -41,6 +42,7 @@ class ObjectResolver:
         :param env: Environment, which is just a sub-directory to the root.
         :raises OSError: if exist_ok is False
         """
+        self.__callbacks = {"uri_error": []}
         if not env:
             env = self.DEFAULT_ENV
 
@@ -94,8 +96,10 @@ class ObjectResolver:
         else:
             _path = "{}.st".format(_path)
             if not os.path.exists(_path):
+                uri = self.subpath_to_uri(subpath)
+                self._on_callbacks("uri_error", path=_path, uri=uri)
                 raise sugar.lib.exceptions.SugarSCResolverException(
-                    "No state files for URI '{}' has been found".format(self.subpath_to_uri(subpath)))
+                    "No state files for URI '{}' has been found".format(uri))
 
         return _path
 
@@ -129,3 +133,25 @@ class ObjectResolver:
         :return: complete path to the state file.
         """
         return self.get_main() if uri is None else self.get_resource_path(self.uri_to_subpath(uri))
+
+    def on_uri_error(self, callback: typing.Callable) -> typing.ClassVar:
+        """
+        Add callback on URI error.
+
+        :param callback: function
+        :return: return of the callback
+        """
+        self.__callbacks["uri_error"].append(callback)
+        return self
+
+    def _on_callbacks(self, section, *args, **kwargs) -> None:
+        """
+        Call corresponding callbacks.
+
+        :param section: registered callbacks.
+        :param args: args for each callback
+        :param kwargs: kwargs for each callback
+        :return: None
+        """
+        for callback in self.__callbacks.get(section, []):
+            callback(*args, **kwargs)
