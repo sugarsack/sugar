@@ -13,6 +13,7 @@ from sugar.lib.compiler.objtask import FunctionObject
 from sugar.lib.perq import QueueFactory
 from sugar.lib.perq.qexc import QueueEmpty
 from sugar.transport import RunnerModulesMsgFactory, ObjectGate
+from sugar.utils.absmod import ActionResult
 
 
 class TaskProcessor:
@@ -58,10 +59,13 @@ class TaskProcessor:
         if task.type == FunctionObject.TYPE_RUNNER:
             response = RunnerModulesMsgFactory.create(jid=task.jid, task=task, src=yaml.dump(task_source))
             try:
-                self.loader.runners[response.uri](*task.args, **task.kwargs).set_run_response(response)
+                self.loader.runners[response.uri](*task.args, **task.kwargs).set_run_response(response=response)
             except Exception as exc:
-                response.errmsg = "Error running task '{}.{}': {}".format(task.module, task.function, str(exc))
-                self.log.error(response.errmsg)
+                action = ActionResult()
+                errmsg = "Error running task '{}.{}': {}".format(task.module, task.function, str(exc))
+                action.error = errmsg
+                self.log.error(errmsg)
+                action.set_run_response(response=response)
             self._ret_queue.put_nowait(ObjectGate(response).pack(binary=True))
         else:
             raise NotImplementedError("State running is not implemented yet")
