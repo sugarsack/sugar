@@ -7,6 +7,7 @@ from __future__ import unicode_literals, absolute_import
 import os
 import json
 import random
+import typing
 from multiprocessing import Queue
 from twisted.internet import threads, reactor
 
@@ -20,6 +21,7 @@ from sugar.lib.pki.keystore import KeyStore
 from sugar.components.server.registry import RuntimeRegistry
 from sugar.components.server.pdatastore import PDataContainer
 from sugar.lib.jobstore import JobStorage
+from sugar.lib.jobstore.const import JobTypes
 
 import sugar.transport
 import sugar.lib.pki.utils
@@ -58,7 +60,7 @@ class ServerCore:
         """
         return token == self.master_local_token.get_token()
 
-    def fire_event(self, event, target) -> None:
+    def fire_job_event(self, event, target) -> None:
         """
         Fire an event (usually a remote task).
 
@@ -66,31 +68,45 @@ class ServerCore:
         :param target: Selected target
         :return: None
         """
-        self.log.debug("Sending event '{}({})' to host '{}' ({})", event.uri, event.arg, target.host, target.id)
-
-        task_message = ServerMsgFactory().create(jid=event.jid)
-        task_message.ret.message = "ping"
+        task_message = ServerMsgFactory().create(jid=event.jid)  # TODO: Better message type to avoid internal segment
+        task_message.ret.message = "pig"
         task_message.internal = {
             "function": event.uri,
             "arguments": event.arg,
+            "type": None,
         }
-        proto = self.get_client_protocol(target.id)  # This might be None due to the network issues (unregister fired)
-        if proto is None and self.__retry_calls.get(target.id) != 0:
-            self.__retry_calls.setdefault(target.id, 3)
-            self.__retry_calls[target.id] -= 1
-            pause = random.randint(3, 15)
-            self.log.debug("Peer temporarily unavailable for peer {} to fire job {}. Waiting {} seconds.",
-                           target.id, event.jid, pause)
-            reactor.callLater(pause, self.fire_event, event, target)
+        if event.kind == sugar.transport.ConsoleMsgFactory.TASK_REQUEST:
+            task_message.internal["type"] = JobTypes.RUNNER
+            _type = "Runner"
+        elif event.kind == sugar.transport.ConsoleMsgFactory.STATE_REQUEST:
+            task_message.internal["type"] = JobTypes.STATE
+            task_message.internal["stage"] = "init"  # TODO: First "init", others are "followup"
+            _type = "State"
         else:
-            if target.id in self.__retry_calls:
-                del self.__retry_calls[target.id]
-            if proto is not None:
-                proto.sendMessage(ServerMsgFactory.pack(task_message), isBinary=True)
-                self.jobstore.set_as_fired(jid=event.jid, target=target)
-                self.log.debug("Job '{}' has been fired successfully", event.jid)
+            _type = "Unknown"
+        self.log.debug("{} event '{}({})' to host '{}' ({})",
+                       _type, event.uri, event.arg, target.host, target.id)
+        # Fire
+        if task_message.internal["type"] is not None:
+            proto = self.get_client_protocol(target.id)  # This might be None due to the network issues (unregister fired)
+            if proto is None and self.__retry_calls.get(target.id) != 0:
+                self.__retry_calls.setdefault(target.id, 3)
+                self.__retry_calls[target.id] -= 1
+                pause = random.randint(3, 15)
+                self.log.debug("Peer temporarily unavailable for peer {} to fire job {}. Waiting {} seconds.",
+                               target.id, event.jid, pause)
+                reactor.callLater(pause, self.fire_job_event, event, target)
             else:
-                self.log.debug("Job '{}' temporarily cannot be fired to the client {}.", event.jid, target.id)
+                if target.id in self.__retry_calls:
+                    del self.__retry_calls[target.id]
+                if proto is not None:
+                    proto.sendMessage(ServerMsgFactory.pack(task_message), isBinary=True)
+                    self.jobstore.set_as_fired(jid=event.jid, target=target)
+                    self.log.debug("{} job '{}' has been fired successfully", _type, event.jid)
+                else:
+                    self.log.debug("{} job '{}' temporarily cannot be fired to the client {}.",
+                                   _type, event.jid, target.id)
+
     def _get_targets(self, event) -> typing.Tuple[list, list]:
         """
         Get targets.
@@ -165,7 +181,7 @@ class ServerCore:
                 event.jid = job.jid
                 event.uri = job.uri
                 event.arg = json.loads(job.args)
-                threads.deferToThread(self.fire_event, event=event, target=target)
+                threads.deferToThread(self.fire_job_event, event=event, target=target)
 
     def refresh_client_pdata(self, machine_id: str, traits=None) -> None:
         """
