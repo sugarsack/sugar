@@ -91,6 +91,14 @@ class ServerCore:
                 self.log.debug("Job '{}' has been fired successfully", event.jid)
             else:
                 self.log.debug("Job '{}' temporarily cannot be fired to the client {}.", event.jid, target.id)
+    def _get_targets(self, event) -> typing.Tuple[list, list]:
+        """
+        Get targets.
+
+        :return: tuple of online/offline targets.
+        """
+        return (self.peer_registry.get_targets(query=event.target),
+                self.peer_registry.get_offline_targets() if event.offline else [])
 
     def on_broadcast_state(self, evt, proto) -> None:
         """
@@ -100,7 +108,15 @@ class ServerCore:
         :param proto: peer protocol
         :return: None
         """
-        print(">>> Sending state: TODO")
+        self.log.debug("accepted a state event from the console:\n\tURI: {}\n\tquery: {}\n\targs: {}",
+                       evt.uri, evt.target, evt.arg)
+        clientlist, offline_clientlist = self._get_targets(event=evt)
+        if clientlist or offline_clientlist:
+            evt.jid = self.jobstore.new(query=evt.target, clientslist=clientlist + offline_clientlist,
+                                        uri=evt.uri, args=json.dumps(evt.arg), job_type=JobTypes.STATE)
+            for target in clientlist:
+                threads.deferToThread(self.fire_job_event, event=evt, target=target)
+
         msg = sugar.transport.ServerMsgFactory.create_console_msg()
         msg.ret.msg_template = "State JID: {}"
         msg.ret.msg_args = [evt.jid]
@@ -114,18 +130,17 @@ class ServerCore:
         :param proto: peer protocol
         :return: None
         """
-        self.log.debug("accepted an event from the local console:\n\tfunction: {}\n\tquery: {}\n\targs: {}",
+        self.log.debug("accepted a runner event from the console:\n\tfunction: {}\n\tquery: {}\n\targs: {}",
                        evt.uri, evt.target, evt.arg)
-        clientlist = self.peer_registry.get_targets(query=evt.target)
-        offline_clientlist = self.peer_registry.get_offline_targets() if evt.offline else []
+        clientlist, offline_clientlist = self._get_targets(event=evt)
 
         msg = sugar.transport.ServerMsgFactory.create_console_msg()
         if clientlist or offline_clientlist:
             evt.jid = self.jobstore.new(query=evt.target, clientslist=clientlist + offline_clientlist,
                                         uri=evt.uri, args=json.dumps(evt.arg),
-                                        job_type="runner")
+                                        job_type=JobTypes.RUNNER)
             for target in clientlist:
-                threads.deferToThread(self.fire_event, event=evt, target=target)
+                threads.deferToThread(self.fire_job_event, event=evt, target=target)
             self.log.debug("Created a new job: '{}' for {} online and {} offline machines",
                            evt.jid, len(clientlist), len(offline_clientlist))
             msg.ret.msg_template = "Targeted {} machines. JID: {}"
