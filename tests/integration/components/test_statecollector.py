@@ -8,6 +8,7 @@ import pytest
 import shutil
 from sugar.components.client.statecollector import StateCollector
 from sugar.utils.jid import jidstore
+from sugar.lib.compiler.objtask import FunctionObject
 
 
 class TestStateCollector:
@@ -120,3 +121,11 @@ ssl_keys:
             assert os.path.exists(target_file)
             with open(target_file, "r") as target_fh:
                 assert (res_src.strip() + os.linesep) == target_fh.read()
+
+        assert collector.tasks is not None
+        assert len(collector.tasks) == 3
+        expectations = ["ssh_server", "ssl_keys", "httpd_installed"]
+        for idx, task in enumerate(collector.tasks):
+            assert task.idn == expectations[idx]
+            for call in task.calls:
+                assert call.type == FunctionObject.TYPE_STATE
