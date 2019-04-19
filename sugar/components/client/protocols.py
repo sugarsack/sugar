@@ -9,7 +9,7 @@ from twisted.internet import threads
 
 from sugar.components.client.core import ClientCore
 from sugar.transport import ObjectGate, ServerMsgFactory, ClientMsgFactory
-from sugar.lib.compiler.objtask import FunctionObject
+from sugar.lib.compiler.objtask import FunctionObject, StateTask
 import sugar.transport.utils
 import sugar.utils.stringutils
 
@@ -106,15 +106,22 @@ class SugarClientProtocol(WebSocketClientProtocol):
             if msg.kind != ServerMsgFactory.KIND_OPR_REQ:
                 self.factory.core.put_message(msg)
             else:
-                # TODO: pass that thing to the queue first
                 if msg.component == ServerMsgFactory.COMPONENT:
                     if msg.kind == ServerMsgFactory.KIND_OPR_REQ:
-                        task = FunctionObject()
-                        task.type = FunctionObject.TYPE_RUNNER
-                        task.module, task.function = msg.internal.get("function").rsplit(".", 1)
-                        task.args, task.kwargs = msg.internal.get("arguments")
-                        task.jid = msg.jid
-                        self.factory.core.system.task_pool.add_task(task)
+                        if msg.internal.get("type") == "runner":
+                            task = FunctionObject()
+                            task.type = FunctionObject.TYPE_RUNNER
+                            task.module, task.function = msg.internal.get("function").rsplit(".", 1)
+                            task.args, task.kwargs = msg.internal.get("arguments")
+                            task.jid = msg.jid
+                            self.factory.core.system.task_pool.add_task(task)
+                        elif msg.internal.get("type") == "state":
+                            print("----")
+                            print("JID:", msg.jid)
+                            print(msg.internal)
+                            print("----")
+                        else:
+                            self.log.debug("Unknown server operation request type: {}", str(msg.internal.get("type")))
         else:
             self.log.debug("non-binary message: {}".format(payload))
 
