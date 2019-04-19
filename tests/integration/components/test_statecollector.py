@@ -83,3 +83,40 @@ httpd_installed:
         assert os.path.exists(target_file)
         with open(target_file, "r") as target_fh:
             assert (src.strip() + os.linesep) == target_fh.read()
+
+    def test_multiple_resources_added(self):
+        """
+        Test next URIs are requested on multi-source add.
+
+        :return:
+        """
+        resources = (
+            ("test/state.st", "test.ssh", """
+import:
+  - test.ssh
+  - test.ssl
+
+httpd_installed:
+  pkg.installed:
+    name: nginx
+"""),
+            ("test/ssh.st", "test.ssl", """
+ssh_server:
+  pkg.installed:
+    name: openssh-server
+"""),
+            ("test/ssl.st", None, """
+ssl_keys:
+  ssl.create_certificates:
+    path: /etc/sugar/pki
+""")
+        )
+
+        collector = StateCollector(jid=self.jid, uri="test.state", root=self.root)
+        for res_path, res_next_hop, res_src in resources:
+            collector.add_resource(res_path, source=res_src)
+            assert collector.next_hop() == res_next_hop
+            target_file = os.path.join(self.root, self.jid, "main", res_path)
+            assert os.path.exists(target_file)
+            with open(target_file, "r") as target_fh:
+                assert (res_src.strip() + os.linesep) == target_fh.read()
