@@ -285,9 +285,7 @@ class ServerMsgFactory(_MessageFactory):
 
         :return: Serialisable
         """
-        obj = cls().create()
-        obj.kind = cls.CONSOLE_RESPONSE
-        return obj
+        return cls().create(kind=cls.CONSOLE_RESPONSE)
 
     @classmethod
     def create_client_msg(cls):
