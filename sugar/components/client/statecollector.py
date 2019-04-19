@@ -46,16 +46,19 @@ class StateCollector:
         self._jid = jid
         self.log = get_logger(self)
 
-        if not os.path.exists(self.state_root()):
-            os.makedirs(self.state_root(), exist_ok=True)
-
         if uri:
-            meta = {
+            self.meta = {
                 "uri": uri,
-                "env": env,
+                "env": env or "main",
             }
+            if not os.path.exists(self.state_root()):
+                os.makedirs(self.state_root(), exist_ok=True)
+
             with sugar.utils.files.fopen(os.path.join(self.state_root(), self.METADATA), "w") as meta_fh:
-                yaml.dump(meta, meta_fh)
+                yaml.dump(self.meta, meta_fh)
+        else:
+            self.meta = self.get_meta()
+
 
     def get_meta(self) -> dict:
         """
@@ -121,9 +124,10 @@ class StateCollector:
 
         filename = os.path.basename(relative_path)
         dirname = os.path.dirname(relative_path)
-        fpath = os.path.join(self.state_root(), dirname, filename)
+        fpath = os.path.join(self.state_root(), self.meta["env"], dirname, filename)
+        os.makedirs(os.path.dirname(fpath), exist_ok=True)
         with sugar.utils.files.fopen(fpath, "w") as resfh:
-            resfh.write(source.encode("utf-8"))
+            resfh.write(source)
 
     def cleanup(self) -> None:
         """
