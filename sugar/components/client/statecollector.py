@@ -127,7 +127,7 @@ class StateCollector:
         fpath = os.path.join(self.state_root(), self.meta["env"], dirname, filename)
         os.makedirs(os.path.dirname(fpath), exist_ok=True)
         with sugar.utils.files.fopen(fpath, "w") as resfh:
-            resfh.write(source)
+            resfh.write(source.strip() + os.linesep)
 
     def cleanup(self) -> None:
         """
