@@ -94,11 +94,22 @@ class SugarConsoleCore(object):
         args = self._get_args(query)
 
         if "state" in sys.argv[2:]:
+            query.pop(0)  # Remove 'state' switch
             cnt = ConsoleMsgFactory.create(kind=ConsoleMsgFactory.STATE_REQUEST)
             cnt.target = target[0] if target else ':'
-            cnt.uri = query.pop(0)
+            uri = query.pop(0).strip(":")
             cnt.arg = self._get_args(query)
+
+            if ":" in uri:
+                cnt.env, uri = uri.split(":", 1)
+
+            if ":" in uri or "." not in uri:
+                raise SugarConsoleException("Invalid URI: {}".format(uri))
+
+            cnt.uri = uri
+
         elif "orch" in sys.argv[2:]:
+            query.pop(0)  # Remove 'orch' switch
             raise SugarConsoleException("Orchestration subsystem is not yet implemented")
         else:
             cnt = ConsoleMsgFactory.create()
