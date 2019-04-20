@@ -55,10 +55,23 @@ class SchemeBuilder(object):
                 Optional('verify', default="true"): bool,
             },
         },
+
+        # Terminal setup
         Optional('terminal'): {
             Optional('colors'): int,
             Optional('encoding'): str,
-        }
+        },
+
+        # States setup
+        And("states"): {
+            And("environments"): {
+                Optional(str): str,
+            },
+            Optional("aliases"): {
+                Optional(str): str,
+            }
+        },
+
     }
 
     def get_master_scheme(self):
