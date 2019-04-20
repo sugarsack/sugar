@@ -129,3 +129,68 @@ ssl_keys:
             assert task.idn == expectations[idx]
             for call in task.calls:
                 assert call.type == FunctionObject.TYPE_STATE
+
+    def test_repeatable_reinit_by_jid(self):
+        """
+        State collector should pick up existing meta/uri by JID instead of making new one.
+
+        :return:
+        """
+        uri = "test.state"
+
+        # First iteration
+        src = """
+import:
+  - best_editor
+
+add_httpd:
+  pkg.installed:
+    name: nginx
+"""
+        collector = StateCollector(jid=self.jid, uri=uri, root=self.root)
+        collector.add_resource("test/state.st", source=src)
+        assert collector.next_hop() == "best_editor"
+        assert "uri" in collector.meta
+        assert collector.meta["uri"] == uri
+
+        # Second iteration
+        assert StateCollector(jid=self.jid, root=self.root).next_hop() == "best_editor"
+        assert "uri" in collector.meta
+        assert collector.meta["uri"] == uri
+
+        # Third iteration
+        src = """
+import:
+  - resources.ssl
+
+add_best_editor:
+  pkg.installed:
+    name: emacs
+"""
+        collector = StateCollector(jid=self.jid, root=self.root)
+        collector.add_resource("best_editor.st", source=src)
+        assert collector.next_hop() == "resources.ssl"
+        assert "uri" in collector.meta
+        assert collector.meta["uri"] == uri
+
+        # Fourth iteration
+        assert StateCollector(jid=self.jid, root=self.root).next_hop() == "resources.ssl"
+        assert "uri" in collector.meta
+        assert collector.meta["uri"] == uri
+
+        # Fifth iteration
+        src = """
+setup_ssl:
+  ssl.certificates.generate:
+    scope: all
+
+setup_httpd_configs:
+  file.configuration:
+    src: sugar://someconfig.cfg
+    dest: /etc/nginx/someconfig.cfg
+"""
+        collector = StateCollector(jid=self.jid, root=self.root)
+        collector.add_resource("resources/ssl.st", source=src)
+        assert collector.next_hop() is None
+        assert "uri" in collector.meta
+        assert collector.meta["uri"] == uri
