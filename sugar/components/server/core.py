@@ -12,16 +12,17 @@ from multiprocessing import Queue
 from twisted.internet import threads, reactor
 
 from sugar.config import get_config
-from sugar.lib.logger.manager import get_logger
-from sugar.utils.objects import Singleton
-from sugar.utils.cli import get_current_component
-from sugar.transport import Serialisable, ServerMsgFactory, ObjectGate
-from sugar.lib.pki import Crypto
-from sugar.lib.pki.keystore import KeyStore
 from sugar.components.server.registry import RuntimeRegistry
 from sugar.components.server.pdatastore import PDataContainer
+from sugar.lib.compiler.objresolv import ObjectResolver
 from sugar.lib.jobstore import JobStorage
 from sugar.lib.jobstore.const import JobTypes
+from sugar.lib.logger.manager import get_logger
+from sugar.lib.pki import Crypto
+from sugar.lib.pki.keystore import KeyStore
+from sugar.transport import Serialisable, ServerMsgFactory, ObjectGate
+from sugar.utils.objects import Singleton
+from sugar.utils.cli import get_current_component
 
 import sugar.transport
 import sugar.lib.pki.utils
