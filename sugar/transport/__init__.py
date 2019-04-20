@@ -143,6 +143,7 @@ class ConsoleMsgFactory(_MessageFactory):
         And('target'): str,
         And('uri'): str,
         And('args'): [],
+        And("env"): str,
 
         And('offline'): bool,
 
@@ -168,6 +169,7 @@ class ConsoleMsgFactory(_MessageFactory):
         obj.uri = ''
         obj.args = []
         obj.jid = jid
+        obj.env = "main"
         obj.offline = False
 
         cls.validate(obj)

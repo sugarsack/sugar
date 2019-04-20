@@ -126,8 +126,9 @@ class ServerCore:
         :param proto: peer protocol
         :return: None
         """
-        self.log.debug("accepted a state event from the console:\n\tURI: {}\n\tquery: {}\n\targs: {}",
-                       evt.uri, evt.target, evt.arg)
+        #resolver = ObjectResolver()
+        self.log.debug("accepted a state event from the console:\n\tURI: {}\n\tenv: {}\n\tquery: {}\n\targs: {}",
+                       evt.uri, evt.env, evt.target, evt.arg)
         clientlist, offline_clientlist = self._get_targets(event=evt)
         if clientlist or offline_clientlist:
             evt.jid = self.jobstore.new(query=evt.target, clientslist=clientlist + offline_clientlist,
