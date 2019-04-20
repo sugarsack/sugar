@@ -91,7 +91,6 @@ class SugarConsoleCore(object):
         """
         target = sys.argv[1:2]
         query = self.args.query[::]
-        args = self._get_args(query)
 
         if "state" in sys.argv[2:]:
             query.pop(0)  # Remove 'state' switch
@@ -115,7 +114,7 @@ class SugarConsoleCore(object):
             cnt = ConsoleMsgFactory.create()
             cnt.target = target[0] if target else ':'
             cnt.uri = query.pop(0)
-            cnt.arg = args
+            cnt.arg = self._get_args(query)
 
             if "." not in cnt.uri:
                 raise SugarConsoleException("Target should contain function with the namespace.")
