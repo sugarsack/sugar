@@ -290,9 +290,25 @@ class ServerSystemEvents(object):
         self.pki_path = os.path.join(self.core.config.config_path,
                                      "pki/{}".format(get_current_component()))
         if not os.path.exists(self.pki_path):
-            self.log.info("creating directory for keys in: {}".format(self.pki_path))
+            self.log.info("creating directory for keys in '{}'.".format(self.pki_path))
             os.makedirs(self.pki_path)
 
+    def init_state_directories(self) -> None:
+        """
+        Create state directories according to the configuration.
+
+        :return: None
+        """
+        for env_name in self.core.config.states.environments:
+            path = self.core.config.states.environments(env_name)
+            if not os.path.exists(path):
+                self.log.info("creating state environment for '{}' in '{}'.", env_name, path)
+                try:
+                    os.makedirs(path)
+                except IOError as exc:
+                    self.log.error("Unable to create state environment for '{}' in '{}'.", env_name, path)
+                    self.log.critical(str(exc))
+                    raise Exception("Aborted due to {}".format(exc))
 
     def validate_state_aliases(self) -> None:
         """
@@ -306,12 +322,16 @@ class ServerSystemEvents(object):
             if chk_reg.sub("", alias):
                 self.log.error("Invalid alias: '{}'.", alias)
                 raise Exception("Incorrect alias configuration.")
+
     def on_startup(self):
         """
         This starts on Master startup to reset its initial state.
 
         :return: None
         """
+        self.init_state_directories()
+        self.validate_state_aliases()
+
         if not sugar.lib.pki.utils.check_keys(self.pki_path):
             # TODO: Clients also should update this.
             # - Send an event?
