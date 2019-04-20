@@ -76,6 +76,7 @@ class ServerCore:
             "function": event.uri,
             "arguments": event.arg,
             "type": None,
+            "env": event.env
         }
         if event.kind == sugar.transport.ConsoleMsgFactory.TASK_REQUEST:
             task_message.internal["type"] = JobTypes.RUNNER
@@ -90,7 +91,7 @@ class ServerCore:
                        _type, event.uri, event.arg, target.host, target.id)
         # Fire
         if task_message.internal["type"] is not None:
-            proto = self.get_client_protocol(target.id)  # This might be None due to the network issues (unregister fired)
+            proto = self.get_client_protocol(target.id)  # None due to the network issues (unregister fired)
             if proto is None and self.__retry_calls.get(target.id) != 0:
                 self.__retry_calls.setdefault(target.id, 3)
                 self.__retry_calls[target.id] -= 1
