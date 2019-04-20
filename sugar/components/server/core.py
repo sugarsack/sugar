@@ -8,6 +8,7 @@ import os
 import json
 import random
 import typing
+import re
 from multiprocessing import Queue
 from twisted.internet import threads, reactor
 
@@ -292,6 +293,19 @@ class ServerSystemEvents(object):
             self.log.info("creating directory for keys in: {}".format(self.pki_path))
             os.makedirs(self.pki_path)
 
+
+    def validate_state_aliases(self) -> None:
+        """
+        Validate state aliases on startup. An alias cannot be a path or URI,
+        should contain only letters, hyphens and underscores.
+
+        :return: None
+        """
+        chk_reg = re.compile(r"\w|[-]")
+        for alias in self.core.config.states.aliases or []:
+            if chk_reg.sub("", alias):
+                self.log.error("Invalid alias: '{}'.", alias)
+                raise Exception("Incorrect alias configuration.")
     def on_startup(self):
         """
         This starts on Master startup to reset its initial state.
