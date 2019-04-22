@@ -29,6 +29,7 @@ import sugar.transport
 import sugar.lib.pki.utils
 import sugar.utils.stringutils
 import sugar.utils.network
+import sugar.utils.files
 
 from sugar.utils.tokens import MasterLocalToken
 
@@ -62,7 +63,7 @@ class ServerCore:
         """
         return token == self.master_local_token.get_token()
 
-    def fire_job_event(self, event, target) -> None:
+    def fire_job_event(self, event: Serialisable, target: PDataContainer, src: str = None) -> None:
         """
         Fire an event (usually a remote task).
 
@@ -82,8 +83,10 @@ class ServerCore:
             task_message.internal["type"] = JobTypes.RUNNER
             _type = "Runner"
         elif event.kind == sugar.transport.ConsoleMsgFactory.STATE_REQUEST:
+            assert src is not None, "State source was not found"
             task_message.internal["type"] = JobTypes.STATE
             task_message.internal["stage"] = "init"  # TODO: First "init", others are "followup"
+            task_message.internal["src"] = src
             _type = "State"
         else:
             _type = "Unknown"
@@ -110,6 +113,33 @@ class ServerCore:
                     self.log.debug("{} job '{}' temporarily cannot be fired to the client {}.",
                                    _type, event.jid, target.id)
 
+    def _get_state_source(self, event: Serialisable) -> typing.Tuple:
+        """
+        Get state source by URI from the environment.
+        Returns state source if event kind is the "state request".
+        If the event kind is "state request" and source is not found,
+        source remains None and "failed" turns into a tuple of two
+        elemtns: string template for the error message and arguments
+        for its formatting.
+
+        Source will remain None if state kind is not "state request".
+
+        :param event: Event
+        :return: Source string
+        """
+        failed = ()
+        src = None
+        if event.kind == sugar.transport.ConsoleMsgFactory.STATE_REQUEST:
+            try:
+                src_path = ObjectResolver(path=self.config.states.environments(event.env)).resolve(uri=event.uri)
+                if os.path.exists(src_path):
+                    with sugar.utils.files.fopen(src_path) as src_fh:
+                        src = src_fh.read()
+            except Exception as exc:
+                failed = "No state source available for URI '{}'. {}", [event.uri, str(exc)]
+
+        return src, failed
+
     def _get_targets(self, event) -> typing.Tuple[list, list]:
         """
         Get targets.
@@ -127,19 +157,23 @@ class ServerCore:
         :param proto: peer protocol
         :return: None
         """
-        #resolver = ObjectResolver()
+        src, failed = self._get_state_source(evt)
         self.log.debug("accepted a state event from the console:\n\tURI: {}\n\tenv: {}\n\tquery: {}\n\targs: {}",
                        evt.uri, evt.env, evt.target, evt.arg)
-        clientlist, offline_clientlist = self._get_targets(event=evt)
-        if clientlist or offline_clientlist:
-            evt.jid = self.jobstore.new(query=evt.target, clientslist=clientlist + offline_clientlist,
-                                        uri=evt.uri, args=json.dumps(evt.arg), job_type=JobTypes.STATE)
-            for target in clientlist:
-                threads.deferToThread(self.fire_job_event, event=evt, target=target)
 
         msg = sugar.transport.ServerMsgFactory.create_console_msg()
-        msg.ret.msg_template = "State JID: {}"
-        msg.ret.msg_args = [evt.jid]
+        if not failed:
+            clientlist, offline_clientlist = self._get_targets(event=evt)
+            if clientlist or offline_clientlist:
+                evt.jid = self.jobstore.new(query=evt.target, clientslist=clientlist + offline_clientlist,
+                                            uri=evt.uri, args=json.dumps(evt.arg), job_type=JobTypes.STATE,
+                                            env=evt.env, kind=evt.kind)
+                for target in clientlist:
+                    threads.deferToThread(self.fire_job_event, event=evt, target=target, src=src)
+
+            msg.ret.msg_template, msg.ret.msg_args = "State JID: {}", [evt.jid]
+        else:
+            msg.ret.msg_template, msg.ret.msg_args = failed
         proto.sendMessage(ServerMsgFactory.pack(msg), isBinary=True)
 
     def on_broadcast_tasks(self, evt, proto) -> None:
@@ -157,8 +191,8 @@ class ServerCore:
         msg = sugar.transport.ServerMsgFactory.create_console_msg()
         if clientlist or offline_clientlist:
             evt.jid = self.jobstore.new(query=evt.target, clientslist=clientlist + offline_clientlist,
-                                        uri=evt.uri, args=json.dumps(evt.arg),
-                                        job_type=JobTypes.RUNNER)
+                                        uri=evt.uri, args=json.dumps(evt.arg), env=evt.env,
+                                        job_type=JobTypes.RUNNER, kind=evt.kind)
             for target in clientlist:
                 threads.deferToThread(self.fire_job_event, event=evt, target=target)
             self.log.debug("Created a new job: '{}' for {} online and {} offline machines",
@@ -184,8 +218,16 @@ class ServerCore:
                 event = type("event", (), {})
                 event.jid = job.jid
                 event.uri = job.uri
+                event.env = job.env
                 event.arg = json.loads(job.args)
-                threads.deferToThread(self.fire_job_event, event=event, target=target)
+                event.kind = job.kind
+                src, failed = self._get_state_source(event)
+
+                if not failed:
+                    threads.deferToThread(self.fire_job_event, event=event, target=target, src=src)
+                else:
+                    msg, args = failed
+                    self.log.error(msg, *args)
 
     def refresh_client_pdata(self, machine_id: str, traits=None) -> None:
         """

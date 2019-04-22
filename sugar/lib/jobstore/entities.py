@@ -32,6 +32,8 @@ class Job(database.Entity, SerialisableEntity):
     results = orm.Set("Result")                   # Set of tasks per host. Job ID is the same across the set of hosts.
     args = orm.Optional(str, nullable=True, default=None)
     uri = orm.Required(str)
+    env = orm.Required(str)                       # Environment
+    kind = orm.Required(int)                      # kind
     type = orm.Required(str)                      # Type: "runner" or "state"
 
 

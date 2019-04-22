@@ -80,7 +80,8 @@ class JobStorage:
             return host
 
     def new(self, query: str, clientslist: typing.List[PDataContainer],
-            uri: str, args: str, job_type: str, tag: str = None, jid: str = None) -> str:
+            uri: str, args: str, job_type: str, kind: int,
+            tag: str = None, jid: str = None, env: str = "main") -> str:
         """
         Register a new job.
 
@@ -91,6 +92,8 @@ class JobStorage:
         :param job_type: one of the "runner", "state"
         :param args: Arguments of the job (usually for the "runner")
         :param jid: reuse passed in JID.
+        :param env: environment (default "main")
+        :param kind: Message type (runner, state etc)
         :raises SugarJobStoreException: if job is attempted to be registered without target clients.
         :return: jid (new job id)
         """
@@ -102,7 +105,7 @@ class JobStorage:
             jid = jidstore.create()
         with orm.db_session(optimistic=False):
             job = Job(jid=jid, query=query, created=datetime.datetime.now(tz=pytz.UTC), tag=tag,
-                      type=job_type, uri=uri, args=args)
+                      type=job_type, uri=uri, args=args, env=env, kind=kind)
             for target in clientslist:
                 job.results.create(machineid=target.id)
         return jid
