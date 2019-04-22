@@ -102,7 +102,7 @@ class SugarConsoleCore(object):
             if ":" in uri:
                 cnt.env, uri = uri.split(":", 1)
 
-            if ":" in uri or "." not in uri:
+            if ":" in uri:
                 raise SugarConsoleException("Invalid URI: {}".format(uri))
 
             cnt.uri = uri
