@@ -7,7 +7,7 @@ import time
 from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
 from sugar.transport import (ObjectGate, ServerMsgFactory, ClientMsgFactory, KeymanagerMsgFactory,
-                             ConsoleMsgFactory, RunnerModulesMsgFactory)
+                             ConsoleMsgFactory, RunnerModulesMsgFactory, StateModulesMsgFactory)
 from sugar.utils import exitcodes
 from sugar.components.server.core import get_server_core
 from sugar.components.server.pdatastore import PDataContainer
@@ -127,21 +127,22 @@ class SugarServerProtocol(WebSocketServerProtocol):
                 self.set_machine_id(msg.machine_id)
                 self.factory.core.peer_registry.register(machine_id=msg.machine_id, peer=self)
 
-            if msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ:
-                self.log.debug("handshake: public key request")
-                self.sendMessage(ObjectGate(self.factory.core.system.on_pub_rsa_request()).pack(binary), binary)
+            if msg.component == ClientMsgFactory.COMPONENT:
+                if msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REQ:
+                    self.log.debug("handshake: public key request")
+                    self.sendMessage(ObjectGate(self.factory.core.system.on_pub_rsa_request()).pack(binary), binary)
 
-            elif msg.kind == ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ:
-                self.log.debug("handshake: signed token request")
-                self.sendMessage(ObjectGate(self.factory.core.system.on_token_request(msg)).pack(binary), binary)
+                elif msg.kind == ClientMsgFactory.KIND_HANDSHAKE_TKEN_REQ:
+                    self.log.debug("handshake: signed token request")
+                    self.sendMessage(ObjectGate(self.factory.core.system.on_token_request(msg)).pack(binary), binary)
 
-            elif msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ:
-                self.log.debug("handshake: new RSA key registration accepted")
-                self.sendMessage(ObjectGate(self.factory.core.system.on_add_new_rsa_key(msg)).pack(binary), binary)
+                elif msg.kind == ClientMsgFactory.KIND_HANDSHAKE_PKEY_REG_REQ:
+                    self.log.debug("handshake: new RSA key registration accepted")
+                    self.sendMessage(ObjectGate(self.factory.core.system.on_add_new_rsa_key(msg)).pack(binary), binary)
 
-            elif msg.kind == ClientMsgFactory.KIND_TRAITS:
-                self.log.debug("Traits update on client connect")
-                self.factory.core.refresh_client_pdata(self.machine_id, traits=msg.internal)
+                elif msg.kind == ClientMsgFactory.KIND_TRAITS:
+                    self.log.debug("Traits update on client connect")
+                    self.factory.core.refresh_client_pdata(self.machine_id, traits=msg.internal)
 
             elif msg.component == RunnerModulesMsgFactory.COMPONENT:
                 self.factory.core.jobstore.report_job(jid=msg.jid, target=PDataContainer(id=msg.machine_id, host=""),
@@ -149,7 +150,20 @@ class SugarServerProtocol(WebSocketServerProtocol):
                                                       src=msg.src, return_data=msg.return_data, uri=msg.uri,
                                                       log_info=msg.infos, log_warn=msg.warnings, log_err=msg.errors)
                 self.factory.core.jobstore.report_job_finished(jid=msg.jid)
+
+            elif msg.component == StateModulesMsgFactory.COMPONENT:
+                if msg.kind == StateModulesMsgFactory.KIND_CPL_FOLLOWUP:
+                    self.factory.core.on_compile_followup(evt=msg, proto=self)
+                elif msg.kind == StateModulesMsgFactory.KIND_JOB_FOLLOWUP:
+                    # on job report follow-up
+                    print(">>> STATE: on job report follow-up")
+                elif msg.kind == StateModulesMsgFactory.KIND_JOB_DONE:
+                    # on job complete
+                    print(">>> STATE: on job complete")
+                else:
+                    self.log.error("Unknown state module message kind: {}", msg.kind)
             else:
+                print(ObjectGate(msg).to_json())
                 self.log.error("CAUTION: unknown message type")
 
     def onClose(self, wasClean, code, reason):
