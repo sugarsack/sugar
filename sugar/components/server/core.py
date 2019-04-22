@@ -64,14 +64,29 @@ class ServerCore:
         """
         return token == self.master_local_token.get_token()
 
-    def fire_job_event(self, event: Serialisable, target: PDataContainer, src: str = None) -> None:
+    def fire_job_event(self, event: Serialisable, target: PDataContainer,
+                       src: str = None, src_path: str = None) -> None:
         """
         Fire an event (usually a remote task).
 
         :param event: An event to broadcast
         :param target: Selected target
+        :param src: Source of the state, if any. Default None
+        :param src_path: Path of the source, if source is not None.
         :return: None
         """
+        msg = None
+        if src or src_path:
+            if src is None:
+                msg = "No source found for the given path '{}'".format(src_path)
+                self.log.error(msg)
+            if src_path is None:
+                msg = "No path found for the source at '{}' URI".format(event.uri)
+                self.log.error(msg)
+
+        if msg is not None:
+            raise sugar.lib.exceptions.SugarServerException(msg)
+
         task_message = ServerMsgFactory().create(jid=event.jid)  # TODO: Better message type to avoid internal segment
         task_message.ret.message = "pig"
         task_message.internal = {
@@ -88,6 +103,8 @@ class ServerCore:
             task_message.internal["type"] = JobTypes.STATE
             task_message.internal["stage"] = "init"  # TODO: First "init", others are "followup"
             task_message.internal["src"] = src
+            task_message.internal["src_path"] = src_path
+            task_message.internal["uri"] = event.uri
             _type = "State"
         else:
             _type = "Unknown"
@@ -102,7 +119,7 @@ class ServerCore:
                 pause = random.randint(3, 15)
                 self.log.debug("Peer temporarily unavailable for peer {} to fire job {}. Waiting {} seconds.",
                                target.id, event.jid, pause)
-                reactor.callLater(pause, self.fire_job_event, event, target)
+                reactor.callLater(pause, self.fire_job_event, event, target, src, src_path)
             else:
                 if target.id in self.__retry_calls:
                     del self.__retry_calls[target.id]
