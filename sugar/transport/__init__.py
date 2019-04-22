@@ -382,33 +382,45 @@ class StateModulesMsgFactory(_MessageFactory):
     Return objects for the state modules.
     """
     COMPONENT = 0x11
+    KIND_CPL_FOLLOWUP = 0x12  # Compile follow-up
+    KIND_JOB_FOLLOWUP = 0x13  # Job/task follow-up
+    KIND_JOB_DONE = 0x14      # Job done/finished
 
     scheme = Schema({
         Optional("."): None,  # Marker
+        And("jid"): str,
         And('component'): int,
         And("errcode"): int,
+        And("kind"): int,
         And("changes"): {},
         And("infos"): [],
         And("warnings"): [],
         And("errors"): [],
+
+        Optional("src"): str,
+        Optional("src_path"): str,
+        Optional("uri"): str,
+        Optional("env"): str,
     })
 
-    @classmethod
-    def create(cls):
+    @staticmethod
+    def create(jid: str, kind: int):
         """
         Create state modules return message.
 
         :return: Serialisable
         """
         obj = Serialisable()
-        obj.component = cls.COMPONENT
+        obj.component = StateModulesMsgFactory.COMPONENT
+        obj.kind = kind
+        obj.jid = jid
         obj.errcode = 0
         obj.changes = {}
         obj.infos = []
         obj.warnings = []
         obj.errors = []
 
-        cls.validate(obj)
+        StateModulesMsgFactory.validate(obj)
 
         return obj
 
