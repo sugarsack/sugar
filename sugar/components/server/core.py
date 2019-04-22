@@ -152,17 +152,23 @@ class ServerCore:
         :return: Source string
         """
         failed = ()
-        src = None
-        if event.kind == sugar.transport.ConsoleMsgFactory.STATE_REQUEST:
+        src = relative_path = None
+
+        # TODO: check component
+        if event.kind in [sugar.transport.ConsoleMsgFactory.STATE_REQUEST,
+                          sugar.transport.StateModulesMsgFactory.KIND_CPL_FOLLOWUP]:
             try:
-                src_path = ObjectResolver(path=self.config.states.environments(event.env)).resolve(uri=event.uri)
-                if os.path.exists(src_path):
-                    with sugar.utils.files.fopen(src_path) as src_fh:
-                        src = src_fh.read()
+                root_path = self.config.states.environments(event.env)
+                path = ObjectResolver(path=root_path).resolve(uri=event.uri)
+                relative_path = path.replace(os.path.join(root_path, event.env), "", 1).strip(os.path.sep)
+
+                if os.path.exists(path):
+                    with sugar.utils.files.fopen(path) as src_fh:
+                        src = src_fh.read().strip() + os.linesep
             except Exception as exc:
                 failed = "No state source available for URI '{}'. {}", [event.uri, str(exc)]
 
-        return src, failed
+        return src, relative_path, failed
 
     def _get_targets(self, event) -> typing.Tuple[list, list]:
         """
@@ -173,6 +179,40 @@ class ServerCore:
         return (self.peer_registry.get_targets(query=event.target),
                 self.peer_registry.get_offline_targets() if event.offline else [])
 
+    def on_compile_followup(self, evt, proto) -> None:
+        """
+        Follow-up with the requested source.
+
+        :param evt: event
+        :param proto: peer protocol
+        :return: None
+        """
+        src, src_path, failed = self._get_state_source(evt)
+
+        # on compile follow-up
+        print(">>> STATE: on compile follow-up")
+        print("Source:", repr(src))
+        print("Path:", src_path)
+        print("Failure:", failed)
+        print("JSON:", ObjectGate(evt).to_json())
+
+        followup = ServerMsgFactory().create(jid=evt.jid, kind=ServerMsgFactory.KIND_OPR_REQ)
+        followup.internal["type"] = "state"
+        followup.internal["uri"] = evt.uri
+        followup.internal["env"] = evt.env
+        followup.internal["src"] = src
+        followup.internal["src_path"] = src_path
+
+        proto.sendMessage(ServerMsgFactory.pack(followup), isBinary=True)
+        self.log.debug("Sent follow-up for URI '{}' as path '{}'", evt.uri, src_path)
+
+        # TODO: if failed (e.g. client crashes in the middle of the compilation),
+        #       then this job should be closed as "corrupted".
+        #       Possible way of doing this:
+        #          - Treat /var/cache/sugar/states/<JID> as follow-up. To do this, get root URI from the meta and
+        #            request for the follow-up calling the next hop. If it compiles, then it works.
+        #          - Kill it entirely and close as "corrupted".
+
     def on_broadcast_state(self, evt, proto) -> None:
         """
         Send state metadata to clients.
@@ -181,7 +221,7 @@ class ServerCore:
         :param proto: peer protocol
         :return: None
         """
-        src, failed = self._get_state_source(evt)
+        src, src_path, failed = self._get_state_source(evt)
         self.log.debug("accepted a state event from the console:\n\tURI: {}\n\tenv: {}\n\tquery: {}\n\targs: {}",
                        evt.uri, evt.env, evt.target, evt.arg)
 
