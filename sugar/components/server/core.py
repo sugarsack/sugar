@@ -233,7 +233,7 @@ class ServerCore:
                                             uri=evt.uri, args=json.dumps(evt.arg), job_type=JobTypes.STATE,
                                             env=evt.env, kind=evt.kind)
                 for target in clientlist:
-                    threads.deferToThread(self.fire_job_event, event=evt, target=target, src=src)
+                    threads.deferToThread(self.fire_job_event, event=evt, target=target, src=src, src_path=src_path)
 
             msg.ret.msg_template, msg.ret.msg_args = "State JID: {}", [evt.jid]
         else:
@@ -285,10 +285,10 @@ class ServerCore:
                 event.env = job.env
                 event.arg = json.loads(job.args)
                 event.kind = job.kind
-                src, failed = self._get_state_source(event)
+                src, src_path, failed = self._get_state_source(event)
 
                 if not failed:
-                    threads.deferToThread(self.fire_job_event, event=event, target=target, src=src)
+                    threads.deferToThread(self.fire_job_event, event=event, target=target, src=src, src_path=src_path)
                 else:
                     msg, args = failed
                     self.log.error(msg, *args)
