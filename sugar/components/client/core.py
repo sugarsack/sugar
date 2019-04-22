@@ -3,29 +3,30 @@ Core client operations.
 """
 import os
 
+import twisted.internet.error
 from twisted.internet import reactor
 from twisted.internet import task as twisted_task
-import twisted.internet.error
 
+import sugar.lib.exceptions
 import sugar.lib.pki.utils
-import sugar.utils.stringutils
 import sugar.utils.network
 import sugar.utils.process
-import sugar.lib.exceptions
+import sugar.utils.stringutils
 
 from sugar.config import get_config
+from sugar.components.client.statecollector import StateCollector
 from sugar.lib.compat import queue
+from sugar.lib.exceptions import SugarClientException
+from sugar.lib.loader import SugarModuleLoader
 from sugar.lib.logger.manager import get_logger
 from sugar.lib.pki import Crypto
 from sugar.lib.pki.keystore import KeyStore
-from sugar.lib.exceptions import SugarClientException
-from sugar.lib.traits import Traits
 from sugar.lib.taskproc import TaskProcessor
-from sugar.utils.objects import Singleton
-from sugar.utils.cli import get_current_component
+from sugar.lib.traits import Traits
+from sugar.transport import ClientMsgFactory, ServerMsgFactory, StateModulesMsgFactory
 from sugar.transport.serialisable import Serialisable
-from sugar.transport import ClientMsgFactory, ServerMsgFactory
-from sugar.lib.loader import SugarModuleLoader
+from sugar.utils.cli import get_current_component
+from sugar.utils.objects import Singleton
 
 
 # pylint: disable=R0801
