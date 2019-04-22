@@ -103,25 +103,21 @@ class SugarClientProtocol(WebSocketClientProtocol):
         """
         if binary:
             msg = ObjectGate().load(payload, binary)
-            if msg.kind != ServerMsgFactory.KIND_OPR_REQ:
-                self.factory.core.put_message(msg)
-            else:
-                if msg.component == ServerMsgFactory.COMPONENT:
-                    if msg.kind == ServerMsgFactory.KIND_OPR_REQ:
-                        if msg.internal.get("type") == "runner":
-                            task = FunctionObject()
-                            task.type = FunctionObject.TYPE_RUNNER
-                            task.module, task.function = msg.internal.get("function").rsplit(".", 1)
-                            task.args, task.kwargs = msg.internal.get("arguments")
-                            task.jid = msg.jid
-                            self.factory.core.system.task_pool.add_task(task)
-                        elif msg.internal.get("type") == "state":
-                            print("----")
-                            print("JID:", msg.jid)
-                            print(msg.internal)
-                            print("----")
-                        else:
-                            self.log.debug("Unknown server operation request type: {}", str(msg.internal.get("type")))
+            if msg.component == ServerMsgFactory.COMPONENT:
+                if msg.kind != ServerMsgFactory.KIND_OPR_REQ:
+                    self.factory.core.put_message(msg)
+                elif msg.kind == ServerMsgFactory.KIND_OPR_REQ:
+                    if msg.internal.get("type") == "runner":
+                        task = FunctionObject()
+                        task.type = FunctionObject.TYPE_RUNNER
+                        task.module, task.function = msg.internal.get("function").rsplit(".", 1)
+                        task.args, task.kwargs = msg.internal.get("arguments")
+                        task.jid = msg.jid
+                        self.factory.core.system.task_pool.add_task(task)
+                    elif msg.internal.get("type") == "state":
+                        self.factory.core.system.compile_state(self, msg)
+                    else:
+                        self.log.debug("Unknown server operation request type: {}", str(msg.internal.get("type")))
         else:
             self.log.debug("non-binary message: {}".format(payload))
 
