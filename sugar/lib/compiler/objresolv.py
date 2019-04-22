@@ -127,7 +127,7 @@ class ObjectResolver:
         """
         return sugar.utils.sanitisers.join_path(*uri.split("."), relative=True)
 
-    def resolve(self, uri=None):
+    def resolve(self, uri=None) -> str:
         """
         Resolve URI. The URI is dotted notation, where os.path.sep
         (slash or back-slash) is represented as "." (dot). If uri
