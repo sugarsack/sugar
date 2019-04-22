@@ -142,6 +142,12 @@ class ServerCore:
 
         Source will remain None if state kind is not "state request".
 
+        Return format:
+          source, relative-to-environment-path, failed
+
+          The "failed" has either empty tuple if no failed, or "msg"
+          and args list to "msg" template.
+
         :param event: Event
         :return: Source string
         """
