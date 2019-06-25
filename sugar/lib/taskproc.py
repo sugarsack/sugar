@@ -12,7 +12,7 @@ from sugar.lib.logger.manager import get_logger
 from sugar.lib.compiler.objtask import FunctionObject
 from sugar.lib.perq import QueueFactory
 from sugar.lib.perq.qexc import QueueEmpty
-from sugar.transport import RunnerModulesMsgFactory, ObjectGate
+from sugar.transport import RunnerModulesMsgFactory, StateModulesMsgFactory, ObjectGate
 from sugar.utils.absmod import ActionResult
 
 
@@ -67,8 +67,14 @@ class TaskProcessor:
                 self.log.error(errmsg)
                 action.set_run_response(response=response)
             self._ret_queue.put_nowait(ObjectGate(response).pack(binary=True))
+        elif task.type == FunctionObject.TYPE_STATE:
+            response = StateModulesMsgFactory.create(jid=task.jid, kind=StateModulesMsgFactory.KIND_JOB_FOLLOWUP)
+            try:
+                self.loader.states[task.uri](*task.args, **task.kwargs).set_run_response(response=response)
+            except Exception as exc:
+                self.log.error(exc)
         else:
-            raise NotImplementedError("State running is not implemented yet")
+            raise NotImplementedError("Unknown task type: {}".format(task.type))
 
         return task.jid, response
 
