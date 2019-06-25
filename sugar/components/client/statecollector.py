@@ -98,10 +98,22 @@ class StateCollector:
         try:
             compiler.compile(meta.get("uri"))
             self.__compiled_data = compiler.tasklist
+            self._assign_jid()
         except sugar.lib.exceptions.SugarSCResolverException as ex:
             self.log.debug("Request for URI: {}", container.get("uri"))
 
         return container.get("uri")
+
+    def _assign_jid(self):
+        """
+        Assigns current JID to each task.
+        This method is called after successful state compilation.
+
+        :return:
+        """
+        for task in self.tasks:
+            for fn_call in task.calls:
+                fn_call.jid = self._jid
 
     @property
     def tasks(self) -> typing.Tuple:
