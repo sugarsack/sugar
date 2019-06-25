@@ -2,6 +2,7 @@
 Core client operations.
 """
 import os
+import typing
 
 import twisted.internet.error
 from twisted.internet import reactor
@@ -487,3 +488,52 @@ class ClientSystemEvents(object):
             proto.factory.reactor.stop()
         else:
             proto.restart_handshake()
+
+    def compile_state(self, proto, event) -> typing.Optional[StateCollector]:
+        """
+        Compile state step-by-step and exchange messages with the Master
+        to download included parts of the state that are not yet included.
+
+        This function has two purposes:
+          - Find out what is still missing for the current state and request it.
+          - Compile finalised state and schedule it to the tasks pool.
+
+        Sugar treats states just like they are scenarios or batch or a sequence
+        of commands, where each call is on its own. Some commands can be concurrent,
+        some depends on each other. So the collecting the returning data is
+        a matter of concurrent messages to the master, which will update the
+        state job status for each task URI.
+
+        :param proto: current peer protocol
+        :param event: event
+        :return: None
+        """
+
+        # print("----")
+        # print("JID:", event.jid, "***", event.internal["uri"])
+        # print("internal:", event.internal)
+        if event.internal.get("stage") == "init":
+            target_uri, target_env = event.internal["uri"], event.internal["env"]
+        else:
+            target_uri = target_env = None
+        collector = StateCollector(jid=event.jid, uri=target_uri, env=target_env)
+
+        if event.internal.get("src_path"):
+            collector.add_resource(relative_path=event.internal["src_path"], source=event.internal["src"])
+
+        next_uri_hop = collector.next_hop()
+        if next_uri_hop is not None:
+            flp_msg = StateModulesMsgFactory.create(jid=event.jid, kind=StateModulesMsgFactory.KIND_CPL_FOLLOWUP)
+            flp_msg.uri = next_uri_hop
+            flp_msg.env = event.internal["env"]
+            proto.sendMessage(StateModulesMsgFactory.pack(flp_msg), is_binary=True)
+            self.log.debug("Sent follow-up compilation message")
+
+        # TODO: resumable while broken in the middle. Maybe check on client restart and cleanup
+        #       incomplete state collections, restarting the whole thing all over again.
+        #
+        # TODO: Next steps are:
+        #       - pingpong server to collect the rest of the source
+        #       - schedule tasks, once tasklist is compiled
+
+        return None if next_uri_hop is not None else collector
