@@ -115,7 +115,11 @@ class SugarClientProtocol(WebSocketClientProtocol):
                         task.jid = msg.jid
                         self.factory.core.system.task_pool.add_task(task)
                     elif msg.internal.get("type") == "state":
-                        self.factory.core.system.compile_state(self, msg)
+                        collector = self.factory.core.system.compile_state(self, msg)
+                        if collector is not None:
+                            for task in collector.tasks:
+                                for f_obj in task.calls:
+                                    self.factory.core.system.task_pool.add_task(f_obj)
                     else:
                         self.log.debug("Unknown server operation request type: {}", str(msg.internal.get("type")))
         else:
