@@ -150,3 +150,11 @@ class SugarJobStoreException(SugarException):
     Sugar JobStore general exception.
     """
     __prefix__ = "Sugar JobStore error"
+
+
+# Module data
+class SugarModuleException(SugarException):
+    """
+    Sugar Module general exception.
+    """
+    __prefix__ = "Suger Module error"
