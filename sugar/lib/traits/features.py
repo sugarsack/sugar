@@ -48,3 +48,13 @@ def host_name_fqdn():
     :return: hostname FQDN string
     """
     return sugar.utils.network.get_fqhostname()
+
+
+@trait("pkg-manager")
+def package_manager():
+    """
+    Provide the name of the package manager.
+
+    :return:
+    """
+    return sugar.lib.traits.utils.get_trait_func("get_package_manager")()

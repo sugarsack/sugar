@@ -1,12 +1,13 @@
 """
 Linux traits implementations
 """
-from __future__ import absolute_import, unicode_literals
 import os
+import shutil
+import typing
 import sugar.utils.files
 
 
-def get_machine_id():
+def get_machine_id() -> typing.Optional[typing.AnyStr]:
     """
     Get machine ID
 
@@ -20,3 +21,23 @@ def get_machine_id():
                 break
 
     return ret
+
+
+def get_package_manager() -> typing.Optional[typing.AnyStr]:
+    """
+    Get package manager of the current Linux distro.
+    If package manager cannot be found, this function will return just None.
+
+    NOTE: The names are conventional, e.g. on Debian with dpkg, apt-get,
+          apt-cache etc it will return just "apt".
+
+    :return: string of the package manager name.
+    """
+    packmans = {"zypper": None, "apt": None, "apt-get": "apt", "yum": None, "dnf": None}
+    package_manager = None
+    for pm_name, pm_alias in packmans.items():
+        if shutil.which(pm_name):
+            package_manager = pm_alias or pm_name
+            break
+
+    return package_manager
