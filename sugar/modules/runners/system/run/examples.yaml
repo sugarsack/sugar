@@ -1,0 +1,9 @@
+spawn:
+  description:
+    Run an arbitrary command with additional arguments, if required.
+
+  commandline: >-
+    sugar \* system.run.spawn ls -lahS /tmp
+
+  states: >-
+    N/A

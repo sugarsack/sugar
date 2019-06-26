@@ -1,0 +1,4 @@
+RunInterface:
+  spawn:
+    r:stdout: str
+    r:stderr: str

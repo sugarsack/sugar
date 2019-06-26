@@ -1,0 +1,20 @@
+module:
+  name: system.run
+  author: Bo Maryniuk <bo@suse.de>
+  summary: Runner module
+  synopsis: >
+    Run an arbitrary commands on the machine with different interfacing.
+  since_version: 0.0.0
+
+tasks:
+  spawn:
+    description:
+      - Spawn a command in a separate process and wait for the result.
+      - Return is STDOUT and STDERR separately.
+    parameters:
+      command:
+        description:
+          - Command to run.
+        required: true
+        default: null
+        type: str
