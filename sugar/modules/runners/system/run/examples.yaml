@@ -3,7 +3,21 @@ spawn:
     - Run an arbitrary command with additional arguments, if required.
 
   commandline: >-
-    sugar \* system.run.spawn ls -lahS /tmp
+    sugar \* system.run.spawn ls args="-lahS,/tmp"
+    sugar \* system.run.spawn ls args="-lahS /tmp"
+
+  states: >-
+    N/A
+
+spawn_list:
+  description:
+    - Run an arbitrary command with additional arguments, if required.
+    - This is an identical call like `spawn` with the only difference
+    - that the result is split by lines into a list.
+
+  commandline: >-
+    sugar \* system.run.spawn_list ls args="-lahS,/tmp"
+    sugar \* system.run.spawn_list ls args="-lahS /tmp"
 
   states: >-
     N/A
