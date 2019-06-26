@@ -111,7 +111,11 @@ class VirtualModuleLoader(BaseModuleLoader):
                 :return: generic object
                 """
                 data = _func_or_data(*args, **kwargs)
-                cls.scheme[func].validate(data)
+                try:
+                    cls.scheme[func].validate(data)
+                except Exception as exc:
+                    raise sugar.lib.exceptions.SugarModuleException(
+                        "Schema mismatch. Module does not returns declared structure: " + str(exc))
                 return data
             result = defer_to_call
 
