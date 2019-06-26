@@ -2,3 +2,7 @@ RunInterface:
   spawn:
     r:stdout: str
     r:stderr: str
+
+  spawn_list:
+    r:stdout: list
+    r:stderr: list
