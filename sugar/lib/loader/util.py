@@ -5,12 +5,14 @@ Loader utilities: decorators etc.
 import os
 import builtins
 import collections
+import traceback
 
 import sugar.utils.absmod
 import sugar.lib.exceptions
 import sugar.utils.files
 from sugar.lib.compat import yaml
 from sugar.lib.schemelib import Schema, And, Optional
+from sugar.lib.logger.manager import get_logger
 
 
 def guard(func):
@@ -24,9 +26,11 @@ def guard(func):
         try:
             result = func(*args, **kwargs)
         except Exception as exc:
+            # TODO: Bug -- this returns ActionResult *also* when the module is trying to be imported.
             result = sugar.utils.absmod.ActionResult()
             result.error = str(exc)
             result.errcode = sugar.lib.exceptions.SugarException.get_errcode(exc)
+            get_logger("EMERGENCY (loader guard)").error(traceback.format_exc())  # TODO: This is a temporary solution!
         return result
 
     return caller
