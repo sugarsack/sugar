@@ -15,6 +15,8 @@ class RunModule(RunInterface):
     """
     Module description
     """
+    STDOUT = "stdout"
+    STDERR = "stderr"
 
     # Add another unix here (lowercase). Ban Windows as it should be different implementation instead.
     __platform__ = ["linux"]
@@ -32,8 +34,8 @@ class RunModule(RunInterface):
 
         result = self.new_result()
         stdout, stderr = subprocess.Popen([command] + args, stdout=subprocess.PIPE).communicate()
-        result["stdout"] = to_str(stdout or b"")
-        result["stderr"] = to_str(stderr or b"")
+        result[self.STDOUT] = to_str(stdout or b"")
+        result[self.STDERR] = to_str(stderr or b"")
 
         return result
 
@@ -47,7 +49,7 @@ class RunModule(RunInterface):
         """
         result = self.spawn(command=command, args=args)
 
-        for section in ["stdout", "stderr"]:
+        for section in [self.STDOUT, self.STDERR]:
             result[section] = result[section].split(os.linesep)
 
         return result
