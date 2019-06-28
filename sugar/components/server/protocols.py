@@ -169,7 +169,10 @@ class SugarServerProtocol(WebSocketServerProtocol):
     def onClose(self, wasClean, code, reason):
         tstamp = time.time()
         self.log.debug("client's connection has been closed: {0}".format(reason))
-        self.transport.loseConnection()
+        try:
+            self.transport.loseConnection()
+        except Exception as exc:
+            self.log.debug("Error losing connection cleanly: {0}".format(str(exc)))
         self.factory.unregister(self)
         self.factory.core.remove_client_protocol(self, tstamp)
 
@@ -180,7 +183,10 @@ class SugarServerProtocol(WebSocketServerProtocol):
         :param reason: connection failure reason
         :return: None
         """
-        WebSocketServerProtocol.connectionLost(self, reason)
+        try:
+            WebSocketServerProtocol.connectionLost(self, reason)
+        except Exception as exc:
+            self.log.debug("Error processing websocket on connection lost: {0}".format(str(exc)))
 
     def get_machine_id(self):
         """
