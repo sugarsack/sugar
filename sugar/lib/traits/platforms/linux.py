@@ -41,3 +41,30 @@ def get_package_manager() -> typing.Optional[typing.AnyStr]:
             break
 
     return package_manager
+
+
+def get_os_family() -> typing.Optional[typing.AnyStr]:
+    """
+    Get OS family.
+
+    :return:
+    """
+    return "debian"
+
+
+def get_os_architecture() -> typing.AnyStr:
+    """
+    Get OS architecture on all known distributions of Linux.
+
+    :return: string architecture as related to the packaging manager, e.g. "amd64" on Debian and "x86_64" on RH/CentOS
+    """
+    os_family = get_os_family()
+    os_arch = ""
+
+    if os_family == "debian":
+        stdout, _ = sugar.utils.process.run_outerr("dpkg", args=["--print-architecture"])
+        os_arch = stdout.strip()
+    elif os_family in ["redhat", "suse"]:
+        os_arch = ''.join([x for x in platform.uname()[-2:] if x][-1:])
+
+    return os_arch

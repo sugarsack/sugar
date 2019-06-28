@@ -58,3 +58,22 @@ def package_manager():
     :return:
     """
     return sugar.lib.traits.utils.get_trait_func("get_package_manager")()
+
+
+@trait("os-family")
+def os_family():
+    """
+    Provide OS family.
+
+    :return:
+    """
+    return sugar.lib.traits.utils.get_trait_func("get_os_family")()
+
+
+@trait("os-arch")
+def os_arch():
+    """
+
+    :return:
+    """
+    return sugar.lib.traits.utils.get_trait_func("get_os_architecture")()
