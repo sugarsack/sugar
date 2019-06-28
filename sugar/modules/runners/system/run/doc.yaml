@@ -18,3 +18,15 @@ tasks:
         required: true
         default: null
         type: str
+
+  spawn_list:
+    description:
+      - Spawn a command in a separate process and wait for the result.
+      - Return is STDOUT and STDERR separately.
+    parameters:
+      command:
+        description:
+          - Command to run.
+        required: true
+        default: null
+        type: str
