@@ -52,7 +52,10 @@ class VirtualModuleLoader(BaseModuleLoader):
             implmod = implmod.split(".")[0]
             if implmod.startswith("_"):
                 continue
-            implmod = importlib.import_module("{}.{}".format(impl.__name__, implmod))
+            try:
+                implmod = importlib.import_module("{}.{}".format(impl.__name__, implmod))
+            except Exception as exc:
+                raise exc
             for c_name, c_obj in implmod.__dict__.items():
                 if c_name.startswith("_"):
                     continue
