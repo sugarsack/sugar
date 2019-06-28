@@ -7,28 +7,38 @@ Daemons.
 from __future__ import absolute_import, with_statement, print_function, unicode_literals
 import os
 import signal
+import typing
 import contextlib
 import subprocess
 import multiprocessing
 import multiprocessing.util
-
+import sugar.utils.stringutils
 from sugar.lib.logger.manager import get_logger
 
 log = get_logger(__name__)  # pylint: disable=C0103
 
 # pylint: disable=W0212,W0613,import-error
-HAS_PSUTIL = False
 try:
     import psutil
-    HAS_PSUTIL = True
 except ImportError:
-    pass
+    psutil = None
 
 try:
     import setproctitle
-    HAS_SETPROCTITLE = True
 except ImportError:
-    HAS_SETPROCTITLE = False
+    setproctitle = None
+
+
+def run_outerr(cmd: str, args: typing.Optional[typing.List]) -> typing.Tuple[str, str]:
+    """
+    Run a command with the subprocess
+    :param cmd:
+    :param args:
+    :return:
+    """
+    stdout, stderr = subprocess.Popen([cmd] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    return (sugar.utils.stringutils.to_str(stdout or b""),
+            sugar.utils.stringutils.to_str(stderr or b""))
 
 
 def appendproctitle(name):
@@ -38,7 +48,7 @@ def appendproctitle(name):
     :param name: name of the title
     :return: None
     """
-    if HAS_SETPROCTITLE:
+    if setproctitle is not None:
         setproctitle.setproctitle(setproctitle.getproctitle() + ' ' + name)
 
 
@@ -114,7 +124,7 @@ class SignalHandlingMultiprocessingProcess(MultiprocessingProcess):
             msg += 'SIGTERM'
         msg += '. Exiting'
         log.info(msg)
-        if HAS_PSUTIL:
+        if psutil is not None:
             process = psutil.Process(self.pid)
             if hasattr(process, 'children'):
                 for child in process.children(recursive=True):
