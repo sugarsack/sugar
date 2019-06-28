@@ -4,6 +4,7 @@ Abstract module bases
 """
 import json
 from sugar.lib.traits import Traits
+from sugar.lib.logger.manager import get_logger
 import sugar.modules.runners
 import sugar.lib.exceptions
 
@@ -165,6 +166,17 @@ class BaseModule:
         self.__traits = Traits()
         self.__modules = None  # virtual module lazy loader is injected on module load
         self.__validate__()
+        self.__initlog__()
+        self.__instance_data__ = {}
+
+    def __initlog__(self):
+        """
+        Set logger to the class instance.
+
+        :param ref:
+        :return:
+        """
+        self.log = get_logger(self)
 
     def __validate__(self):
         """
